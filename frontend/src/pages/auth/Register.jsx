@@ -53,7 +53,7 @@ const Register = () => {
                         <span className="text-3xl">🐾</span>
                     </div>
                     <h1 className="text-3xl font-bold text-slate-800">Join PawSaarthi</h1>
-                    <p className="text-surface-muted mt-1">Create your rescue account</p>
+                    <p className="text-surface-muted mt-1">Create your account</p>
                 </div>
 
                 <div className="card shadow-card-hover">
