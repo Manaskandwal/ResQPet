@@ -35,22 +35,29 @@ console.log('[Server] Initializing PawSaarthi Backend...');
 })();
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
-const allowedOrigins = [
-    process.env.CLIENT_URL || 'http://localhost:5173',
-    'http://localhost:5173',
-    'http://localhost:3000',
-];
+// In development: allow ANY localhost port (Vite may pick 5173, 5174, etc.)
+// In production:  allow only CLIENT_URL env var
+const isDev = (process.env.NODE_ENV || 'development') !== 'production';
+const productionOrigin = process.env.CLIENT_URL;
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow requests with no origin (e.g., mobile apps, Postman, curl)
-            if (!origin || allowedOrigins.includes(origin)) {
-                callback(null, true);
-            } else {
-                console.warn(`[CORS] Blocked request from origin: ${origin}`);
-                callback(new Error(`CORS: Origin ${origin} not allowed.`));
+            // Allow no-origin requests (Postman, curl, mobile apps)
+            if (!origin) return callback(null, true);
+
+            // Dev: allow any localhost or 127.0.0.1 on any port
+            if (isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+                return callback(null, true);
             }
+
+            // Prod: only the explicit CLIENT_URL
+            if (productionOrigin && origin === productionOrigin) {
+                return callback(null, true);
+            }
+
+            console.warn(`[CORS] Blocked request from origin: ${origin}`);
+            callback(new Error(`CORS: Origin ${origin} not allowed.`));
         },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

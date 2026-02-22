@@ -43,8 +43,8 @@ const Login = () => {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl shadow-lg mb-4">
                         <span className="text-3xl">🐾</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-800">PawSaarthi</h1>
-                    <p className="text-surface-muted mt-1">Animal Rescue Platform</p>
+                    <h1 className="text-3xl font-bold text-slate-800">ResQPaws</h1>
+                    <p className="text-surface-muted mt-1">All in One Animal Platform</p>
                 </div>
 
                 {/* Card */}
