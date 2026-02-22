@@ -139,4 +139,40 @@ const getMyCases = async (req, res) => {
     }
 };
 
-module.exports = { getNearbyCases, acceptCase, rejectCase, getMyCases };
+/**
+ * @route   GET /api/ngo/analytics
+ * @desc    Get operational analytics for a specific NGO
+ * @access  Private (ngo only)
+ */
+const getAnalytics = async (req, res) => {
+    try {
+        console.log(`[NGO Controller] getAnalytics for NGO: ${req.user._id}`);
+        const ngoId = req.user._id;
+
+        const [accepted, completed, rejected, nearbyPending] = await Promise.all([
+            RescueRequest.countDocuments({ assignedNGO: ngoId }),
+            RescueRequest.countDocuments({ assignedNGO: ngoId, status: 'completed' }),
+            RescueRequest.countDocuments({ rejectedBy: ngoId }),
+            RescueRequest.countDocuments({ status: 'pending', rejectedBy: { $ne: ngoId } })
+        ]);
+
+        const totalHandled = accepted + rejected;
+        const acceptanceRate = totalHandled > 0 ? ((accepted / totalHandled) * 100).toFixed(1) : 0;
+
+        res.status(200).json({
+            success: true,
+            analytics: {
+                accepted_count: accepted,
+                completed_count: completed,
+                rejected_count: rejected,
+                nearby_pending: nearbyPending,
+                acceptance_rate: acceptanceRate
+            }
+        });
+    } catch (error) {
+        console.error('[NGO Controller] getAnalytics error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getNearbyCases, acceptCase, rejectCase, getMyCases, getAnalytics };

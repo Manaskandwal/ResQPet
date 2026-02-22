@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getNearbyCases, getMyCases } = require('../controllers/ngoController');
+const { getNearbyCases, getMyCases, getAnalytics } = require('../controllers/ngoController');
 const { protect } = require('../middleware/auth');
 const { allowRoles } = require('../middleware/roleGuard');
+// @route  GET /api/ngo/analytics
+router.get('/analytics', protect, allowRoles('ngo'), getAnalytics);
 
 // @route  GET /api/ngo/nearby
 router.get('/nearby', protect, allowRoles('ngo'), getNearbyCases);

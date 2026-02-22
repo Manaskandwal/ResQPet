@@ -21,16 +21,17 @@ const navConfig = {
         { to: '/user/submit-rescue', label: 'Report Animal', Icon: PlusCircleIcon },
     ],
     ngo: [
-        { to: '/ngo/dashboard', label: 'Home', Icon: HomeIcon },
-        { to: '/ngo/dashboard', label: 'Nearby Cases', Icon: MapPinIcon },
+        { to: '/ngo/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
+        { to: '/ngo/dashboard?tab=nearby', label: 'Nearby Cases', Icon: MapPinIcon },
+        { to: '/ngo/dashboard?tab=my_cases', label: 'My Cases', Icon: ClipboardDocumentListIcon },
     ],
     hospital: [
-        { to: '/hospital/dashboard', label: 'Home', Icon: HomeIcon },
-        { to: '/hospital/dashboard', label: 'Escalated Cases', Icon: HeartIcon },
+        { to: '/hospital/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
+        { to: '/hospital/dashboard?tab=escalated', label: 'Escalated Cases', Icon: HeartIcon },
     ],
     ambulance: [
-        { to: '/ambulance/dashboard', label: 'Home', Icon: HomeIcon },
-        { to: '/ambulance/dashboard', label: 'My Assignment', Icon: TruckIcon },
+        { to: '/ambulance/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
+        { to: '/ambulance/dashboard?tab=assignments', label: 'My Assignments', Icon: TruckIcon },
     ],
     admin: [
         { to: '/admin/dashboard?tab=overview', label: 'Home', Icon: HomeIcon },
