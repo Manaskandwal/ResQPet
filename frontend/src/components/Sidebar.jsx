@@ -74,17 +74,8 @@ const Sidebar = ({ open, onClose }) => {
         lg:translate-x-0
       `}
         >
-            {/* Logo */}
             <div className="flex items-center justify-between px-5 py-5 border-b border-surface-border">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-[10px] flex items-center justify-center shadow-sm">
-                        <span className="text-white text-lg">🐾</span>
-                    </div>
-                    <div>
-                        <p className="text-base font-bold text-slate-800 leading-none">ResQPaws</p>
-                        <p className="text-xs text-surface-muted mt-0.5">All in One Animal Platform</p>
-                    </div>
-                </div>
+                <img src="/logo.svg" alt="PawSaarthi" className="h-9" />
                 <button onClick={onClose} className="lg:hidden p-1 rounded hover:bg-surface-hover">
                     <XMarkIcon className="w-5 h-5 text-slate-500" />
                 </button>
@@ -146,7 +137,7 @@ const Sidebar = ({ open, onClose }) => {
             {/* Footer */}
             <div className="px-4 py-4 border-t border-surface-border">
                 <p className="text-[11px] text-surface-muted text-center">
-                    ResQPaws © {new Date().getFullYear()} · Phase 1
+                    PawSaarthi © {new Date().getFullYear()} · Phase 1
                 </p>
             </div>
         </aside>

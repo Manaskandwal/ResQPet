@@ -13,7 +13,7 @@ const mongoose = require('mongoose');
  * Future-ready fields:
  *   serviceType  — extended to ambulance / consultation / marketplace in Phase 2
  *   paymentStatus — tracks paid services; rescue deposit uses separate depositDeducted/Refunded
- *   For refund disputes: email resqpaws.support@gmail.com
+ *   For refund disputes: email pawsaarthi.support@gmail.com
  *
  * Media: up to 5 images + 1 video (max ~2 min ≈ 200MB cap)
  */
@@ -121,7 +121,7 @@ const rescueRequestSchema = new mongoose.Schema(
         },
 
         // Payment status for paid services (rescue deposit tracked separately above)
-        // Refund disputes: resqpaws.support@gmail.com
+        // Refund disputes: pawsaarthi.support@gmail.com
         paymentStatus: {
             type: String,
             enum: ['na', 'pending', 'paid', 'refunded', 'disputed'],

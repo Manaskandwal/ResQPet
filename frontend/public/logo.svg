@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80" fill="none">
+  <!-- Teal rounded square background for paw icon -->
+  <rect x="0" y="8" width="64" height="64" rx="14" fill="#0d9488"/>
+
+  <!-- Paw print (white) - toes -->
+  <!-- Top left toe -->
+  <ellipse cx="20" cy="24" rx="5.5" ry="6.5" fill="white"/>
+  <!-- Top middle-left toe -->
+  <ellipse cx="30" cy="19" rx="5.5" ry="6.5" fill="white"/>
+  <!-- Top middle-right toe -->
+  <ellipse cx="40" cy="19" rx="5.5" ry="6.5" fill="white"/>
+  <!-- Top right toe -->
+  <ellipse cx="50" cy="24" rx="5.5" ry="6.5" fill="white"/>
+  <!-- Main pad -->
+  <ellipse cx="35" cy="44" rx="13" ry="11" fill="white"/>
+
+  <!-- Wordmark: "PawSaarthi" -->
+  <!-- "Paw" in teal, "Saarthi" in dark slate -->
+  <text x="80" y="52"
+    font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+    font-size="32"
+    font-weight="700"
+    letter-spacing="-0.5">
+    <tspan fill="#0d9488">Paw</tspan><tspan fill="#1e293b">Saarthi</tspan>
+  </text>
+</svg>

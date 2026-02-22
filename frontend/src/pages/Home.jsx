@@ -47,7 +47,7 @@ const Home = () => {
                         <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-[8px] flex items-center justify-center shadow-sm">
                             <span className="text-base">🐾</span>
                         </div>
-                        <span className="text-lg font-bold text-slate-800">ResQPaws</span>
+                        <span className="text-lg font-bold text-slate-800">PawSaarthi</span>
                         <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 text-[10px] font-semibold border border-primary-100 ml-1">
                             Phase 1 · Pilot
                         </span>
@@ -206,7 +206,7 @@ const Home = () => {
                         </div>
                         <h2 className="text-3xl font-bold text-slate-800">The Full Pet Care Ecosystem</h2>
                         <p className="text-slate-500 mt-2 max-w-xl mx-auto">
-                            ResQPaws is evolving into a complete tech-enabled animal care platform. These features are in active development.
+                            PawSaarthi is evolving into a complete tech-enabled animal care platform. These features are in active development.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -228,7 +228,7 @@ const Home = () => {
             <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center">
                 <div className="max-w-2xl mx-auto px-5">
                     <h2 className="text-2xl font-bold mb-2">Ready to make a difference?</h2>
-                    <p className="text-primary-100 mb-6">Join ResQPaws and be part of India's first tech-first animal rescue network.</p>
+                    <p className="text-primary-100 mb-6">Join PawSaarthi and be part of India's first tech-first animal rescue network.</p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Link to="/register" className="btn bg-white text-primary-700 hover:bg-primary-50 font-bold btn-lg shadow-lg">
                             Create Free Account
@@ -247,15 +247,15 @@ const Home = () => {
                         <div className="flex items-center gap-2.5">
                             <span className="text-2xl">🐾</span>
                             <div>
-                                <p className="text-white font-bold">ResQPaws</p>
+                                <p className="text-white font-bold">PawSaarthi</p>
                                 <p className="text-xs text-slate-500">Phase 1 · Pilot · Delhi</p>
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-5 text-sm">
                             <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
                             <Link to="/register" className="hover:text-white transition-colors">Register</Link>
-                            <a href={`mailto:resqpaws.support@gmail.com`} className="hover:text-white transition-colors">Support</a>
-                            <a href={`mailto:resqpaws.support@gmail.com?subject=Refund Request`} className="hover:text-white transition-colors">Refund Dispute</a>
+                            <a href={`mailto:PawSaarthi.support@gmail.com`} className="hover:text-white transition-colors">Support</a>
+                            <a href={`mailto:PawSaarthi.support@gmail.com?subject=Refund Request`} className="hover:text-white transition-colors">Refund Dispute</a>
                         </div>
                     </div>
 
@@ -264,17 +264,17 @@ const Home = () => {
                         <div className="bg-slate-800/50 rounded-card p-4 mb-6">
                             <p className="text-xs text-slate-400 leading-relaxed">
                                 <strong className="text-slate-300">⚖️ Disclaimer:</strong>{' '}
-                                ResQPaws is a technology coordination platform. Rescue responses depend on community
-                                participation and are not guaranteed. ResQPaws does not directly employ rescuers, NGO
+                                PawSaarthi is a technology coordination platform. Rescue responses depend on community
+                                participation and are not guaranteed. PawSaarthi does not directly employ rescuers, NGO
                                 workers, or veterinarians. For urgent cases, please also contact local authorities.
                                 For payment or refund disputes, email{' '}
-                                <a href="mailto:resqpaws.support@gmail.com" className="text-primary-400 hover:underline">
-                                    resqpaws.support@gmail.com
+                                <a href="mailto:PawSaarthi.support@gmail.com" className="text-primary-400 hover:underline">
+                                    PawSaarthi.support@gmail.com
                                 </a>
                             </p>
                         </div>
                         <p className="text-xs text-center text-slate-600">
-                            © {new Date().getFullYear()} ResQPaws. All rights reserved. Built with ❤️ for animals.
+                            © {new Date().getFullYear()} PawSaarthi. All rights reserved. Built with ❤️ for animals.
                         </p>
                     </div>
                 </div>

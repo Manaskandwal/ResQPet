@@ -28,7 +28,7 @@ const commissionSchema = new mongoose.Schema(
             min: 0,
         },
 
-        // ResQPaws platform commission rate (0–1 decimal, e.g., 0.10 = 10%)
+        // PawSaarthi platform commission rate (0–1 decimal, e.g., 0.10 = 10%)
         commissionRate: {
             type: Number,
             required: true,
