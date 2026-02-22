@@ -232,4 +232,50 @@ const overrideRescueStatus = async (req, res) => {
     }
 };
 
-module.exports = { getAnalytics, getAllUsers, getPendingApprovals, approveUser, deleteUser, getAllRescues, overrideRescueStatus };
+/**
+ * @route   PUT /api/admin/users/:userId/location
+ * @desc    Admin sets the base location (lat, lng) for an NGO/Hospital/Ambulance
+ * @access  Private (admin only)
+ */
+const setUserLocation = async (req, res) => {
+    try {
+        const { lat, lng, address } = req.body;
+
+        if (lat === undefined || lng === undefined) {
+            return res.status(400).json({ success: false, message: 'lat and lng are required.' });
+        }
+
+        const latNum = parseFloat(lat);
+        const lngNum = parseFloat(lng);
+
+        if (isNaN(latNum) || isNaN(lngNum)) {
+            return res.status(400).json({ success: false, message: 'lat and lng must be valid numbers.' });
+        }
+
+        if (latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
+            return res.status(400).json({ success: false, message: 'Invalid coordinates. lat: -90 to 90, lng: -180 to 180.' });
+        }
+
+        const user = await User.findById(req.params.userId).select('-password');
+        if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+        if (!['ngo', 'hospital', 'ambulance'].includes(user.role)) {
+            return res.status(400).json({ success: false, message: 'Location can only be set for NGO, Hospital, or Ambulance accounts.' });
+        }
+
+        user.location = { lat: latNum, lng: lngNum, address: address || '' };
+        await user.save();
+
+        console.log(`[Admin Controller] Location set for ${user.role} ${user.email}: lat=${latNum}, lng=${lngNum}`);
+        res.status(200).json({
+            success: true,
+            message: `Base location updated for ${user.orgName || user.name}.`,
+            location: user.location,
+        });
+    } catch (error) {
+        console.error('[Admin Controller] setUserLocation error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getAnalytics, getAllUsers, getPendingApprovals, approveUser, deleteUser, getAllRescues, overrideRescueStatus, setUserLocation };

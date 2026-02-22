@@ -6,9 +6,120 @@ import { StatusBadge } from '../../components/StatusComponents';
 import {
     UsersIcon, ClipboardDocumentListIcon, CheckCircleIcon,
     ClockIcon, ShieldCheckIcon, TruckIcon, BuildingOffice2Icon,
-    HeartIcon, TrashIcon,
+    HeartIcon, TrashIcon, MapPinIcon, PencilSquareIcon, XMarkIcon, CheckIcon,
 } from '@heroicons/react/24/outline';
 
+// ── Location Editor Modal ──────────────────────────────────────────────────────
+const LocationModal = ({ user, onClose, onSaved }) => {
+    const [form, setForm] = useState({
+        lat: user.location?.lat ?? '',
+        lng: user.location?.lng ?? '',
+        address: user.location?.address ?? '',
+    });
+    const [saving, setSaving] = useState(false);
+    const [detecting, setDetecting] = useState(false);
+
+    const detectLocation = () => {
+        if (!navigator.geolocation) { toast.error('Geolocation not supported in this browser.'); return; }
+        setDetecting(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setForm((p) => ({ ...p, lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6) }));
+                setDetecting(false);
+                toast.success('Current location captured!');
+            },
+            () => { toast.error('Could not get location. Check browser permissions.'); setDetecting(false); }
+        );
+    };
+
+    const handleSave = async () => {
+        if (!form.lat || !form.lng) { toast.error('Latitude and Longitude are required.'); return; }
+        setSaving(true);
+        try {
+            const { data } = await api.put(`/admin/users/${user._id}/location`, {
+                lat: parseFloat(form.lat),
+                lng: parseFloat(form.lng),
+                address: form.address,
+            });
+            toast.success(data.message);
+            onSaved(user._id, { lat: parseFloat(form.lat), lng: parseFloat(form.lng), address: form.address });
+            onClose();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to save location.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-card shadow-card-hover w-full max-w-md animate-slide-up">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
+                    <div>
+                        <h3 className="font-bold text-slate-800">Set Base Location</h3>
+                        <p className="text-xs text-surface-muted mt-0.5">{user.orgName || user.name} · <span className="capitalize">{user.role}</span></p>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 rounded hover:bg-surface-hover">
+                        <XMarkIcon className="w-5 h-5 text-slate-500" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-5 space-y-4">
+                    {/* Current location */}
+                    <button
+                        onClick={detectLocation}
+                        disabled={detecting}
+                        className="btn-outline w-full gap-2"
+                    >
+                        <MapPinIcon className="w-4 h-4" />
+                        {detecting ? 'Detecting...' : '📍 Use My Current Location (Admin Device)'}
+                    </button>
+
+                    <div className="flex gap-3">
+                        <div className="form-group flex-1">
+                            <label className="label">Latitude</label>
+                            <input className="input" type="number" step="any" placeholder="e.g. 28.6704"
+                                value={form.lat} onChange={(e) => setForm((p) => ({ ...p, lat: e.target.value }))} />
+                        </div>
+                        <div className="form-group flex-1">
+                            <label className="label">Longitude</label>
+                            <input className="input" type="number" step="any" placeholder="e.g. 77.3819"
+                                value={form.lng} onChange={(e) => setForm((p) => ({ ...p, lng: e.target.value }))} />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="label">Location Label <span className="text-surface-muted font-normal">(optional)</span></label>
+                        <input className="input" type="text" placeholder="e.g. Shahdara, Delhi"
+                            value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
+                    </div>
+
+                    {/* Preview */}
+                    {form.lat && form.lng && (
+                        <div className="p-3 bg-primary-50 border border-primary-100 rounded-btn text-xs text-primary-700">
+                            📍 <strong>{form.address || 'Base location'}</strong> — lat: {form.lat}, lng: {form.lng}
+                            <br />
+                            <span className="text-primary-500">NGO will see all pending rescues within <strong>50km</strong> of this point.</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer */}
+                <div className="flex gap-2 px-5 py-4 border-t border-surface-border">
+                    <button onClick={onClose} className="btn-ghost flex-1">Cancel</button>
+                    <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
+                        {saving ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <CheckIcon className="w-4 h-4" />}
+                        Save Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
     const [analytics, setAnalytics] = useState(null);
     const [pending, setPending] = useState([]);
@@ -17,6 +128,7 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState({});
+    const [locationModal, setLocationModal] = useState(null); // user object or null
 
     const fetchAll = useCallback(async () => {
         try {
@@ -45,13 +157,11 @@ const AdminDashboard = () => {
     const handleApprove = async (userId, approve) => {
         setActing((p) => ({ ...p, [userId]: true }));
         try {
-            console.log(`[AdminDashboard] ${approve ? 'Approving' : 'Revoking'} userId:`, userId);
             const { data } = await api.put(`/admin/approve/${userId}`, { approve });
             toast.success(data.message);
             setPending((p) => p.filter((u) => u._id !== userId));
             fetchAll();
         } catch (error) {
-            console.error('[AdminDashboard] Approve error:', error.message);
             toast.error(error.response?.data?.message || 'Action failed.');
         } finally {
             setActing((p) => ({ ...p, [userId]: false }));
@@ -62,16 +172,19 @@ const AdminDashboard = () => {
         if (!confirm('Are you sure you want to delete this user?')) return;
         setActing((p) => ({ ...p, [userId]: true }));
         try {
-            console.log('[AdminDashboard] Deleting userId:', userId);
             await api.delete(`/admin/user/${userId}`);
             toast.success('User deleted.');
             setUsers((p) => p.filter((u) => u._id !== userId));
         } catch (error) {
-            console.error('[AdminDashboard] Delete error:', error.message);
             toast.error(error.response?.data?.message || 'Delete failed.');
         } finally {
             setActing((p) => ({ ...p, [userId]: false }));
         }
+    };
+
+    // Called by modal on successful save — update local state without refetch
+    const handleLocationSaved = (userId, newLocation) => {
+        setUsers((prev) => prev.map((u) => u._id === userId ? { ...u, location: newLocation } : u));
     };
 
     const statCards = analytics ? [
@@ -87,13 +200,24 @@ const AdminDashboard = () => {
 
     const tabs = [
         { id: 'overview', label: 'Overview' },
-        { id: 'approvals', label: `Approvals ${pending.length > 0 ? `(${pending.length})` : ''}` },
+        { id: 'approvals', label: `Approvals${pending.length > 0 ? ` (${pending.length})` : ''}` },
         { id: 'users', label: 'Users' },
         { id: 'rescues', label: 'Rescues' },
     ];
 
+    const orgRoles = ['ngo', 'hospital', 'ambulance'];
+
     return (
         <div className="space-y-6">
+            {/* Location modal */}
+            {locationModal && (
+                <LocationModal
+                    user={locationModal}
+                    onClose={() => setLocationModal(null)}
+                    onSaved={handleLocationSaved}
+                />
+            )}
+
             <div>
                 <h1 className="page-title">Admin Dashboard 🛡️</h1>
                 <p className="page-subtitle">Platform management and oversight</p>
@@ -165,8 +289,11 @@ const AdminDashboard = () => {
             {/* ── Users Tab ───────────────────────────────────── */}
             {activeTab === 'users' && (
                 <div className="card overflow-hidden p-0">
-                    <div className="px-5 py-4 border-b border-surface-border">
+                    <div className="px-5 py-4 border-b border-surface-border flex items-center justify-between">
                         <h3 className="font-semibold text-slate-800">All Users ({users.length})</h3>
+                        <span className="text-xs text-surface-muted flex items-center gap-1">
+                            <MapPinIcon className="w-3 h-3" /> Click 📍 to set base location for NGO/Hospital/Ambulance
+                        </span>
                     </div>
                     <div className="divide-y divide-surface-border">
                         {loading ? (
@@ -178,8 +305,25 @@ const AdminDashboard = () => {
                                         {u.name?.charAt(0)?.toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-slate-800 truncate">{u.name}</p>
+                                        <p className="text-sm font-semibold text-slate-800 truncate">{u.orgName || u.name}</p>
                                         <p className="text-xs text-surface-muted truncate">{u.email}</p>
+                                        {/* Location pill for org roles */}
+                                        {orgRoles.includes(u.role) && (
+                                            <p className="text-[10px] mt-0.5 flex items-center gap-1">
+                                                {u.location?.lat ? (
+                                                    <span className="text-green-600 flex items-center gap-0.5">
+                                                        <MapPinIcon className="w-3 h-3" />
+                                                        {u.location.address || `${u.location.lat.toFixed(4)}, ${u.location.lng.toFixed(4)}`}
+                                                        <span className="text-slate-400 ml-1">· 50km radius active</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-amber-600 flex items-center gap-0.5">
+                                                        <MapPinIcon className="w-3 h-3" />
+                                                        No base location set
+                                                    </span>
+                                                )}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2 flex-shrink-0">
                                         <span className={`badge text-[10px] capitalize ${u.isApproved ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
@@ -187,6 +331,18 @@ const AdminDashboard = () => {
                                         </span>
                                         {u.role === 'user' && (
                                             <span className="text-xs text-slate-500 font-medium">₹{u.walletBalance}</span>
+                                        )}
+                                        {/* Set Location button for org accounts */}
+                                        {orgRoles.includes(u.role) && (
+                                            <button
+                                                onClick={() => setLocationModal(u)}
+                                                title="Set base location"
+                                                className={`p-1.5 rounded transition-colors ${u.location?.lat
+                                                    ? 'text-green-600 hover:bg-green-50'
+                                                    : 'text-amber-500 hover:bg-amber-50'}`}
+                                            >
+                                                <MapPinIcon className="w-4 h-4" />
+                                            </button>
                                         )}
                                         {u.role !== 'admin' && (
                                             <button onClick={() => handleDelete(u._id)} disabled={acting[u._id]}
@@ -206,7 +362,7 @@ const AdminDashboard = () => {
             {activeTab === 'rescues' && (
                 <div className="space-y-3">
                     {loading ? (
-                        [1, 2, 3].map(i => <SkeletonCard key={i} />)
+                        [1, 2, 3].map(i => <div key={i} className="card animate-pulse h-20" />)
                     ) : (
                         rescues.map((r) => (
                             <div key={r._id} className="card">

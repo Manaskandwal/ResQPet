@@ -8,6 +8,7 @@ const {
     deleteUser,
     getAllRescues,
     overrideRescueStatus,
+    setUserLocation,
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/auth');
 const { allowRoles } = require('../middleware/roleGuard');
@@ -35,5 +36,8 @@ router.get('/rescue-requests', getAllRescues);
 
 // @route  PUT  /api/admin/rescue/:id/override
 router.put('/rescue/:id/override', overrideRescueStatus);
+
+// @route  PUT  /api/admin/users/:userId/location
+router.put('/users/:userId/location', setUserLocation);
 
 module.exports = router;
