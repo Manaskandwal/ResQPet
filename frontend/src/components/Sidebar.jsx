@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import {
     HomeIcon,
     PlusCircleIcon,
@@ -11,6 +12,7 @@ import {
     UsersIcon,
     ShieldCheckIcon,
     XMarkIcon,
+    LockClosedIcon,
 } from '@heroicons/react/24/outline';
 
 const navConfig = {
@@ -38,26 +40,30 @@ const navConfig = {
     ],
 };
 
+const comingSoon = [
+    { icon: '🚑', label: 'Emergency Ambulance' },
+    { icon: '👨‍⚕️', label: 'Consult a Vet' },
+    { icon: '🛍️', label: 'Pet Marketplace' },
+];
+
 const roleLabels = {
-    user: 'Citizen',
-    ngo: 'NGO',
-    hospital: 'Hospital',
-    ambulance: 'Ambulance',
-    admin: 'Admin',
+    user: 'Citizen', ngo: 'NGO', hospital: 'Hospital',
+    ambulance: 'Ambulance', admin: 'Admin',
 };
 
 const roleIcons = {
-    user: HeartIcon,
-    ngo: MapPinIcon,
-    hospital: BuildingOffice2Icon,
-    ambulance: TruckIcon,
-    admin: ShieldCheckIcon,
+    user: HeartIcon, ngo: MapPinIcon, hospital: BuildingOffice2Icon,
+    ambulance: TruckIcon, admin: ShieldCheckIcon,
 };
 
 const Sidebar = ({ open, onClose }) => {
     const { user } = useAuth();
     const links = navConfig[user?.role] || [];
     const RoleIcon = roleIcons[user?.role] || HomeIcon;
+
+    const handleComingSoon = (label) => {
+        toast(`${label} is coming in Phase 2! 🚀`, { icon: '⏳' });
+    };
 
     return (
         <aside
@@ -75,8 +81,8 @@ const Sidebar = ({ open, onClose }) => {
                         <span className="text-white text-lg">🐾</span>
                     </div>
                     <div>
-                        <p className="text-base font-bold text-slate-800 leading-none">PawSaarthi</p>
-                        <p className="text-xs text-surface-muted mt-0.5">Rescue Platform</p>
+                        <p className="text-base font-bold text-slate-800 leading-none">ResQPaws</p>
+                        <p className="text-xs text-surface-muted mt-0.5">All in One Animal Platform</p>
                     </div>
                 </div>
                 <button onClick={onClose} className="lg:hidden p-1 rounded hover:bg-surface-hover">
@@ -96,7 +102,7 @@ const Sidebar = ({ open, onClose }) => {
             </div>
 
             {/* Navigation links */}
-            <nav className="flex-1 px-3 mt-4 flex flex-col gap-1">
+            <nav className="flex-1 px-3 mt-4 flex flex-col gap-1 overflow-y-auto">
                 <p className="text-[10px] uppercase tracking-widest text-surface-muted font-semibold px-3 mb-1">
                     Navigation
                 </p>
@@ -112,12 +118,35 @@ const Sidebar = ({ open, onClose }) => {
                         {label}
                     </NavLink>
                 ))}
+
+                {/* ── Coming Soon (Phase 2) ─────────────────────────── */}
+                <div className="mt-4 mb-1">
+                    <div className="flex items-center gap-2 px-3 mb-1">
+                        <p className="text-[10px] uppercase tracking-widest text-surface-muted font-semibold">
+                            Coming Soon
+                        </p>
+                        <span className="px-1.5 py-0.5 bg-violet-50 border border-violet-200 rounded-full text-[9px] text-violet-600 font-bold uppercase">
+                            Phase 2
+                        </span>
+                    </div>
+                    {comingSoon.map(({ icon, label }) => (
+                        <button
+                            key={label}
+                            onClick={() => handleComingSoon(label)}
+                            className="nav-link w-full text-left opacity-60 group"
+                        >
+                            <span className="text-base leading-none">{icon}</span>
+                            <span className="flex-1 text-slate-400">{label}</span>
+                            <LockClosedIcon className="w-3 h-3 text-slate-300 group-hover:text-violet-400 transition-colors flex-shrink-0" />
+                        </button>
+                    ))}
+                </div>
             </nav>
 
             {/* Footer */}
             <div className="px-4 py-4 border-t border-surface-border">
                 <p className="text-[11px] text-surface-muted text-center">
-                    PawSaarthi © {new Date().getFullYear()}
+                    ResQPaws © {new Date().getFullYear()} · Phase 1
                 </p>
             </div>
         </aside>

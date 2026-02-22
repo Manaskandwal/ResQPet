@@ -37,7 +37,7 @@ const Navbar = ({ onMenuClick }) => {
                 {/* Page context (desktop) */}
                 <div className="hidden lg:flex items-center gap-2">
                     <span className="text-xl">🐾</span>
-                    <span className="text-sm text-surface-muted font-medium">PawSaarthi Rescue Platform</span>
+                    <span className="text-sm text-surface-muted font-medium">ResQPaws</span>
                 </div>
 
                 {/* Right side: approval warning + user menu */}

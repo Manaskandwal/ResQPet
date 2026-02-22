@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
+// Public
+import Home from './pages/Home';
+
 // Auth pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -26,15 +29,14 @@ import AmbulanceDashboard from './pages/ambulance/AmbulanceDashboard';
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
 
-const RoleRedirect = () => {
-  const { user } = useAuth();
+/** Redirect authenticated users straight to their dashboard */
+const DashboardRedirect = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
   const routes = {
-    user: '/user/dashboard',
-    ngo: '/ngo/dashboard',
-    hospital: '/hospital/dashboard',
-    ambulance: '/ambulance/dashboard',
-    admin: '/admin/dashboard',
+    user: '/user/dashboard', ngo: '/ngo/dashboard',
+    hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
   };
   return <Navigate to={routes[user.role] || '/login'} replace />;
 };
@@ -42,12 +44,15 @@ const RoleRedirect = () => {
 export default function App() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public */}
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={<RoleRedirect />} />
 
-      {/* User routes */}
+      {/* Authenticated role redirect */}
+      <Route path="/dashboard" element={<DashboardRedirect />} />
+
+      {/* User */}
       <Route element={<ProtectedRoute allowedRoles={['user']} />}>
         <Route element={<Layout />}>
           <Route path="/user/dashboard" element={<UserDashboard />} />
@@ -56,28 +61,28 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* NGO routes */}
+      {/* NGO */}
       <Route element={<ProtectedRoute allowedRoles={['ngo']} />}>
         <Route element={<Layout />}>
           <Route path="/ngo/dashboard" element={<NGODashboard />} />
         </Route>
       </Route>
 
-      {/* Hospital routes */}
+      {/* Hospital */}
       <Route element={<ProtectedRoute allowedRoles={['hospital']} />}>
         <Route element={<Layout />}>
           <Route path="/hospital/dashboard" element={<HospitalDashboard />} />
         </Route>
       </Route>
 
-      {/* Ambulance routes */}
+      {/* Ambulance */}
       <Route element={<ProtectedRoute allowedRoles={['ambulance']} />}>
         <Route element={<Layout />}>
           <Route path="/ambulance/dashboard" element={<AmbulanceDashboard />} />
         </Route>
       </Route>
 
-      {/* Admin routes */}
+      {/* Admin */}
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route element={<Layout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />

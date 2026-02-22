@@ -3,16 +3,19 @@ const mongoose = require('mongoose');
 /**
  * RescueRequest Schema
  *
- * Status flow:
+ * Status flow (Phase 1):
  *   pending
- *     → ngo_accepted   (NGO accepts within 5 min)
+ *     → ngo_accepted       (NGO accepts within 5 min)
  *     → hospital_escalated (cron escalates after 5 min if still pending)
  *       → ambulance_assigned (hospital assigns ambulance)
- *         → en_route
- *           → picked_up
- *             → delivered → completed (deposit refunded)
+ *         → en_route → picked_up → delivered → completed (deposit refunded)
  *
- * Media: up to 5 images + 1 video (max ~2 min ≈ 100MB cap on Cloudinary)
+ * Future-ready fields:
+ *   serviceType  — extended to ambulance / consultation / marketplace in Phase 2
+ *   paymentStatus — tracks paid services; rescue deposit uses separate depositDeducted/Refunded
+ *   For refund disputes: email resqpaws.support@gmail.com
+ *
+ * Media: up to 5 images + 1 video (max ~2 min ≈ 200MB cap)
  */
 const rescueRequestSchema = new mongoose.Schema(
     {
@@ -108,6 +111,29 @@ const rescueRequestSchema = new mongoose.Schema(
                 ref: 'User',
             },
         ],
+
+        // ─── Future-Ready Fields (Phase 2) ────────────────────────────────────────
+        // Service type — extended beyond rescue in Phase 2
+        serviceType: {
+            type: String,
+            enum: ['rescue', 'ambulance', 'consultation', 'marketplace'],
+            default: 'rescue',
+        },
+
+        // Payment status for paid services (rescue deposit tracked separately above)
+        // Refund disputes: resqpaws.support@gmail.com
+        paymentStatus: {
+            type: String,
+            enum: ['na', 'pending', 'paid', 'refunded', 'disputed'],
+            default: 'na', // 'na' = not applicable (free rescue in Phase 1)
+        },
+
+        // Commission record reference (populated when serviceType is paid in Phase 2)
+        commission: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Commission',
+            default: null,
+        },
     },
     {
         timestamps: true,
