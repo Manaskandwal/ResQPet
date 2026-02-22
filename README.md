@@ -1,4 +1,4 @@
-# PawSaarthi — Animal Rescue Platform 🐾
+# ResQPaw— Animal Rescue Platform 🐾
 
 A production-ready, full-stack animal rescue coordination platform with 5 user roles, automated rescue escalation, wallet system, and beautiful dashboards.
 
