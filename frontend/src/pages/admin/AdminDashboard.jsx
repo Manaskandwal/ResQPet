@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { SkeletonStatCard, SkeletonRow } from '../../components/Skeleton';
@@ -121,14 +122,17 @@ const LocationModal = ({ user, onClose, onSaved }) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'overview';
+    const [roleFilter, setRoleFilter] = useState('all');
+
     const [analytics, setAnalytics] = useState(null);
     const [pending, setPending] = useState([]);
     const [users, setUsers] = useState([]);
     const [rescues, setRescues] = useState([]);
-    const [activeTab, setActiveTab] = useState('overview');
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState({});
-    const [locationModal, setLocationModal] = useState(null); // user object or null
+    const [locationModal, setLocationModal] = useState(null);
 
     const fetchAll = useCallback(async () => {
         try {
@@ -227,7 +231,7 @@ const AdminDashboard = () => {
             <div className="flex gap-1 p-1 bg-slate-100 rounded-btn w-fit flex-wrap">
                 {tabs.map((tab) => (
                     <button key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => setSearchParams({ tab: tab.id })}
                         className={`px-4 py-2 rounded-btn text-sm font-medium transition-all
               ${activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
                         {tab.label}
@@ -289,70 +293,89 @@ const AdminDashboard = () => {
             {/* ── Users Tab ───────────────────────────────────── */}
             {activeTab === 'users' && (
                 <div className="card overflow-hidden p-0">
-                    <div className="px-5 py-4 border-b border-surface-border flex items-center justify-between">
-                        <h3 className="font-semibold text-slate-800">All Users ({users.length})</h3>
-                        <span className="text-xs text-surface-muted flex items-center gap-1">
-                            <MapPinIcon className="w-3 h-3" /> Click 📍 to set base location for NGO/Hospital/Ambulance
-                        </span>
+                    <div className="px-5 py-4 border-b border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 className="font-semibold text-slate-800">
+                                Users ({users.filter(u => roleFilter === 'all' || u.role === roleFilter).length})
+                            </h3>
+                            <span className="text-xs text-surface-muted flex items-center gap-1 mt-1">
+                                <MapPinIcon className="w-3 h-3" /> Click 📍 to set base location for NGO/Hospital/Ambulance
+                            </span>
+                        </div>
+
+                        {/* Role Filter */}
+                        <div className="flex bg-slate-100 p-1 rounded-btn text-xs font-medium overflow-x-auto">
+                            {['all', 'user', 'ngo', 'hospital', 'ambulance'].map((r) => (
+                                <button
+                                    key={r}
+                                    onClick={() => setRoleFilter(r)}
+                                    className={`px-3 py-1.5 rounded-btn capitalize transition-all whitespace-nowrap ${roleFilter === r ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    {r === 'user' ? 'Citizen' : r}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                     <div className="divide-y divide-surface-border">
                         {loading ? (
                             [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
                         ) : (
-                            users.map((u) => (
-                                <div key={u._id} className="flex items-center gap-3 px-5 py-3">
-                                    <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-slate-600">
-                                        {u.name?.charAt(0)?.toUpperCase()}
+                            users
+                                .filter((u) => roleFilter === 'all' || u.role === roleFilter)
+                                .map((u) => (
+                                    <div key={u._id} className="flex items-center gap-3 px-5 py-3">
+                                        <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-slate-600">
+                                            {u.name?.charAt(0)?.toUpperCase()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-slate-800 truncate">{u.orgName || u.name}</p>
+                                            <p className="text-xs text-surface-muted truncate">{u.email}</p>
+                                            {/* Location pill for org roles */}
+                                            {orgRoles.includes(u.role) && (
+                                                <p className="text-[10px] mt-0.5 flex items-center gap-1">
+                                                    {u.location?.lat ? (
+                                                        <span className="text-green-600 flex items-center gap-0.5">
+                                                            <MapPinIcon className="w-3 h-3" />
+                                                            {u.location.address || `${u.location.lat.toFixed(4)}, ${u.location.lng.toFixed(4)}`}
+                                                            <span className="text-slate-400 ml-1">· 50km radius active</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-amber-600 flex items-center gap-0.5">
+                                                            <MapPinIcon className="w-3 h-3" />
+                                                            No base location set
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <span className={`badge text-[10px] capitalize ${u.isApproved ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                                                {u.role}
+                                            </span>
+                                            {u.role === 'user' && (
+                                                <span className="text-xs text-slate-500 font-medium">₹{u.walletBalance}</span>
+                                            )}
+                                            {/* Set Location button for org accounts */}
+                                            {orgRoles.includes(u.role) && (
+                                                <button
+                                                    onClick={() => setLocationModal(u)}
+                                                    title="Set base location"
+                                                    className={`p-1.5 rounded transition-colors ${u.location?.lat
+                                                        ? 'text-green-600 hover:bg-green-50'
+                                                        : 'text-amber-500 hover:bg-amber-50'}`}
+                                                >
+                                                    <MapPinIcon className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            {u.role !== 'admin' && (
+                                                <button onClick={() => handleDelete(u._id)} disabled={acting[u._id]}
+                                                    className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-slate-800 truncate">{u.orgName || u.name}</p>
-                                        <p className="text-xs text-surface-muted truncate">{u.email}</p>
-                                        {/* Location pill for org roles */}
-                                        {orgRoles.includes(u.role) && (
-                                            <p className="text-[10px] mt-0.5 flex items-center gap-1">
-                                                {u.location?.lat ? (
-                                                    <span className="text-green-600 flex items-center gap-0.5">
-                                                        <MapPinIcon className="w-3 h-3" />
-                                                        {u.location.address || `${u.location.lat.toFixed(4)}, ${u.location.lng.toFixed(4)}`}
-                                                        <span className="text-slate-400 ml-1">· 50km radius active</span>
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-amber-600 flex items-center gap-0.5">
-                                                        <MapPinIcon className="w-3 h-3" />
-                                                        No base location set
-                                                    </span>
-                                                )}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                        <span className={`badge text-[10px] capitalize ${u.isApproved ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                                            {u.role}
-                                        </span>
-                                        {u.role === 'user' && (
-                                            <span className="text-xs text-slate-500 font-medium">₹{u.walletBalance}</span>
-                                        )}
-                                        {/* Set Location button for org accounts */}
-                                        {orgRoles.includes(u.role) && (
-                                            <button
-                                                onClick={() => setLocationModal(u)}
-                                                title="Set base location"
-                                                className={`p-1.5 rounded transition-colors ${u.location?.lat
-                                                    ? 'text-green-600 hover:bg-green-50'
-                                                    : 'text-amber-500 hover:bg-amber-50'}`}
-                                            >
-                                                <MapPinIcon className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                        {u.role !== 'admin' && (
-                                            <button onClick={() => handleDelete(u._id)} disabled={acting[u._id]}
-                                                className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
-                                                <TrashIcon className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))
+                                ))
                         )}
                     </div>
                 </div>

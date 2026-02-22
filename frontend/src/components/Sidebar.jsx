@@ -33,10 +33,10 @@ const navConfig = {
         { to: '/ambulance/dashboard', label: 'My Assignment', Icon: TruckIcon },
     ],
     admin: [
-        { to: '/admin/dashboard', label: 'Home', Icon: HomeIcon },
-        { to: '/admin/dashboard', label: 'Analytics', Icon: ClipboardDocumentListIcon },
-        { to: '/admin/dashboard', label: 'Approvals', Icon: ShieldCheckIcon },
-        { to: '/admin/dashboard', label: 'Users', Icon: UsersIcon },
+        { to: '/admin/dashboard?tab=overview', label: 'Home', Icon: HomeIcon },
+        { to: '/admin/dashboard?tab=approvals', label: 'Approvals', Icon: ShieldCheckIcon },
+        { to: '/admin/dashboard?tab=users', label: 'Users', Icon: UsersIcon },
+        { to: '/admin/dashboard?tab=rescues', label: 'Rescues', Icon: ClipboardDocumentListIcon },
     ],
 };
 
