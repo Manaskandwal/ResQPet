@@ -11,16 +11,19 @@ const NGODashboard = () => {
     const [cases, setCases] = useState([]);
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState({});
+    const [locationSet, setLocationSet] = useState(true);
 
     const fetchCases = useCallback(async () => {
         try {
-            console.log('[NGODashboard] Fetching nearby cases...');
+            console.log('[NGODashboard] Fetching cases...');
             const { data } = await api.get('/ngo/nearby');
             setCases(data.cases);
-            console.log('[NGODashboard] Nearby cases:', data.count);
+            setLocationSet(data.locationSet ?? true);
+            console.log('[NGODashboard] Cases loaded:', data.count);
         } catch (error) {
             console.error('[NGODashboard] Fetch error:', error.message);
-            toast.error('Failed to load nearby cases.');
+            const msg = error.response?.data?.message || 'Failed to load cases. Is the backend running?';
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
@@ -73,9 +76,24 @@ const NGODashboard = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="page-title">Nearby Rescue Cases 🗺️</h1>
-                <p className="page-subtitle">Cases within 10km of your registered location — oldest first</p>
+                <h1 className="page-title">Rescue Cases {locationSet ? 'Nearby 🗺️' : '🐾 All Pending'}</h1>
+                <p className="page-subtitle">
+                    {locationSet
+                        ? 'Cases within 50km of your registered location — oldest first'
+                        : 'Showing all pending cases (set your location in profile to filter by radius)'}
+                </p>
             </div>
+
+            {/* No-location tip */}
+            {!locationSet && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-btn text-sm text-amber-700 flex items-start gap-2">
+                    <span className="text-lg leading-none flex-shrink-0">📍</span>
+                    <span>
+                        <strong>Tip:</strong> Your account has no location set. You're seeing all pending cases across the city.
+                        To filter by 50km proximity, ask your admin to update your profile location.
+                    </span>
+                </div>
+            )}
 
             {/* Stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -90,7 +108,7 @@ const NGODashboard = () => {
                     <div className="w-10 h-10 bg-primary-50 rounded-btn flex items-center justify-center mb-1">
                         <MapPinIcon className="w-5 h-5 text-primary-600" />
                     </div>
-                    <p className="stat-value">10 km</p>
+                    <p className="stat-value">50 km</p>
                     <p className="stat-label">Search Radius</p>
                 </div>
             </div>
@@ -116,9 +134,15 @@ const NGODashboard = () => {
                                         <span className="text-xs text-surface-muted">
                                             👤 {c.user?.name} {c.user?.phone && `· ${c.user.phone}`}
                                         </span>
-                                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
-                                            <MapPinIcon className="w-3 h-3" />{c.distance} km away
-                                        </span>
+                                        {c.distance !== null && c.distance !== undefined ? (
+                                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
+                                                <MapPinIcon className="w-3 h-3" />{c.distance.toFixed(1)} km away
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
+                                                <MapPinIcon className="w-3 h-3" />Distance unknown
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <StatusBadge status={c.status} />

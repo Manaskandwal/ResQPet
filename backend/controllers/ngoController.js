@@ -3,24 +3,17 @@ const { haversineDistance } = require('../utils/haversine');
 
 /**
  * @route   GET /api/ngo/nearby
- * @desc    Get pending rescue requests within 10km of the NGO's registered location
+ * @desc    Get pending rescue requests within 50km of the NGO's registered location
  * @access  Private (ngo only)
  */
 const getNearbyCases = async (req, res) => {
     try {
-        console.log(`[NGO Controller] getNearbyCases for NGO userId: ${req.user._id}`);
+        console.log(`[NGO Controller] getNearbyCases for NGO: ${req.user._id}`);
 
         const { lat, lng } = req.user.location || {};
-        if (!lat || !lng) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please update your organisation location in your profile before viewing nearby cases.',
-            });
-        }
+        const hasLocation = !!(lat && lng);
 
-        console.log(`[NGO Controller] NGO location: lat=${lat}, lng=${lng}`);
-
-        // Fetch all pending cases not rejected by this NGO
+        // Fetch all pending cases not already rejected by this NGO
         const pendingCases = await RescueRequest.find({
             status: 'pending',
             rejectedBy: { $ne: req.user._id },
@@ -28,19 +21,36 @@ const getNearbyCases = async (req, res) => {
             .populate('user', 'name phone')
             .sort({ createdAt: 1 }); // oldest first (most urgent)
 
-        console.log(`[NGO Controller] Total pending cases (pre-filter): ${pendingCases.length}`);
+        console.log(`[NGO Controller] Pending cases (pre-filter): ${pendingCases.length}, hasLocation: ${hasLocation}`);
 
-        // Filter by 10km radius using Haversine
-        const nearbyCases = pendingCases
-            .map((rescue) => {
-                const distance = haversineDistance(lat, lng, rescue.location.lat, rescue.location.lng);
-                return { ...rescue.toObject(), distance };
-            })
-            .filter((rescue) => rescue.distance <= 10)
-            .sort((a, b) => a.distance - b.distance); // closest first
+        let resultCases;
 
-        console.log(`[NGO Controller] Cases within 10km: ${nearbyCases.length}`);
-        res.status(200).json({ success: true, count: nearbyCases.length, cases: nearbyCases });
+        if (hasLocation) {
+            // Filter within 10km radius using Haversine formula
+            resultCases = pendingCases
+                .map((rescue) => {
+                    const distance = haversineDistance(lat, lng, rescue.location.lat, rescue.location.lng);
+                    return { ...rescue.toObject(), distance };
+                })
+                .filter((rescue) => rescue.distance <= 50)
+                .sort((a, b) => a.distance - b.distance);
+
+            console.log(`[NGO Controller] Cases within 50km: ${resultCases.length}`);
+        } else {
+            // No location set — return all pending cases unfiltered, distance = null
+            resultCases = pendingCases.map((rescue) => ({
+                ...rescue.toObject(),
+                distance: null,
+            }));
+            console.log(`[NGO Controller] No location set — returning all ${resultCases.length} pending cases`);
+        }
+
+        res.status(200).json({
+            success: true,
+            count: resultCases.length,
+            cases: resultCases,
+            locationSet: hasLocation,
+        });
     } catch (error) {
         console.error('[NGO Controller] getNearbyCases error:', error.message);
         res.status(500).json({ success: false, message: error.message });
