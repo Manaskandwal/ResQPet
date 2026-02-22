@@ -28,6 +28,7 @@ const UserDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [topupAmt, setTopupAmt] = useState('');
     const [paying, setPaying] = useState(false);
+    const [mockPaying, setMockPaying] = useState(false);
     const topupRef = useRef(null);
 
     const fetchData = useCallback(async () => {
@@ -107,6 +108,25 @@ const UserDashboard = () => {
         }
     };
 
+    // ── MOCK PAYMENT (testing without Razorpay) ───────────────────────────────
+    const handleMockTopup = async (amount) => {
+        setMockPaying(true);
+        try {
+            const paymentStatus = 'success'; // temporary for testing
+            console.log('[Mock] paymentStatus =', paymentStatus, '| crediting ₹', amount);
+            const { data } = await api.post('/payment/mock-topup', { amount });
+            toast.success(data.message);
+            updateUser({ walletBalance: data.walletBalance });
+            setWallet((p) => ({ ...p, walletBalance: data.walletBalance }));
+            fetchData();
+        } catch (error) {
+            console.error('[Mock] mockTopup error:', error.message);
+            toast.error(error.response?.data?.message || 'Mock top-up failed.');
+        } finally {
+            setMockPaying(false);
+        }
+    };
+
     const stats = [
         { label: 'Total Reports', value: rescues.length, Icon: ClipboardDocumentListIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Active Rescues', value: rescues.filter(r => r.status !== 'completed' && r.status !== 'cancelled').length, Icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -160,21 +180,39 @@ const UserDashboard = () => {
                                 <span className="text-primary-100 text-sm font-medium">Wallet Balance</span>
                             </div>
                             <p className="text-4xl font-bold mb-1">₹{wallet.walletBalance.toFixed(2)}</p>
-                            <p className="text-primary-200 text-xs mb-5">₹20 deposit required per rescue</p>
+                            <p className="text-primary-200 text-xs mb-1">₹20 deposit required per rescue</p>
 
-                            {/* Top-up section */}
-                            <div className="flex gap-2">
+                            {/* ── TEST MODE banner ─────────────────────── */}
+                            <div className="flex items-center gap-1.5 mb-3 px-2 py-1 bg-amber-400/20 border border-amber-300/40 rounded-btn">
+                                <span className="text-amber-300 text-[10px] font-bold uppercase tracking-wider">🛠 Test Mode</span>
+                                <span className="text-amber-200/80 text-[10px]">— mock payment, no Razorpay needed</span>
+                            </div>
+
+                            {/* Quick-add test buttons */}
+                            <div className="flex gap-2 mb-3">
+                                {[50, 100, 200].map((amt) => (
+                                    <button key={amt} onClick={() => handleMockTopup(amt)}
+                                        disabled={mockPaying}
+                                        className="flex-1 py-2 rounded-btn bg-white/20 hover:bg-white/30 border border-white/30
+                                                   text-white text-sm font-semibold transition-all active:scale-95">
+                                        {mockPaying ? '…' : `+₹${amt}`}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Real Razorpay (enable when you have live keys) */}
+                            <p className="text-primary-300/60 text-[10px] mb-2">— or use Razorpay (live keys required) —</p>
+                            <div className="flex gap-2 opacity-60">
                                 <input
                                     ref={topupRef}
                                     type="number" min="10" step="10" placeholder="Amount (₹)"
                                     value={topupAmt}
                                     onChange={(e) => setTopupAmt(e.target.value)}
-                                    className="flex-1 px-3 py-2 rounded-btn bg-white/20 border border-white/30
-                             text-white placeholder-primary-200 text-sm focus:outline-none
-                             focus:ring-2 focus:ring-white/40"
+                                    className="flex-1 px-3 py-2 rounded-btn bg-white/10 border border-white/20
+                             text-white placeholder-primary-300 text-sm focus:outline-none"
                                 />
-                                <button onClick={handleTopup} disabled={paying} className="btn bg-white text-primary-700 hover:bg-primary-50 font-bold text-sm px-4 flex-shrink-0">
-                                    {paying ? '...' : 'Add'}
+                                <button onClick={handleTopup} disabled={paying} className="btn bg-white/10 border border-white/20 text-white font-bold text-sm px-4 flex-shrink-0">
+                                    {paying ? '...' : 'Pay'}
                                 </button>
                             </div>
                         </div>

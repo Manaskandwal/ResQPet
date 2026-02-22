@@ -3,6 +3,66 @@ const WalletTransaction = require('../models/WalletTransaction');
 const { getRazorpay } = require('../config/razorpay');
 const crypto = require('crypto');
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MOCK PAYMENT (for local testing without Razorpay keys)
+// POST /api/payment/mock-topup
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @route   POST /api/payment/mock-topup
+ * @desc    TESTING ONLY — directly credits wallet without Razorpay.
+ *          Remove or guard this endpoint in production!
+ * @access  Private (user only)
+ */
+const mockTopup = async (req, res) => {
+    try {
+        // Hardcoded mock: always marks payment as "success"
+        const paymentStatus = 'success'; // temporary for testing
+        console.log('[Mock Payment] paymentStatus =', paymentStatus);
+
+        const { amount } = req.body;
+        const creditAmount = parseFloat(amount) || 100; // default ₹100 if not provided
+
+        if (creditAmount <= 0) {
+            return res.status(400).json({ success: false, message: 'Amount must be positive.' });
+        }
+
+        console.log(`[Mock Payment] Crediting ₹${creditAmount} to userId: ${req.user._id} (mock)`);
+
+        // Fake wallet balance update
+        const user = await User.findById(req.user._id);
+        user.walletBalance += creditAmount;
+        await user.save();
+
+        // Record mock transaction
+        const txn = await WalletTransaction.create({
+            user: user._id,
+            amount: creditAmount,
+            type: 'credit',
+            description: `[TEST] Mock wallet top-up of ₹${creditAmount}`,
+            razorpayOrderId: `mock_order_${Date.now()}`,
+            razorpayPaymentId: `mock_pay_${Date.now()}`,
+            balanceAfter: user.walletBalance,
+        });
+
+        console.log(`[Mock Payment] ✅ Mock credit done. New balance: ₹${user.walletBalance}`);
+
+        res.status(200).json({
+            success: true,
+            message: `[TEST MODE] ₹${creditAmount} added to wallet (mock payment).`,
+            walletBalance: user.walletBalance,
+            transaction: txn,
+        });
+    } catch (error) {
+        console.error('[Mock Payment] mockTopup error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REAL RAZORPAY (keep these for when you have actual keys)
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * @route   POST /api/payment/create-order
  * @desc    Create a Razorpay order for wallet top-up
@@ -11,7 +71,7 @@ const crypto = require('crypto');
 const createOrder = async (req, res) => {
     try {
         console.log(`[Payment] Create order request from userId: ${req.user._id}`);
-        const { amount } = req.body; // amount in INR (e.g., 100)
+        const { amount } = req.body;
 
         if (!amount || isNaN(amount) || Number(amount) < 10) {
             return res.status(400).json({ success: false, message: 'Minimum top-up amount is ₹10.' });
@@ -76,7 +136,7 @@ const verifyPayment = async (req, res) => {
         console.log(`[Payment] Signature verified for orderId: ${razorpay_order_id}`);
 
         // ── Credit Wallet ─────────────────────────────────────────────────────────
-        const creditAmount = Number(amount); // amount in INR
+        const creditAmount = Number(amount);
         const user = await User.findById(req.user._id);
         user.walletBalance += creditAmount;
         await user.save();
@@ -105,4 +165,4 @@ const verifyPayment = async (req, res) => {
     }
 };
 
-module.exports = { createOrder, verifyPayment };
+module.exports = { createOrder, verifyPayment, mockTopup };
