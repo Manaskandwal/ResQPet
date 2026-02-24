@@ -23,19 +23,27 @@ const pilotStats = [
 ];
 
 const Home = () => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
     const navigate = useNavigate();
 
     // If already logged in, redirect to dashboard
     useEffect(() => {
-        if (user) {
+        if (user && !loading) {
             const routes = {
                 user: '/user/dashboard', ngo: '/ngo/dashboard',
                 hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
             };
             navigate(routes[user.role] || '/user/dashboard', { replace: true });
         }
-    }, [user, navigate]);
+    }, [user, loading, navigate]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="animate-spin text-primary-600 text-4xl">🐾</div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white font-sans">

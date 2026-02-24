@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
@@ -12,10 +12,21 @@ const ROLES = [
 ];
 
 const Register = () => {
-    const { login } = useAuth();
+    const { login, user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user', orgName: '', phone: '', vehicleNumber: '' });
     const [loading, setLoading] = useState(false);
+
+    // If already logged in, redirect to dashboard
+    useEffect(() => {
+        if (user && !authLoading) {
+            const routes = {
+                user: '/user/dashboard', ngo: '/ngo/dashboard',
+                hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
+            };
+            navigate(routes[user.role] || '/user/dashboard', { replace: true });
+        }
+    }, [user, authLoading, navigate]);
 
     const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -44,7 +55,11 @@ const Register = () => {
 
     const isOrg = ['ngo', 'hospital', 'ambulance'].includes(form.role);
 
-    return (
+    return authLoading ? (
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center p-4">
+            <div className="animate-spin text-primary-600 text-4xl">🐾</div>
+        </div>
+    ) : (
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md animate-slide-up">
                 {/* Header */}
