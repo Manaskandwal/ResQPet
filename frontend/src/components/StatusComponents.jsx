@@ -4,10 +4,14 @@
 const statusMap = {
     pending: { label: 'Pending', cls: 'badge-pending' },
     ngo_accepted: { label: 'NGO Accepted', cls: 'badge-accepted' },
-    hospital_escalated: { label: 'Escalated', cls: 'badge-escalated' },
-    ambulance_assigned: { label: 'Ambulance Assigned', cls: 'badge-assigned' },
-    en_route: { label: 'En Route', cls: 'badge-enroute' },
+    hospital_broadcasted: { label: 'Pinging Hospitals', cls: 'badge-escalated bg-amber-100 text-amber-700' },
+    hospital_accepted: { label: 'Hospital Accepted', cls: 'badge-escalated bg-indigo-100 text-indigo-700' },
+    ambulance_pinged: { label: 'Pinging Drivers', cls: 'badge-escalated bg-purple-100 text-purple-700' },
+    ambulance_assigned: { label: 'Driver Assigned', cls: 'badge-assigned' },
+    enroute: { label: 'En Route', cls: 'badge-enroute' },
     picked_up: { label: 'Picked Up', cls: 'badge-pickedup' },
+    resolved_on_spot: { label: 'Resolved on Spot', cls: 'badge-completed bg-teal-100 text-teal-700' },
+    fundraiser_active: { label: 'Fundraiser Active', cls: 'badge-escalated bg-rose-100 text-rose-700' },
     delivered: { label: 'Delivered', cls: 'badge-completed' },
     completed: { label: 'Completed', cls: 'badge-completed' },
     cancelled: { label: 'Cancelled', cls: 'badge-cancelled' },
@@ -23,10 +27,11 @@ export const StatusBadge = ({ status }) => {
  */
 const steps = [
     { key: 'pending', label: 'Reported', emoji: '📍' },
-    { key: 'ngo_accepted', label: 'NGO Responding', emoji: '🤝' },
-    { key: 'hospital_escalated', label: 'Hospital Notified', emoji: '🏥' },
-    { key: 'ambulance_assigned', label: 'Ambulance en route', emoji: '🚑' },
-    { key: 'en_route', label: 'En Route', emoji: '🛣️' },
+    { key: 'ngo_accepted', label: 'NGO', emoji: '🤝' },
+    { key: 'hospital_broadcasted', label: 'Hospital', emoji: '🏥' },
+    { key: 'ambulance_pinged', label: 'Dispatch', emoji: '📡' },
+    { key: 'ambulance_assigned', label: 'Driver Assigned', emoji: '🚑' },
+    { key: 'enroute', label: 'En Route', emoji: '🛣️' },
     { key: 'picked_up', label: 'Picked Up', emoji: '🐾' },
     { key: 'completed', label: 'Safe!', emoji: '✅' },
 ];
@@ -40,6 +45,14 @@ export const StatusTimeline = ({ status }) => {
         <div className="mt-4">
             <div className="flex items-center gap-0">
                 {steps.map((step, idx) => {
+                    // For UI simplicity, map some intermediate states to a single visual step
+                    let effectiveStatus = status;
+                    if (status === 'hospital_accepted') effectiveStatus = 'hospital_broadcasted';
+                    if (status === 'fundraiser_active') effectiveStatus = 'hospital_broadcasted';
+                    if (status === 'resolved_on_spot') effectiveStatus = 'completed';
+                    if (status === 'delivered') effectiveStatus = 'completed';
+
+                    const currentIdx = statusOrder.indexOf(effectiveStatus);
                     const done = idx <= currentIdx;
                     const current = idx === currentIdx;
                     return (
@@ -60,7 +73,7 @@ export const StatusTimeline = ({ status }) => {
                                 >
                                     {step.emoji}
                                 </div>
-                                <p className={`text-[10px] mt-1 font-medium text-center max-w-[64px] leading-tight
+                                <p className={`text-[9px] mt-1 font-medium text-center max-w-[50px] leading-tight
                   ${done ? 'text-primary-700' : 'text-slate-400'}`}>
                                     {step.label}
                                 </p>
@@ -73,7 +86,8 @@ export const StatusTimeline = ({ status }) => {
                             )}
                         </div>
                     );
-                })}
+                })
+                }
             </div>
         </div>
     );

@@ -9,8 +9,8 @@ const RescueRequest = require('../models/RescueRequest');
  * the animal has been waiting for more than 5 minutes without
  * any NGO accepting.
  *
- * Action: Updates status to 'hospital_escalated' so
- *         nearby hospitals can see and respond.
+ * Action: Updates status to 'hospital_broadcasted' so
+ *         nearby Govt hospitals can see and respond immediately (Pvt after 5 min).
  */
 const startEscalationCron = () => {
     console.log('[Cron] Starting escalation cron job (every minute check)...');
@@ -37,7 +37,7 @@ const startEscalationCron = () => {
             // Escalate each stale request
             const escalationPromises = stalePending.map(async (rescue) => {
                 try {
-                    rescue.status = 'hospital_escalated';
+                    rescue.status = 'hospital_broadcasted';
                     rescue.escalatedAt = new Date();
                     await rescue.save();
                     console.log(`[Cron] Escalated rescue: ${rescue._id} (originally created at ${rescue.createdAt.toISOString()})`);

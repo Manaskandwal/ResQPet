@@ -175,4 +175,67 @@ const getAnalytics = async (req, res) => {
     }
 };
 
-module.exports = { getNearbyCases, acceptCase, rejectCase, getMyCases, getAnalytics };
+/**
+ * @route   PUT /api/ngo/rescue/:id/resolve
+ * @desc    NGO resolves the case on the spot
+ * @access  Private (ngo only)
+ */
+const resolveOnSpot = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
+
+        if (rescue.status !== 'ngo_accepted') {
+            return res.status(400).json({ success: false, message: `Cannot resolve. Current status depends on: ${rescue.status}` });
+        }
+
+        rescue.status = 'resolved_on_spot';
+        rescue.completedAt = new Date();
+        await rescue.save();
+
+        res.status(200).json({ success: true, message: 'Case resolved on spot successfully!', rescue });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   PUT /api/ngo/rescue/:id/escalate
+ * @desc    NGO escalates the case to hospitals
+ * @access  Private (ngo only)
+ */
+const escalateToHospital = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
+
+        if (rescue.status !== 'ngo_accepted') {
+            return res.status(400).json({ success: false, message: `Cannot escalate. Current status depends on: ${rescue.status}` });
+        }
+
+        rescue.status = 'hospital_broadcasted';
+        rescue.escalatedAt = new Date();
+        await rescue.save();
+
+        // At this point, the system will broadcast to Govt hospitals (or Pvt if none).
+        // This can be triggered via a helper function or picked up by another cron.
+        // For real-time, we would emit a socket event here directly.
+        const { getIo } = require('../config/socket');
+        try {
+            const io = getIo();
+            // Emit to a specific "Govt Hospitals" room or handle in frontend based on user properties
+            io.to('role_hospital').emit('new_hospital_broadcast', {
+                rescueRequestId: rescue._id,
+                message: "New Emergency Escalted!"
+            });
+        } catch (socketErr) {
+            console.error('[NGO Controller] Socket error emitting broadcast:', socketErr.message);
+        }
+
+        res.status(200).json({ success: true, message: 'Case escalated to hospitals.', rescue });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getNearbyCases, acceptCase, rejectCase, getMyCases, getAnalytics, resolveOnSpot, escalateToHospital };

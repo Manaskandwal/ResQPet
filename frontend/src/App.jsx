@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 
 // Public
 import Home from './pages/Home';
+import Fundraisers from './pages/Fundraisers';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -46,6 +47,7 @@ export default function App() {
     <Routes>
       {/* Public */}
       <Route path="/" element={<Home />} />
+      <Route path="/fundraisers" element={<Fundraisers />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 

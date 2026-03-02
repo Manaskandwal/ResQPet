@@ -56,12 +56,18 @@ const rescueRequestSchema = new mongoose.Schema(
                 'pending',
                 'ngo_accepted',
                 'hospital_escalated',
-                'ambulance_assigned',
+                'hospital_broadcasted', // Waiting for any hospital to accept
+                'hospital_accepted',
+                'ambulance_pinged',     // Waiting for specific ambulance to accept
+                'ambulance_assigned',   // Ambulance accepted
                 'en_route',
                 'picked_up',
                 'delivered',
+                'resolved_on_spot',     // NGO treated at scene
                 'completed',
                 'cancelled',
+                'fundraiser_active',    // Waiting for public donations to meet goal
+                'refunded',             // Deposit/payment refunded
             ],
             default: 'pending',
         },
@@ -104,13 +110,42 @@ const rescueRequestSchema = new mongoose.Schema(
             type: String,
             default: '',
         },
-        // NGOs that rejected this case (to avoid showing them the same request again)
+        // NGOs or Hospitals that rejected this case
         rejectedBy: [
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User',
             },
         ],
+        // For Uber-style pinging: track which ambulances declined to avoid re-pinging
+        pingRejectors: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            },
+        ],
+        // For Uber-style pinging: track active staggered pings (each has 20 min window)
+        activeAmbulancePings: [
+            {
+                ambulanceId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                pingedAt: { type: Date, default: Date.now }
+            }
+        ],
+        // Financial tracking for Fundraisers
+        isFundraiser: {
+            type: Boolean,
+            default: false,
+        },
+        estimatedCost: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        amountRaised: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
 
         // ─── Future-Ready Fields (Phase 2) ────────────────────────────────────────
         // Service type — extended beyond rescue in Phase 2

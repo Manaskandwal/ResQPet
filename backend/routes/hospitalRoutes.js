@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getEscalatedCases, getLinkedAmbulances, getMyCases } = require('../controllers/hospitalController');
+const { getEscalatedCases, getLinkedAmbulances, getMyCases, acceptBroadcastedCase } = require('../controllers/hospitalController');
 const { protect } = require('../middleware/auth');
 const { allowRoles } = require('../middleware/roleGuard');
 
@@ -11,6 +11,10 @@ router.get('/escalated', protect, allowRoles('hospital'), getEscalatedCases);
 router.get('/ambulances', protect, allowRoles('hospital'), getLinkedAmbulances);
 
 // @route  GET /api/hospital/my-cases
+// @route  GET /api/hospital/my-cases
 router.get('/my-cases', protect, allowRoles('hospital'), getMyCases);
+
+// @route  PUT /api/hospital/rescue/:id/accept-broadcast
+router.put('/rescue/:id/accept-broadcast', protect, allowRoles('hospital'), acceptBroadcastedCase);
 
 module.exports = router;

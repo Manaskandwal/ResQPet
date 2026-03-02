@@ -19,13 +19,27 @@ const getEscalatedCases = async (req, res) => {
             });
         }
 
-        const escalatedCases = await RescueRequest.find({ status: 'hospital_escalated' })
+        // Find all hospital_broadcasted cases
+        const broadcastCases = await RescueRequest.find({ status: 'hospital_broadcasted' })
             .populate('user', 'name phone email')
             .sort({ escalatedAt: 1 }); // oldest escalated first (most urgent)
 
-        console.log(`[Hospital Controller] Total escalated (pre-filter): ${escalatedCases.length}`);
+        // Stateless staggered broadcast logic:
+        // Govt hospitals see it immediately.
+        // Pvt hospitals only see it if 5 minutes have passed since escalation.
+        const fiveMinutesMs = 5 * 60 * 1000;
+        const now = Date.now();
+        const isGovt = req.user.isGovernment === true;
 
-        const nearbyCases = escalatedCases
+        const visibleCases = broadcastCases.filter((rescue) => {
+            const timeSinceEscalation = now - new Date(rescue.escalatedAt).getTime();
+            if (isGovt) return true; // Govt sees everything broadcasted
+            return timeSinceEscalation > fiveMinutesMs; // Pvt sees only after 5 mins wait
+        });
+
+        console.log(`[Hospital Controller] Total broadcasted visible to me: ${visibleCases.length}`);
+
+        const nearbyCases = visibleCases
             .map((rescue) => {
                 const distance = haversineDistance(lat, lng, rescue.location.lat, rescue.location.lng);
                 return { ...rescue.toObject(), distance };
@@ -140,4 +154,38 @@ const getMyCases = async (req, res) => {
     }
 };
 
-module.exports = { getEscalatedCases, assignAmbulance, getLinkedAmbulances, getMyCases };
+/**
+ * @route   PUT /api/hospital/rescue/:id/accept
+ * @desc    Hospital accepts a broadcasted rescue case
+ * @access  Private (hospital only)
+ */
+const acceptBroadcastedCase = async (req, res) => {
+    try {
+        console.log(`[Hospital Controller] acceptBroadcastedCase: rescueId=${req.params.id}, hospitalId=${req.user._id}`);
+        const rescue = await RescueRequest.findById(req.params.id);
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
+
+        if (rescue.status !== 'hospital_broadcasted') {
+            return res.status(400).json({ success: false, message: `Cannot accept: status is '${rescue.status}'. Another hospital may have already claimed it.` });
+        }
+
+        // Claim the case
+        rescue.status = 'hospital_accepted';
+        rescue.assignedHospital = req.user._id;
+
+        // Push it to the next state for the Ambulance Cron to pick up
+        rescue.status = 'ambulance_pinged';
+        rescue.activeAmbulancePings = [];
+        rescue.pingRejectors = [];
+
+        await rescue.save();
+        console.log(`[Hospital Controller] Hospital ${req.user._id} claimed rescue ${rescue._id} and pushed to ambulance_pinged state.`);
+
+        res.status(200).json({ success: true, message: 'Case claimed successfully! We are dispatching an ambulance now.', rescue });
+    } catch (error) {
+        console.error('[Hospital Controller] acceptBroadcastedCase error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getEscalatedCases, assignAmbulance, getLinkedAmbulances, getMyCases, acceptBroadcastedCase };

@@ -15,20 +15,23 @@ const STATUS_ACTIONS = {
 const AmbulanceDashboard = () => {
     const { user } = useAuth();
     const [task, setTask] = useState(null);
+    const [pingedTasks, setPingedTasks] = useState([]);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
 
     const fetchData = useCallback(async () => {
         try {
-            console.log('[AmbulanceDashboard] Fetching assigned task and history...');
-            const [taskRes, histRes] = await Promise.all([
+            console.log('[AmbulanceDashboard] Fetching assigned task, pings, and history...');
+            const [taskRes, histRes, pingsRes] = await Promise.all([
                 api.get('/ambulance/assigned'),
                 api.get('/ambulance/history'),
+                api.get('/ambulance/pinged'),
             ]);
             setTask(taskRes.data.task);
             setHistory(histRes.data.history);
-            console.log('[AmbulanceDashboard] Task:', taskRes.data.task?._id, 'History count:', histRes.data.count);
+            setPingedTasks(pingsRes.data.tasks || []);
+            console.log('[AmbulanceDashboard] Task:', taskRes.data.task?._id, 'Pings:', pingsRes.data.count);
         } catch (error) {
             console.error('[AmbulanceDashboard] Fetch error:', error.message);
             toast.error('Failed to load dashboard.');
@@ -64,6 +67,32 @@ const AmbulanceDashboard = () => {
         }
     };
 
+    const handleAcceptPing = async (id) => {
+        setUpdating(true);
+        try {
+            const { data } = await api.put(`/ambulance/rescue/${id}/accept-ping`);
+            toast.success(data.message);
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to accept dispatch.');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleRejectPing = async (id) => {
+        setUpdating(true);
+        try {
+            await api.put(`/ambulance/rescue/${id}/reject-ping`);
+            toast.success('Dispatch rejected.');
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to reject dispatch.');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     if (!user.isApproved) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
@@ -84,17 +113,47 @@ const AmbulanceDashboard = () => {
             {loading ? (
                 <SkeletonCard />
             ) : !task ? (
-                <div className="card text-center py-14">
-                    <div className="text-5xl mb-3">✅</div>
-                    <p className="text-slate-700 font-semibold text-lg">No Active Assignment</p>
-                    <p className="text-surface-muted text-sm mt-1">
-                        You are available. A hospital will dispatch you when needed.
-                    </p>
-                    <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold rounded-full">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse-soft" />
-                        Available for dispatch
-                    </div>
-                    <button onClick={fetchData} className="btn-outline mt-5">🔄 Refresh</button>
+                <div className="space-y-4">
+                    {pingedTasks.length > 0 && (
+                        <div className="card border-2 border-rose-400 bg-rose-50/50">
+                            <div className="flex items-center gap-2 mb-3 text-rose-600 font-bold">
+                                <span className="relative flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                                </span>
+                                🚨 INCOMING DISPATCH
+                            </div>
+                            {pingedTasks.map(ping => (
+                                <div key={ping._id} className="mb-4 last:mb-0">
+                                    <p className="font-semibold text-slate-800 mb-1">{ping.description}</p>
+                                    <p className="text-sm text-slate-600 mb-4">📍 {ping.location?.address || 'Location provided'}</p>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleAcceptPing(ping._id)} disabled={updating} className="btn bg-rose-600 hover:bg-rose-700 text-white flex-1 py-3 text-lg font-bold">
+                                            ACCEPT
+                                        </button>
+                                        <button onClick={() => handleRejectPing(ping._id)} disabled={updating} className="btn bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 flex-1 py-3 font-semibold">
+                                            Skip
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {pingedTasks.length === 0 && (
+                        <div className="card text-center py-14">
+                            <div className="text-5xl mb-3">✅</div>
+                            <p className="text-slate-700 font-semibold text-lg">No Active Assignment</p>
+                            <p className="text-surface-muted text-sm mt-1">
+                                You are available. A hospital will dispatch you when needed.
+                            </p>
+                            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold rounded-full">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse-soft" />
+                                Available for dispatch
+                            </div>
+                            <button onClick={fetchData} className="btn-outline mt-5">🔄 Refresh</button>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="space-y-4">

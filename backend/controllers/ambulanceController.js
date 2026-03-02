@@ -156,4 +156,78 @@ const getHistory = async (req, res) => {
     }
 };
 
-module.exports = { getAssignedTask, updateStatus, getHistory };
+/**
+ * @route   GET /api/ambulance/pinged
+ * @desc    Get cases where this ambulance is currently being pinged
+ * @access  Private
+ */
+const getPingedTasks = async (req, res) => {
+    try {
+        const pingedTasks = await RescueRequest.find({
+            status: 'ambulance_pinged',
+            'activeAmbulancePings.ambulanceId': req.user._id
+        })
+            .populate('user', 'name phone location')
+            .populate('assignedHospital', 'name orgName phone location');
+
+        res.status(200).json({ success: true, count: pingedTasks.length, tasks: pingedTasks });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   PUT /api/ambulance/rescue/:id/accept-ping
+ * @desc    Ambulance accepts a ping, taking the job
+ * @access  Private
+ */
+const acceptPing = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findById(req.params.id);
+        if (!rescue || rescue.status !== 'ambulance_pinged') {
+            return res.status(400).json({ success: false, message: 'Rescue no longer available.' });
+        }
+
+        const isPinged = rescue.activeAmbulancePings.some(ping => ping.ambulanceId.toString() === req.user._id.toString());
+        if (!isPinged) return res.status(403).json({ success: false, message: 'You were not pinged or ping expired.' });
+
+        rescue.status = 'ambulance_assigned';
+        rescue.assignedAmbulance = req.user._id;
+        rescue.ambulanceAssignedAt = new Date();
+        rescue.activeAmbulancePings = []; // clear pings
+
+        await rescue.save();
+        await User.findByIdAndUpdate(req.user._id, { isAvailable: false }); // mark ambulance busy
+
+        res.status(200).json({ success: true, message: 'You have claimed this dispatch!', rescue });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   PUT /api/ambulance/rescue/:id/reject-ping
+ * @desc    Ambulance rejects a ping
+ * @access  Private
+ */
+const rejectPing = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findById(req.params.id);
+        if (!rescue || rescue.status !== 'ambulance_pinged') {
+            return res.status(400).json({ success: false, message: 'Rescue no longer available.' });
+        }
+
+        // Remove from active pings and add to rejectors
+        rescue.activeAmbulancePings = rescue.activeAmbulancePings.filter(p => p.ambulanceId.toString() !== req.user._id.toString());
+        if (!rescue.pingRejectors.includes(req.user._id)) {
+            rescue.pingRejectors.push(req.user._id);
+        }
+
+        await rescue.save();
+        res.status(200).json({ success: true, message: 'Ping rejected. Driver skipped.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getAssignedTask, updateStatus, getHistory, getPingedTasks, acceptPing, rejectPing };

@@ -89,10 +89,15 @@ const userSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
-        // For ambulance: availability
+        // For hospital/ngo/ambulance: availability toggle for routing
         isAvailable: {
             type: Boolean,
             default: true,
+        },
+        // For hospital/ambulance: Govt vs Pvt routing
+        isGovernment: {
+            type: Boolean,
+            default: false,
         },
         // For hospital/ngo: capacity
         capacity: {

@@ -39,6 +39,13 @@ const Navbar = ({ onMenuClick }) => {
                     <img src="/logo.svg" alt="PawSaarthi" className="h-8" />
                 </div>
 
+                {/* Desktop Menu */}
+                <div className="hidden md:flex items-center gap-6 ml-4"> {/* Added ml-4 for spacing */}
+                    <Link to="/fundraisers" className="text-sm font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-btn transition-colors">
+                        Fundraisers
+                    </Link>
+                </div>
+
                 {/* Right side: approval warning + user menu */}
                 <div className="flex items-center gap-3 ml-auto">
                     {/* Approval pending banner */}

@@ -1,10 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const http = require('http'); // <-- Added for Socket.io
 const connectDB = require('./config/db');
 const { connectCloudinary } = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/errorHandler');
 const { startEscalationCron } = require('./jobs/escalationCron');
+const { startAmbulanceDispatchCron } = require('./jobs/ambulanceDispatchCron');
+const { initSocket } = require('./config/socket'); // <-- Socket.io config
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
@@ -15,9 +18,14 @@ const ngoRoutes = require('./routes/ngoRoutes');
 const hospitalRoutes = require('./routes/hospitalRoutes');
 const ambulanceRoutes = require('./routes/ambulanceRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const donationRoutes = require('./routes/donationRoutes');
 
 // ─── App Initialization ───────────────────────────────────────────────────────
 const app = express();
+const server = http.createServer(app); // <-- Wrap app in HTTP server
+// Initialize Socket.io
+initSocket(server);
+
 const PORT = process.env.PORT || 5000;
 
 console.log('[Server] Initializing PawSaarthi Backend...');
@@ -96,6 +104,7 @@ app.use('/api/ngo', ngoRoutes);
 app.use('/api/hospital', hospitalRoutes);
 app.use('/api/ambulance', ambulanceRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/donation', donationRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -107,7 +116,8 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+// Use server.listen instead of app.listen for Socket.io
+server.listen(PORT, () => {
     console.log('');
     console.log('============================================');
     console.log(`  PawSaarthi API Server`);
@@ -119,6 +129,8 @@ app.listen(PORT, () => {
 
     // Start the escalation cron job
     startEscalationCron();
+    // Start ambulance sequential dispatch cron job
+    startAmbulanceDispatchCron();
 });
 
-module.exports = app;
+module.exports = { app, server };

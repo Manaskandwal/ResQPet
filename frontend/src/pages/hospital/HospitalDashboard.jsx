@@ -10,22 +10,14 @@ import { TruckIcon, XMarkIcon, BuildingOffice2Icon } from '@heroicons/react/24/o
 const HospitalDashboard = () => {
     const { user } = useAuth();
     const [cases, setCases] = useState([]);
-    const [ambulances, setAmbulances] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [selectedCase, setSelectedCase] = useState(null);
-    const [assigning, setAssigning] = useState(false);
-    const [selectedAmb, setSelectedAmb] = useState('');
+    const [acting, setActing] = useState({});
 
     const fetchData = useCallback(async () => {
         try {
-            console.log('[HospitalDashboard] Fetching escalated cases and ambulances...');
-            const [casesRes, ambRes] = await Promise.all([
-                api.get('/hospital/escalated'),
-                api.get('/hospital/ambulances'),
-            ]);
-            setCases(casesRes.data.cases);
-            setAmbulances(ambRes.data.ambulances);
+            console.log('[HospitalDashboard] Fetching broadcasted cases...');
+            const { data } = await api.get('/hospital/escalated');
+            setCases(data.cases);
             console.log('[HospitalDashboard] Cases:', casesRes.data.count, 'Ambulances:', ambRes.data.count);
         } catch (error) {
             console.error('[HospitalDashboard] Fetch error:', error.message);
@@ -37,33 +29,18 @@ const HospitalDashboard = () => {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const openAssignModal = (c) => {
-        setSelectedCase(c);
-        setSelectedAmb('');
-        setModalOpen(true);
-    };
-
-    const handleAssign = async () => {
-        if (!selectedAmb) { toast.error('Please select an ambulance.'); return; }
-        setAssigning(true);
+    const handleAcceptCase = async (id) => {
+        setActing(p => ({ ...p, [id]: true }));
         try {
-            console.log('[HospitalDashboard] Assigning ambulance:', selectedAmb, 'to rescue:', selectedCase._id);
-            await api.put(`/rescue/${selectedCase._id}/assign-ambulance`, { ambulanceId: selectedAmb });
-            toast.success('Ambulance assigned! 🚑 Dispatch confirmed.');
-            setModalOpen(false);
-            setCases((prev) => prev.filter((c) => c._id !== selectedCase._id));
-            // Refresh ambulances list
-            const ambRes = await api.get('/hospital/ambulances');
-            setAmbulances(ambRes.data.ambulances);
+            const { data } = await api.put(`/hospital/rescue/${id}/accept`);
+            toast.success(data.message);
+            setCases(prev => prev.filter(c => c._id !== id));
         } catch (error) {
-            console.error('[HospitalDashboard] Assign error:', error.message);
-            toast.error(error.response?.data?.message || 'Failed to assign ambulance.');
+            toast.error(error.response?.data?.message || 'Failed to claim case.');
         } finally {
-            setAssigning(false);
+            setActing(p => ({ ...p, [id]: false }));
         }
     };
-
-    const availableAmbs = ambulances.filter(a => a.isAvailable);
 
     if (!user.isApproved) {
         return (
@@ -83,20 +60,13 @@ const HospitalDashboard = () => {
             </div>
 
             {/* Capacity row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                 <div className="stat-card">
                     <div className="w-10 h-10 bg-orange-50 rounded-btn flex items-center justify-center mb-1">
                         <BuildingOffice2Icon className="w-5 h-5 text-orange-600" />
                     </div>
                     <p className="stat-value">{cases.length}</p>
-                    <p className="stat-label">Escalated Cases</p>
-                </div>
-                <div className="stat-card">
-                    <div className="w-10 h-10 bg-green-50 rounded-btn flex items-center justify-center mb-1">
-                        <TruckIcon className="w-5 h-5 text-green-600" />
-                    </div>
-                    <p className="stat-value">{availableAmbs.length}/{ambulances.length}</p>
-                    <p className="stat-label">Available Ambulances</p>
+                    <p className="stat-label">Broadcasts Nearby</p>
                 </div>
             </div>
 
@@ -127,76 +97,18 @@ const HospitalDashboard = () => {
                                 <img src={c.images[0]} alt="rescue" className="w-full h-36 object-cover rounded-btn mb-3 border border-surface-border" />
                             )}
                             <button
-                                onClick={() => openAssignModal(c)}
-                                disabled={availableAmbs.length === 0}
-                                className="btn-accent w-full"
+                                onClick={() => handleAcceptCase(c._id)}
+                                disabled={acting[c._id]}
+                                className="btn bg-indigo-500 hover:bg-indigo-600 text-white w-full border-0"
                             >
-                                <TruckIcon className="w-4 h-4" />
-                                {availableAmbs.length === 0 ? 'No Ambulances Available' : 'Dispatch Ambulance'}
+                                <BuildingOffice2Icon className="w-4 h-4" />
+                                {acting[c._id] ? 'Claiming Case...' : 'Accept & Dispatch Ambulance'}
                             </button>
                         </div>
                     ))}
                     <button onClick={fetchData} className="btn-ghost w-full text-sm">🔄 Refresh</button>
                 </div>
             )}
-
-            {/* Assign Ambulance Modal */}
-            <Transition appear show={modalOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-50" onClose={() => setModalOpen(false)}>
-                    <Transition.Child as={Fragment}
-                        enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
-                        leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0">
-                        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
-                    </Transition.Child>
-
-                    <div className="fixed inset-0 flex items-center justify-center p-4">
-                        <Transition.Child as={Fragment}
-                            enter="ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
-                            leave="ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                            <Dialog.Panel className="w-full max-w-md bg-white rounded-card shadow-card-hover p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <Dialog.Title className="text-lg font-bold text-slate-800">Dispatch Ambulance</Dialog.Title>
-                                    <button onClick={() => setModalOpen(false)} className="btn-ghost p-1">
-                                        <XMarkIcon className="w-5 h-5" />
-                                    </button>
-                                </div>
-
-                                <p className="text-sm text-surface-muted mb-4 truncate">
-                                    Case: <span className="text-slate-700 font-medium">{selectedCase?.description}</span>
-                                </p>
-
-                                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                                    {availableAmbs.map((amb) => (
-                                        <button key={amb._id} type="button"
-                                            onClick={() => setSelectedAmb(amb._id)}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-btn border text-left transition-all
-                        ${selectedAmb === amb._id
-                                                    ? 'border-primary-400 bg-primary-50'
-                                                    : 'border-surface-border hover:bg-surface-hover'}`}>
-                                            <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <TruckIcon className="w-5 h-5 text-blue-600" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-slate-800">{amb.name}</p>
-                                                <p className="text-xs text-surface-muted">🚑 {amb.vehicleNumber || 'No plate'} · {amb.phone || 'No phone'}</p>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <div className="flex gap-2 mt-5">
-                                    <button onClick={() => setModalOpen(false)} className="btn-outline flex-1">Cancel</button>
-                                    <button onClick={handleAssign} disabled={!selectedAmb || assigning} className="btn-primary flex-1">
-                                        {assigning ? (
-                                            <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Assigning...</>
-                                        ) : '🚑 Dispatch Now'}
-                                    </button>
-                                </div>
-                            </Dialog.Panel>
-                        </Transition.Child>
-                    </div>
-                </Dialog>
-            </Transition>
         </div>
     );
 };

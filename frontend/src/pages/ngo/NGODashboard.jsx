@@ -81,6 +81,32 @@ const NGODashboard = () => {
         }
     };
 
+    const handleResolve = async (id) => {
+        setActing((p) => ({ ...p, [id]: 'resolving' }));
+        try {
+            await api.put(`/rescue/${id}/resolve-ngo`);
+            toast.success('Case resolved on spot! Excellent work.');
+            fetchAll();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to resolve case.');
+        } finally {
+            setActing((p) => ({ ...p, [id]: null }));
+        }
+    };
+
+    const handleEscalate = async (id) => {
+        setActing((p) => ({ ...p, [id]: 'escalating' }));
+        try {
+            await api.put(`/rescue/${id}/escalate-ngo`);
+            toast.success('Case escalated! System is pinging nearby hospitals.');
+            fetchAll();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to escalate case.');
+        } finally {
+            setActing((p) => ({ ...p, [id]: null }));
+        }
+    };
+
     if (!user.isApproved) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
@@ -292,6 +318,25 @@ const NGODashboard = () => {
                                                 <img key={i} src={img} alt="rescue detail" className="h-32 w-48 object-cover rounded-btn snap-start border border-surface-border flex-shrink-0" />
                                             ))}
                                         </div>
+                                    </div>
+                                )}
+
+                                {c.status === 'ngo_accepted' && (
+                                    <div className="mt-5 flex gap-3 border-t border-surface-border pt-4">
+                                        <button
+                                            onClick={() => handleResolve(c._id)}
+                                            disabled={!!acting[c._id]}
+                                            className="btn bg-teal-500 hover:bg-teal-600 text-white flex-1 py-2 font-semibold"
+                                        >
+                                            {acting[c._id] === 'resolving' ? '...' : '✅ Resolve on Spot'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleEscalate(c._id)}
+                                            disabled={!!acting[c._id]}
+                                            className="btn bg-rose-500 hover:bg-rose-600 text-white flex-1 py-2 font-semibold"
+                                        >
+                                            {acting[c._id] === 'escalating' ? '...' : '🏥 Escalate to Hospital'}
+                                        </button>
                                     </div>
                                 )}
                             </div>
