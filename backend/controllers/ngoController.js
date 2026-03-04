@@ -112,7 +112,43 @@ const rejectCase = async (req, res) => {
         }
 
         console.log(`[NGO Controller] Rescue ${rescue._id} rejected by NGO ${req.user._id}`);
-        res.status(200).json({ success: true, message: 'Case rejected. You will not see this case again.' });
+
+        // --- Auto-Escalation Logic ---
+        // Check if all active NGOs within 50km have rejected this case.
+        const User = require('../models/User');
+        const { haversineDistance } = require('../utils/haversine');
+        const allNGOs = await User.find({ role: 'ngo', isApproved: true });
+
+        // Count NGOs within 50km
+        let nearbyNgoCount = 0;
+        allNGOs.forEach(n => {
+            if (n.location && n.location.lat && n.location.lng) {
+                const dist = haversineDistance(rescue.location.lat, rescue.location.lng, n.location.lat, n.location.lng);
+                if (dist <= 50) nearbyNgoCount++;
+            }
+        });
+
+        // If the number of rejections >= nearby NGOs, immediately escalate to Hospital Broadcast
+        if (rescue.rejectedBy.length >= nearbyNgoCount && rescue.status === 'pending') {
+            rescue.status = 'hospital_broadcasted';
+            rescue.escalatedAt = new Date();
+            await rescue.save();
+
+            console.log(`[Escalation] All ${nearbyNgoCount} nearby NGOs rejected Case ${rescue._id}. Escalating to Hospitals.`);
+
+            const { getIo } = require('../config/socket');
+            try {
+                const io = getIo();
+                io.to('role_hospital').emit('new_hospital_broadcast', {
+                    rescueRequestId: rescue._id,
+                    message: "New Emergency Escalted from NGOs!"
+                });
+            } catch (socketErr) {
+                console.error('[NGO Controller] Socket error emitting broadcast:', socketErr.message);
+            }
+        }
+
+        res.status(200).json({ success: true, message: 'Case rejected. You will not see this case again.', rescue });
     } catch (error) {
         console.error('[NGO Controller] rejectCase error:', error.message);
         res.status(500).json({ success: false, message: error.message });

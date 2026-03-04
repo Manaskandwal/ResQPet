@@ -173,9 +173,20 @@ const acceptBroadcastedCase = async (req, res) => {
         rescue.status = 'hospital_accepted';
         rescue.assignedHospital = req.user._id;
 
-        // Push it to the next state for the Ambulance Cron to pick up
+        // Auto-ping linked available ambulances immediately
+        const availableAmbulances = await User.find({
+            role: 'ambulance',
+            linkedHospital: req.user._id,
+            isAvailable: true,
+            isApproved: true
+        });
+
+        // Push it to the next state for the Ambulance Cron to pick up (or via immediate sockets)
         rescue.status = 'ambulance_pinged';
-        rescue.activeAmbulancePings = [];
+        rescue.activeAmbulancePings = availableAmbulances.map(amb => ({
+            ambulanceId: amb._id,
+            pingedAt: new Date()
+        }));
         rescue.pingRejectors = [];
 
         await rescue.save();
