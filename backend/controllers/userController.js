@@ -77,4 +77,44 @@ const getWallet = async (req, res) => {
     }
 };
 
-module.exports = { getProfile, updateProfile, getWallet };
+/**
+ * @route   GET /api/user/ngos
+ * @desc    Get all active NGOs with payment details
+ * @access  Private
+ */
+const getNgos = async (req, res) => {
+    try {
+        const ngos = await User.find({ role: 'ngo', isApproved: true })
+            .select('orgName address paymentDetails');
+        res.status(200).json({ success: true, ngos });
+    } catch (error) {
+        console.error('[User Controller] getNgos error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   POST /api/user/subscribe-emergency
+ * @desc    Subscribe to monthly emergency funds
+ * @access  Private
+ */
+const subscribeEmergency = async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const user = await User.findById(req.user._id);
+
+        user.monthlySubscription = {
+            isSubscribed: true,
+            amount: amount || 50,
+            lastDeductedAt: new Date(),
+        };
+
+        await user.save();
+        res.status(200).json({ success: true, message: 'Subscribed to Emergency Fund' });
+    } catch (error) {
+        console.error('[User Controller] subscribeEmergency error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getProfile, updateProfile, getWallet, getNgos, subscribeEmergency };

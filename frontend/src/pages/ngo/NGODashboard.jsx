@@ -52,14 +52,44 @@ const NGODashboard = () => {
         if (user.isApproved) fetchAll();
     }, [fetchAll, user.isApproved]);
 
-    const handleAccept = async (id) => {
+    const handleAccept = async (id, type = 'immediate', scheduleDate = null) => {
         setActing((p) => ({ ...p, [id]: 'accepting' }));
         try {
-            await api.put(`/rescue/${id}/accept-ngo`);
-            toast.success('Case accepted! 🐾 Please respond immediately.');
-            fetchAll(); // Refreshes nearby out, my-cases in, and analytics up
+            await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate });
+            toast.success(type === 'schedule' ? 'Case scheduled!' : 'Case accepted! 🐾 Please respond immediately.');
+            fetchAll();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to accept case.');
+        } finally {
+            setActing((p) => ({ ...p, [id]: null }));
+        }
+    };
+
+    const handleUpdateStatus = async (id, status, message = '', files = []) => {
+        setActing((p) => ({ ...p, [id]: 'updating' }));
+        try {
+            const formData = new FormData();
+            formData.append('status', status);
+            formData.append('message', message);
+
+            if (files && files.length > 0) {
+                files.forEach(file => formData.append('media', file));
+            }
+
+            // Get location if possible
+            try {
+                const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }));
+                formData.append('lat', pos.coords.latitude);
+                formData.append('lng', pos.coords.longitude);
+            } catch (e) { console.log('Location denied or failed'); }
+
+            await api.put(`/rescue/${id}/ngo-status`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            toast.success(`Status updated to ${status}`);
+            fetchAll();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update status.');
         } finally {
             setActing((p) => ({ ...p, [id]: null }));
         }
@@ -242,9 +272,23 @@ const NGODashboard = () => {
                                 </p>
 
                                 <div className="flex gap-2">
-                                    <button onClick={() => handleAccept(c._id)} disabled={!!acting[c._id]} className="btn-primary flex-1">
+                                    <button
+                                        onClick={() => handleAccept(c._id, 'immediate')}
+                                        disabled={!!acting[c._id]}
+                                        className="btn-primary flex-1"
+                                    >
                                         {acting[c._id] === 'accepting' ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <CheckIcon className="w-4 h-4" />}
-                                        Accept Case
+                                        Accept Now
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const date = prompt("Enter schedule date (YYYY-MM-DD HH:MM):");
+                                            if (date) handleAccept(c._id, 'schedule', new Date(date));
+                                        }}
+                                        disabled={!!acting[c._id]}
+                                        className="btn-outline flex-1"
+                                    >
+                                        <ClockIcon className="w-4 h-4" /> Schedule
                                     </button>
                                     <button onClick={() => handleReject(c._id)} disabled={!!acting[c._id]} className="btn-outline">
                                         {acting[c._id] === 'rejecting' ? '...' : <XMarkIcon className="w-4 h-4" />}
@@ -321,22 +365,67 @@ const NGODashboard = () => {
                                     </div>
                                 )}
 
-                                {c.status === 'ngo_accepted' && (
-                                    <div className="mt-5 flex gap-3 border-t border-surface-border pt-4">
-                                        <button
-                                            onClick={() => handleResolve(c._id)}
-                                            disabled={!!acting[c._id]}
-                                            className="btn bg-teal-500 hover:bg-teal-600 text-white flex-1 py-2 font-semibold"
-                                        >
-                                            {acting[c._id] === 'resolving' ? '...' : '✅ Resolve on Spot'}
-                                        </button>
-                                        <button
-                                            onClick={() => handleEscalate(c._id)}
-                                            disabled={!!acting[c._id]}
-                                            className="btn bg-rose-500 hover:bg-rose-600 text-white flex-1 py-2 font-semibold"
-                                        >
-                                            {acting[c._id] === 'escalating' ? '...' : '🏥 Escalate to Hospital'}
-                                        </button>
+                                {['accepted', 'scheduled', 'on_the_way', 'reached', 'treating'].includes(c.status) && (
+                                    <div className="mt-5 space-y-3 border-t border-surface-border pt-4">
+                                        <div className="flex flex-wrap gap-2">
+                                            {c.status === 'accepted' && (
+                                                <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 text-white text-xs px-3 py-1">🚀 Move Out (Left)</button>
+                                            )}
+                                            {c.status === 'on_the_way' && (
+                                                <button onClick={() => handleUpdateStatus(c._id, 'reached')} className="btn bg-indigo-500 text-white text-xs px-3 py-1">📍 Reached (Manual)</button>
+                                            )}
+                                            {c.status === 'reached' && (
+                                                <button onClick={() => handleUpdateStatus(c._id, 'treating')} className="btn bg-emerald-500 text-white text-xs px-3 py-1">🩹 Start Treatment</button>
+                                            )}
+                                            {c.status === 'treating' && (
+                                                <>
+                                                    <button onClick={() => handleResolve(c._id)} className="btn bg-teal-500 text-white text-xs px-3 py-1">✅ Resolve Spot</button>
+                                                    <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 text-white text-xs px-3 py-1">🏥 Hospitalize</button>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="file"
+                                                id={`media-upload-${c._id}`}
+                                                multiple
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const files = Array.from(e.target.files);
+                                                    if (files.length > 0) {
+                                                        const msg = prompt("Add a status message (optional):");
+                                                        handleUpdateStatus(c._id, c.status, msg, files);
+                                                    }
+                                                }}
+                                            />
+                                            <label htmlFor={`media-upload-${c._id}`} className="cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700 underline">
+                                                📷 Upload Progress Media
+                                            </label>
+                                        </div>
+
+                                        <div className="bg-slate-50 p-3 rounded-btn">
+                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-2">Status Log</h4>
+                                            <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                                                {c.statusLogs?.map((log, i) => (
+                                                    <div key={i} className="text-xs flex flex-col gap-1 border-b border-slate-100 last:border-0 pb-1">
+                                                        <div className="flex gap-2">
+                                                            <span className="text-slate-400 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                                                            <span className="font-semibold text-slate-700 capitalize">{log.status}:</span>
+                                                            <span className="text-slate-600 italic">"{log.message}"</span>
+                                                        </div>
+                                                        {log.images?.length > 0 && (
+                                                            <div className="flex gap-1 overflow-x-auto mt-1">
+                                                                {log.images.map((img, idx) => (
+                                                                    <img key={idx} src={img} alt="progress" className="h-10 w-10 object-cover rounded shadow-sm" />
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                {(!c.statusLogs || c.statusLogs.length === 0) && <p className="text-xs text-slate-400">No logs yet.</p>}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>

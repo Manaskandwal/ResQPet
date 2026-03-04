@@ -26,6 +26,12 @@ console.error = function (...args) {
 
 const BASE_URL = 'http://localhost:5000/api';
 
+/**
+ * NEW: Superadmin Actor matching the requested credentials
+ */
+const superadmin = new BotActor('Manas (Superadmin)', 'manaskandwal@gmail.com', 'superadmin');
+superadmin.password = 'jackey@123.';
+
 const admin = new BotActor(process.env.ADMIN_NAME || 'Super Admin', process.env.ADMIN_EMAIL || 'admin@pawsaarthi.com', 'admin');
 admin.password = process.env.ADMIN_PASSWORD || 'Admin@123456';
 const user = new BotActor('Reporter Bob', 'bobbot@example.com', 'user', { location: { lat: 28.7, lng: 77.1 } });
@@ -109,22 +115,69 @@ async function runScenarioA() {
     // Wait for Sockets to broadcast
     await sleep(2000);
 
-    // 2. NGO 1 Accepts
-    ngo1.log(`Accepting Rescue ${rescueId}...`);
-    const acceptRes = await axios.put(`${BASE_URL}/rescue/${rescueId}/accept-ngo`, {}, { headers: { Authorization: `Bearer ${ngo1.token}` } });
+    // 2. NGO 1 Accepts via new flow (Immediate)
+    ngo1.log(`Accepting Rescue ${rescueId} (Immediate)...`);
+    const acceptRes = await axios.put(`${BASE_URL}/rescue/${rescueId}/accept-ngo`, { type: 'immediate' }, { headers: { Authorization: `Bearer ${ngo1.token}` } });
     if (acceptRes.status === 200) {
         ngo1.log(`Accepted! State is now: ${acceptRes.data.rescue.status}`);
     }
 
     await sleep(1500);
 
-    // 3. NGO 1 Resolves
-    ngo1.log(`Treating animal on spot... marking resolved.`);
+    // 3. NGO 1 Progresses Lifecycle
+    await ngo1.updateNGOStatus(rescueId, 'on_the_way', 'Moving out with the rescue van!');
+    await sleep(1000);
+    await ngo1.updateNGOStatus(rescueId, 'reached', 'Arrived at the spot, dog is scared.');
+    await sleep(1000);
+    await ngo1.updateNGOStatus(rescueId, 'treating', 'Administering basic first aid.');
+    await sleep(1500);
+
+    // 4. NGO 1 Resolves
+    ngo1.log(`Treatment complete. marking resolved.`);
     const resolveRes = await axios.put(`${BASE_URL}/rescue/${rescueId}/resolve-ngo`, {}, { headers: { Authorization: `Bearer ${ngo1.token}` } });
     if (resolveRes.status === 200) {
         ngo1.log(`Resolved! State is now: ${resolveRes.data.rescue.status}`);
         user.log(`Dashboard shows animal saved!`);
     }
+}
+
+async function runScenarioC() {
+    console.log('\n--- 💰 PHASE 4: SCENARIO C (SUPERADMIN & FUNDRAISERS) ---\n');
+
+    // 1. Superadmin role switching test
+    await superadmin.registerAndLogin();
+    // Superadmin starts as superadmin
+    await superadmin.switchRole('user');
+    await superadmin.switchRole('ngo');
+    await superadmin.switchRole('hospital');
+    await superadmin.switchRole('ambulance');
+    await superadmin.switchRole('admin');
+    await superadmin.switchRole('superadmin'); // back to base
+
+    // 2. Emergency Fund Subscription
+    await user.subscribeEmergency(100);
+
+    // 3. NGO Payment Config
+    ngo1.log(`Updating payment details...`);
+    const dbNgo = await User.findOne({ email: ngo1.email });
+    dbNgo.paymentDetails = {
+        upiId: 'paws@upi',
+        accountHolder: 'Paws Rescue',
+        bankName: 'HDFC Bank'
+    };
+    await dbNgo.save();
+    ngo1.log(`Payment details updated.`);
+
+    // 4. Verify NGO appears in NGO list for fundraisers
+    const ngoListRes = await axios.get(`${BASE_URL}/user/ngos`, { headers: { Authorization: `Bearer ${user.token}` } });
+    if (ngoListRes.data.success && ngoListRes.data.ngos.length > 0) {
+        user.log(`Found ${ngoListRes.data.ngos.length} NGOs in listing! Verification passed.`);
+    }
+
+    console.log('[Info] Waiting 65 seconds to verify recurring deduction...')
+    await sleep(65000);
+    const dbSubscribedUser = await User.findOne({ email: user.email });
+    console.log(`[Validation] User lastDeductedAt: ${dbSubscribedUser.monthlySubscription.lastDeductedAt}`);
 }
 
 async function runScenarioB() {
@@ -204,13 +257,14 @@ async function runSimulation() {
         await prepareSystem();
         await runScenarioA();
         await runScenarioB();
+        await runScenarioC();
 
         console.log('\n--- 🎉 SIMULATION COMPLETE 🎉 ---\n');
     } catch (e) {
         console.error('\n--- ❌ SIMULATION ENCOUNTERED A FATAL ERROR ❌ ---');
         console.error(e.stack || e);
     } finally {
-        [user, ngo1, ngo2, hospital, ambulance].forEach(a => a.disconnectSocket());
+        [user, ngo1, ngo2, hospital, ambulance, superadmin].forEach(a => a.disconnectSocket());
         mongoose.disconnect();
         logFile.end();
         process.exit(0);

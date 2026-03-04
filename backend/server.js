@@ -7,6 +7,7 @@ const { connectCloudinary } = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/errorHandler');
 const { startEscalationCron } = require('./jobs/escalationCron');
 const { startAmbulanceDispatchCron } = require('./jobs/ambulanceDispatchCron');
+const { startRecurringEmergencyDeduction } = require('./jobs/recurringJobs');
 const { initSocket } = require('./config/socket'); // <-- Socket.io config
 
 // ─── Route Imports ────────────────────────────────────────────────────────────

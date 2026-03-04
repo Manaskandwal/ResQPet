@@ -19,6 +19,7 @@ const navConfig = {
     user: [
         { to: '/user/dashboard', label: 'Home', Icon: HomeIcon },
         { to: '/user/submit-rescue', label: 'Report Animal', Icon: PlusCircleIcon },
+        { to: '/fundraisers', label: 'Fundraisers', Icon: HeartIcon },
     ],
     ngo: [
         { to: '/ngo/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },

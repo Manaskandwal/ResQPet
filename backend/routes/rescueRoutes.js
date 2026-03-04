@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { submitRescue, getMyRescues, getRescueById, cancelRescue, makeFundraiser } = require('../controllers/rescueController');
-const { acceptCase, rejectCase, resolveOnSpot, escalateToHospital } = require('../controllers/ngoController');
+const { acceptCase, rejectCase, resolveOnSpot, escalateToHospital, updateNGOStatus } = require('../controllers/ngoController');
 const { assignAmbulance } = require('../controllers/hospitalController');
 const { updateStatus } = require('../controllers/ambulanceController');
 const { protect } = require('../middleware/auth');
@@ -41,6 +41,9 @@ router.put('/:id/resolve-ngo', protect, allowRoles('ngo'), resolveOnSpot);
 
 // @route  PUT /api/rescue/:id/escalate-ngo
 router.put('/:id/escalate-ngo', protect, allowRoles('ngo'), escalateToHospital);
+
+// @route  PUT /api/rescue/:id/ngo-status
+router.put('/:id/ngo-status', protect, allowRoles('ngo'), upload.array('media', 7), updateNGOStatus);
 
 // @route  PUT /api/rescue/:id/assign-ambulance
 router.put('/:id/assign-ambulance', protect, allowRoles('hospital'), assignAmbulance);

@@ -64,27 +64,107 @@ const getNearbyCases = async (req, res) => {
  */
 const acceptCase = async (req, res) => {
     try {
-        console.log(`[NGO Controller] acceptCase: rescueId=${req.params.id}, ngoId=${req.user._id}`);
+        const { type, scheduleDate } = req.body; // type: 'immediate' or 'schedule'
+        console.log(`[NGO Controller] acceptCase: id=${req.params.id}, type=${type}`);
 
         const rescue = await RescueRequest.findById(req.params.id);
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
 
         if (rescue.status !== 'pending') {
-            return res.status(400).json({
-                success: false,
-                message: `Cannot accept: rescue is already in '${rescue.status}' status.`,
+            return res.status(400).json({ success: false, message: 'Case already accepted or cancelled.' });
+        }
+
+        rescue.assignedNGO = req.user._id;
+        rescue.acceptedAt = new Date();
+
+        if (type === 'schedule') {
+            rescue.status = 'scheduled';
+            rescue.scheduleDate = scheduleDate;
+            rescue.statusLogs.push({
+                status: 'scheduled',
+                message: `NGO scheduled the rescue for ${new Date(scheduleDate).toLocaleString()}`,
+            });
+        } else {
+            rescue.status = 'accepted';
+            rescue.statusLogs.push({
+                status: 'accepted',
+                message: 'NGO accepted for immediate rescue.',
             });
         }
 
-        rescue.status = 'ngo_accepted';
-        rescue.assignedNGO = req.user._id;
-        rescue.acceptedAt = new Date();
         await rescue.save();
-
-        console.log(`[NGO Controller] Rescue ${rescue._id} accepted by NGO ${req.user._id}`);
-        res.status(200).json({ success: true, message: 'Rescue case accepted!', rescue });
+        res.status(200).json({ success: true, message: 'Case accepted successfully!', rescue });
     } catch (error) {
         console.error('[NGO Controller] acceptCase error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   PUT /api/ngo/rescue/:id/status
+ * @desc    Update rescue status (left, reached, treating, etc.)
+ * @access  Private (ngo only)
+ */
+const updateNGOStatus = async (req, res) => {
+    try {
+        const { status, message, lat, lng } = req.body;
+        const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue not found or not assigned to you.' });
+
+        let finalStatus = status;
+
+        // Auto-check distance if location is provided
+        if (lat && lng && status === 'on_the_way') {
+            const distance = haversineDistance(lat, lng, rescue.location.lat, rescue.location.lng);
+            if (distance <= 0.1) { // 100 meters
+                finalStatus = 'reached';
+            }
+        }
+
+        // Handle Media Uploads
+        const imageUrls = [];
+        let videoUrl = null;
+
+        if (req.files && req.files.length > 0) {
+            const { uploadBufferToCloudinary } = require('../middleware/upload');
+            for (const file of req.files) {
+                try {
+                    const isVideo = file.mimetype.startsWith('video/');
+                    const result = await uploadBufferToCloudinary(file.buffer, {
+                        folder: `pawsaarthi/rescue/${rescue._id}`,
+                        resource_type: isVideo ? 'video' : 'image',
+                    });
+                    if (isVideo) videoUrl = result.secure_url;
+                    else imageUrls.push(result.secure_url);
+                } catch (err) {
+                    console.error('[NGO Status Update] Upload error:', err.message);
+                }
+            }
+        }
+
+        rescue.status = finalStatus;
+        rescue.statusLogs.push({
+            status: finalStatus,
+            message: message || `Status updated to ${finalStatus}`,
+            images: imageUrls,
+            video: videoUrl,
+        });
+
+        // Optionally add to main images array if it's a significant update
+        if (imageUrls.length > 0) {
+            rescue.images = [...rescue.images, ...imageUrls].slice(-10); // keep last 10
+        }
+        if (videoUrl) rescue.video = videoUrl;
+
+        if (finalStatus === 'completed') {
+            rescue.completedAt = new Date();
+        }
+
+        await rescue.save();
+        res.status(200).json({ success: true, message: `Status updated to ${finalStatus}`, rescue });
+    } catch (error) {
+        console.error('[NGO Controller] updateNGOStatus error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -274,4 +354,13 @@ const escalateToHospital = async (req, res) => {
     }
 };
 
-module.exports = { getNearbyCases, acceptCase, rejectCase, getMyCases, getAnalytics, resolveOnSpot, escalateToHospital };
+module.exports = {
+    getNearbyCases,
+    acceptCase,
+    rejectCase,
+    getMyCases,
+    getAnalytics,
+    resolveOnSpot,
+    escalateToHospital,
+    updateNGOStatus
+};

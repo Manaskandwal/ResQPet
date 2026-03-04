@@ -30,16 +30,22 @@ import AmbulanceDashboard from './pages/ambulance/AmbulanceDashboard';
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
 
-/** Redirect authenticated users straight to their dashboard */
+/** Redirect authenticated users to their dashboard */
 const DashboardRedirect = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+
   const routes = {
-    user: '/user/dashboard', ngo: '/ngo/dashboard',
-    hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
+    user: '/user/dashboard',
+    ngo: '/ngo/dashboard',
+    hospital: '/hospital/dashboard',
+    ambulance: '/ambulance/dashboard',
+    admin: '/admin/dashboard',
   };
-  return <Navigate to={routes[user.role] || '/login'} replace />;
+  // isAdmin users are always redirected to admin dashboard regardless of impersonated role
+  if (user.isAdmin && !user.impersonating) return <Navigate to="/admin/dashboard" replace />;
+  return <Navigate to={routes[user.role] || '/user/dashboard'} replace />;
 };
 
 export default function App() {
@@ -51,7 +57,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Authenticated role redirect */}
+      {/* Dashboard redirect */}
       <Route path="/dashboard" element={<DashboardRedirect />} />
 
       {/* User */}

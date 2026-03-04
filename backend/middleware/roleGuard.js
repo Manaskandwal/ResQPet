@@ -18,6 +18,11 @@ const allowRoles = (...roles) => {
                 return res.status(401).json({ success: false, message: 'Not authenticated.' });
             }
 
+            // Admin users bypass all role restrictions
+            if (req.user.isAdmin) {
+                return next();
+            }
+
             if (!roles.includes(req.user.role)) {
                 console.warn(
                     `[RoleGuard] Access denied for role '${req.user.role}' on route requiring [${roles.join(', ')}]`

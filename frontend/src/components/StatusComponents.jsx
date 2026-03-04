@@ -3,6 +3,11 @@
  */
 const statusMap = {
     pending: { label: 'Pending', cls: 'badge-pending' },
+    accepted: { label: 'Accepted', cls: 'badge-accepted bg-green-100 text-green-700' },
+    scheduled: { label: 'Scheduled', cls: 'badge-accepted bg-blue-100 text-blue-700' },
+    on_the_way: { label: 'On The Way', cls: 'badge-accepted bg-indigo-100 text-indigo-700' },
+    reached: { label: 'Reached', cls: 'badge-accepted bg-teal-100 text-teal-700' },
+    treating: { label: 'Treating', cls: 'badge-accepted bg-emerald-100 text-emerald-700' },
     ngo_accepted: { label: 'NGO Accepted', cls: 'badge-accepted' },
     hospital_broadcasted: { label: 'Pinging Hospitals', cls: 'badge-escalated bg-amber-100 text-amber-700' },
     hospital_accepted: { label: 'Hospital Accepted', cls: 'badge-escalated bg-indigo-100 text-indigo-700' },
@@ -27,7 +32,7 @@ export const StatusBadge = ({ status }) => {
  */
 const steps = [
     { key: 'pending', label: 'Reported', emoji: '📍' },
-    { key: 'ngo_accepted', label: 'NGO', emoji: '🤝' },
+    { key: 'accepted', label: 'NGO Responding', emoji: '🤝' },
     { key: 'hospital_broadcasted', label: 'Hospital', emoji: '🏥' },
     { key: 'ambulance_pinged', label: 'Dispatch', emoji: '📡' },
     { key: 'ambulance_assigned', label: 'Driver Assigned', emoji: '🚑' },
@@ -47,6 +52,11 @@ export const StatusTimeline = ({ status }) => {
                 {steps.map((step, idx) => {
                     // For UI simplicity, map some intermediate states to a single visual step
                     let effectiveStatus = status;
+                    if (status === 'scheduled') effectiveStatus = 'accepted';
+                    if (status === 'on_the_way') effectiveStatus = 'accepted';
+                    if (status === 'reached') effectiveStatus = 'accepted';
+                    if (status === 'treating') effectiveStatus = 'accepted';
+                    if (status === 'ngo_accepted') effectiveStatus = 'accepted';
                     if (status === 'hospital_accepted') effectiveStatus = 'hospital_broadcasted';
                     if (status === 'fundraiser_active') effectiveStatus = 'hospital_broadcasted';
                     if (status === 'resolved_on_spot') effectiveStatus = 'completed';

@@ -9,6 +9,7 @@ import { ArrowLeftIcon, PhoneIcon, MapPinIcon, CurrencyRupeeIcon, XMarkIcon, Hea
 import { SkeletonCard } from '../../components/Skeleton';
 import socket from '../../socket';
 import { Fragment } from 'react';
+import SocialShare from '../../components/SocialShare';
 
 const RescueDetail = () => {
     const { id } = useParams();
@@ -146,6 +147,9 @@ const RescueDetail = () => {
                 <p className="text-xs text-surface-muted mt-1">
                     🕐 Reported: {new Date(rescue.createdAt).toLocaleString()}
                 </p>
+
+                {/* Social Share */}
+                <SocialShare rescue={rescue} />
             </div>
 
             {/* Media */}

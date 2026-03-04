@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema(
             enum: ['user', 'ngo', 'hospital', 'ambulance', 'admin'],
             default: 'user',
         },
+        // True only for admin users — grants account-switching privileges
+        isAdmin: {
+            type: Boolean,
+            default: false,
+        },
         // Only for role='user'
         walletBalance: {
             type: Number,
@@ -41,7 +46,7 @@ const userSchema = new mongoose.Schema(
         isApproved: {
             type: Boolean,
             default: function () {
-                // Users and admin are auto-approved; others need admin approval
+                // Users and admins are auto-approved; NGO/hospital/ambulance need admin approval
                 return this.role === 'user' || this.role === 'admin';
             },
         },
@@ -103,6 +108,20 @@ const userSchema = new mongoose.Schema(
         capacity: {
             type: Number,
             default: 10,
+        },
+        // Monthly Recurring Subscription (Emergency Funds)
+        monthlySubscription: {
+            isSubscribed: { type: Boolean, default: false },
+            amount: { type: Number, default: 0 },
+            lastDeductedAt: { type: Date, default: null },
+        },
+        // NGO Payment Config (configured by admin or NGO)
+        paymentDetails: {
+            upiId: { type: String, default: '' },
+            accountHolder: { type: String, default: '' },
+            accountNumber: { type: String, default: '' },
+            bankName: { type: String, default: '' },
+            ifsc: { type: String, default: '' },
         },
     },
     {

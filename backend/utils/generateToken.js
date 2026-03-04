@@ -11,11 +11,14 @@ const generateToken = (user) => {
             id: user._id,
             role: user.role,
             email: user.email,
+            isAdmin: user.isAdmin || false,
+            // Set when admin is impersonating another user
+            impersonating: user.impersonating || null,
         };
         const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRE || '7d',
         });
-        console.log(`[JWT] Token generated for userId: ${user._id}, role: ${user.role}`);
+        console.log(`[JWT] Token generated for userId: ${user._id}, role: ${user.role}, isAdmin: ${payload.isAdmin}`);
         return token;
     } catch (error) {
         console.error('[JWT] Token generation error:', error.message);

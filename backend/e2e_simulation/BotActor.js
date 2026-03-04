@@ -116,6 +116,54 @@ class BotActor {
         });
     }
 
+    async switchRole(newRole) {
+        try {
+            this.log(`Attempting to switch role to: ${newRole}...`);
+            const res = await axios.post(`${BASE_URL}/auth/switch-role`, { role: newRole }, {
+                headers: { Authorization: `Bearer ${this.token}` }
+            });
+            if (res.data.success) {
+                this.token = res.data.token;
+                this.role = newRole;
+                this.color = this.getColor();
+                this.log(`🟢 Role switched! Current role: ${this.role}`);
+                return true;
+            }
+            return false;
+        } catch (err) {
+            this.log(`🔴 Switch role failed: ${err.response?.data?.message || err.message}`);
+            return false;
+        }
+    }
+
+    async subscribeEmergency(amount = 100) {
+        try {
+            this.log(`Subscribing to Emergency Fund (₹${amount}/min sim)...`);
+            const res = await axios.post(`${BASE_URL}/user/subscribe-emergency`, { amount }, {
+                headers: { Authorization: `Bearer ${this.token}` }
+            });
+            this.log(`🟢 ${res.data.message}`);
+            return true;
+        } catch (err) {
+            this.log(`🔴 Subscription failed: ${err.response?.data?.message || err.message}`);
+            return false;
+        }
+    }
+
+    async updateNGOStatus(rescueId, status, message = '') {
+        try {
+            this.log(`Updating NGO Status for ${rescueId} to: ${status}...`);
+            const res = await axios.put(`${BASE_URL}/rescue/${rescueId}/ngo-status`, { status, message }, {
+                headers: { Authorization: `Bearer ${this.token}` }
+            });
+            this.log(`🟢 Status updated to ${res.data.rescue.status}`);
+            return true;
+        } catch (err) {
+            this.log(`🔴 NGO Status update failed: ${err.response?.data?.message || err.message}`);
+            return false;
+        }
+    }
+
     disconnectSocket() {
         if (this.socket) {
             this.socket.disconnect();

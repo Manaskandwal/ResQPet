@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 /**
  * Wraps routes that require authentication and a specific role.
- * Shows a full-page loader while bootstrapping auth state.
+ * Admin users (isAdmin: true) bypass all role restrictions.
  */
 const ProtectedRoute = ({ allowedRoles = [] }) => {
     const { user, loading } = useAuth();
@@ -20,6 +20,10 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
     }
 
     if (!user) return <Navigate to="/login" replace />;
+
+    // Admin users can access any route regardless of role
+    if (user?.isAdmin) return <Outlet />;
+
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
         return <Navigate to="/" replace />;
     }
