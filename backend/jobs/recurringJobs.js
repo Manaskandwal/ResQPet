@@ -4,26 +4,32 @@ const Notification = require('../models/Notification');
 const Donation = require('../models/Donation');
 const WalletTransaction = require('../models/WalletTransaction');
 
-const addOneMonth = (dateLike) => {
+const addBillingMonth = (dateLike) => {
     const base = dateLike ? new Date(dateLike) : new Date();
-    const next = new Date(base);
-    next.setMonth(next.getMonth() + 1);
-    return next;
+    const year = base.getFullYear();
+    const month = base.getMonth();
+    const day = base.getDate();
+    const targetMonth = month + 1;
+    const targetYear = year + Math.floor(targetMonth / 12);
+    const normalizedMonth = targetMonth % 12;
+    const lastDay = new Date(targetYear, normalizedMonth + 1, 0).getDate();
+
+    return new Date(
+        targetYear,
+        normalizedMonth,
+        Math.min(day, lastDay),
+        base.getHours(),
+        base.getMinutes(),
+        base.getSeconds(),
+        base.getMilliseconds()
+    );
 };
 
-/**
- * Job: recurringEmergencyDeduction
- * Runs every minute for testing.
- * Collects recurring contributions from the user's wallet in test mode.
- */
 const startRecurringEmergencyDeduction = () => {
     cron.schedule('* * * * *', async () => {
         try {
-            console.log('[Recurring Job] Checking for emergency fund deductions...');
-
             const subscribers = await User.find({
                 'monthlySubscription.isSubscribed': true,
-                'monthlySubscription.status': { $in: ['active', 'paused'] },
                 role: 'user',
             });
 
@@ -50,7 +56,7 @@ const startRecurringEmergencyDeduction = () => {
                     await Notification.create({
                         user: user._id,
                         title: 'Recurring Contribution Skipped',
-                        message: `Your wallet balance is too low for the next ₹${subscription.amount} emergency contribution. Please top up your wallet.`,
+                        message: `Your wallet balance is too low for the next Rs ${subscription.amount} emergency contribution. Please top up your wallet.`,
                         type: 'warning',
                     });
                     continue;
@@ -58,7 +64,8 @@ const startRecurringEmergencyDeduction = () => {
 
                 user.walletBalance -= subscription.amount;
                 subscription.lastDeductedAt = now;
-                subscription.nextPaymentDate = addOneMonth(now);
+                subscription.nextPaymentDate = addBillingMonth(now);
+                subscription.status = 'active';
                 user.monthlySubscription = subscription;
                 await user.save();
 
@@ -86,7 +93,7 @@ const startRecurringEmergencyDeduction = () => {
                 await Notification.create({
                     user: user._id,
                     title: 'Emergency Fund Contribution',
-                    message: `Thank you for your recurring support. ₹${subscription.amount} was deducted from your wallet in test mode for the emergency fund.`,
+                    message: `Thank you for your recurring support. Rs ${subscription.amount} was deducted from your wallet in test mode for the emergency fund.`,
                     type: 'success',
                 });
             }

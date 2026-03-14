@@ -180,8 +180,8 @@ const UserDashboard = () => {
                                 <WalletIcon className="w-5 h-5 text-primary-200" />
                                 <span className="text-primary-100 text-sm font-medium">Wallet Balance</span>
                             </div>
-                            <p className="text-4xl font-bold mb-1">₹{wallet.walletBalance.toFixed(2)}</p>
-                            <p className="text-primary-200 text-xs mb-1">₹20 deposit required per rescue</p>
+                            <p className="text-4xl font-bold mb-1">Rs {wallet.walletBalance.toFixed(2)}</p>
+                            <p className="text-primary-200 text-xs mb-1">Rs 30 small service fee per rescue. Refunded only if work never starts.</p>
 
                             {/* ── TEST MODE banner ─────────────────────── */}
                             <div className="flex items-center gap-1.5 mb-3 px-2 py-1 bg-amber-400/20 border border-amber-300/40 rounded-btn">

@@ -1,20 +1,25 @@
 const RescueRequest = require('../models/RescueRequest');
+const User = require('../models/User');
 const { haversineDistance } = require('../utils/haversine');
+const { uploadBufferToCloudinary } = require('../middleware/upload');
 
 const parseCoordinate = (value) => {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
 };
 
-/**
- * @route   GET /api/ngo/nearby
- * @desc    Get pending rescue requests within 50km of the NGO's registered location
- * @access  Private (ngo only)
- */
+const pushStatusLog = (rescue, status, message, images = [], video = null) => {
+    rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
+    rescue.statusLogs.push({
+        status,
+        message,
+        images,
+        video,
+    });
+};
+
 const getNearbyCases = async (req, res) => {
     try {
-        console.log(`[NGO Controller] getNearbyCases for NGO: ${req.user._id}`);
-
         const profileLat = parseCoordinate(req.user.location?.lat);
         const profileLng = parseCoordinate(req.user.location?.lng);
         const queryLat = parseCoordinate(req.query.lat);
@@ -24,36 +29,21 @@ const getNearbyCases = async (req, res) => {
         const activeLng = queryLng ?? profileLng;
         const hasLocation = activeLat !== null && activeLng !== null;
 
-        // Fetch all pending cases not already rejected by this NGO
         const pendingCases = await RescueRequest.find({
             status: 'pending',
             rejectedBy: { $ne: req.user._id },
         })
             .populate('user', 'name phone')
-            .sort({ createdAt: 1 }); // oldest first (most urgent)
-
-        console.log(`[NGO Controller] Pending cases (pre-filter): ${pendingCases.length}, hasLocation: ${hasLocation}, source: ${queryLat !== null && queryLng !== null ? 'query' : 'profile'}`);
+            .sort({ createdAt: 1 });
 
         let resultCases;
-
         if (hasLocation) {
-            // Filter within 10km radius using Haversine formula
             resultCases = pendingCases
-                .map((rescue) => {
-                    const distance = haversineDistance(activeLat, activeLng, rescue.location.lat, rescue.location.lng);
-                    return { ...rescue.toObject(), distance };
-                })
+                .map((rescue) => ({ ...rescue.toObject(), distance: haversineDistance(activeLat, activeLng, rescue.location.lat, rescue.location.lng) }))
                 .filter((rescue) => rescue.distance <= 50)
                 .sort((a, b) => a.distance - b.distance);
-
-            console.log(`[NGO Controller] Cases within 50km: ${resultCases.length}`);
         } else {
-            // No location set — return all pending cases unfiltered, distance = null
-            resultCases = pendingCases.map((rescue) => ({
-                ...rescue.toObject(),
-                distance: null,
-            }));
-            console.log(`[NGO Controller] No location set — returning all ${resultCases.length} pending cases`);
+            resultCases = pendingCases.map((rescue) => ({ ...rescue.toObject(), distance: null }));
         }
 
         res.status(200).json({
@@ -68,16 +58,9 @@ const getNearbyCases = async (req, res) => {
     }
 };
 
-/**
- * @route   PUT /api/rescue/:id/accept-ngo
- * @desc    NGO accepts a pending rescue request
- * @access  Private (ngo only)
- */
 const acceptCase = async (req, res) => {
     try {
-        const { type, scheduleDate } = req.body; // type: 'immediate' or 'schedule'
-        console.log(`[NGO Controller] acceptCase: id=${req.params.id}, type=${type}`);
-
+        const { type, scheduleDate } = req.body;
         const rescue = await RescueRequest.findById(req.params.id);
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
 
@@ -87,119 +70,78 @@ const acceptCase = async (req, res) => {
 
         rescue.assignedNGO = req.user._id;
         rescue.acceptedAt = new Date();
-        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
 
         if (type === 'schedule') {
             if (!scheduleDate) {
                 return res.status(400).json({ success: false, message: 'Please select a valid schedule date and time.' });
             }
-
             const parsedScheduleDate = new Date(scheduleDate);
             if (Number.isNaN(parsedScheduleDate.getTime())) {
                 return res.status(400).json({ success: false, message: 'Scheduled date/time is invalid.' });
             }
-
             rescue.status = 'scheduled';
             rescue.scheduleDate = parsedScheduleDate;
-            rescue.statusLogs.push({
-                status: 'scheduled',
-                message: `NGO scheduled the rescue for ${parsedScheduleDate.toISOString()}`,
-            });
+            pushStatusLog(rescue, 'scheduled', `NGO scheduled the rescue for ${parsedScheduleDate.toISOString()}`);
         } else {
             rescue.status = 'accepted';
-            rescue.statusLogs.push({
-                status: 'accepted',
-                message: 'NGO accepted for immediate rescue.',
-            });
+            pushStatusLog(rescue, 'accepted', 'NGO accepted the case for treatment.');
         }
 
         await rescue.save();
-        res.status(200).json({ success: true, message: 'Case accepted successfully!', rescue });
+        res.status(200).json({ success: true, message: 'Case accepted successfully.', rescue });
     } catch (error) {
         console.error('[NGO Controller] acceptCase error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-/**
- * @route   PUT /api/ngo/rescue/:id/status
- * @desc    Update rescue status (left, reached, treating, etc.)
- * @access  Private (ngo only)
- */
 const updateNGOStatus = async (req, res) => {
     try {
-        const { status, message, lat, lng } = req.body;
+        const { status, message } = req.body;
         const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
-
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue not found or not assigned to you.' });
 
-        let finalStatus = status;
-        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
-
-        // Auto-check distance if location is provided
-        if (lat && lng && status === 'on_the_way') {
-            const distance = haversineDistance(lat, lng, rescue.location.lat, rescue.location.lng);
-            if (distance <= 0.1) { // 100 meters
-                finalStatus = 'reached';
-            }
-        }
-
-        // Handle Media Uploads
         const imageUrls = [];
         let videoUrl = null;
+        const uploadedFiles = Array.isArray(req.files) ? req.files : [];
 
-        if (req.files && req.files.length > 0) {
-            const { uploadBufferToCloudinary } = require('../middleware/upload');
-            for (const file of req.files) {
-                try {
-                    const isVideo = file.mimetype.startsWith('video/');
-                    const result = await uploadBufferToCloudinary(file.buffer, {
-                        folder: `pawsaarthi/rescue/${rescue._id}`,
-                        resource_type: isVideo ? 'video' : 'image',
-                    });
-                    if (isVideo) videoUrl = result.secure_url;
-                    else imageUrls.push(result.secure_url);
-                } catch (err) {
-                    console.error('[NGO Status Update] Upload error:', err.message);
-                }
+        for (const file of uploadedFiles) {
+            try {
+                const isVideo = file.mimetype.startsWith('video/');
+                const result = await uploadBufferToCloudinary(file.buffer, {
+                    folder: `pawsaarthi/rescue/${rescue._id}`,
+                    resource_type: isVideo ? 'video' : 'image',
+                });
+                if (isVideo) videoUrl = result.secure_url;
+                else imageUrls.push(result.secure_url);
+            } catch (err) {
+                console.error('[NGO Controller] Media upload error:', err.message);
             }
         }
 
-        rescue.status = finalStatus;
-        rescue.statusLogs.push({
-            status: finalStatus,
-            message: message || `Status updated to ${finalStatus}`,
-            images: imageUrls,
-            video: videoUrl,
-        });
-
-        // Optionally add to main images array if it's a significant update
+        rescue.status = status;
+        if (['on_the_way', 'reached', 'treating'].includes(status) && !rescue.workStartedAt) {
+            rescue.workStartedAt = new Date();
+        }
         if (imageUrls.length > 0) {
-            rescue.images = [...rescue.images, ...imageUrls].slice(-10); // keep last 10
+            rescue.images = [...(rescue.images || []), ...imageUrls].slice(-12);
         }
-        if (videoUrl) rescue.video = videoUrl;
-
-        if (finalStatus === 'completed') {
-            rescue.completedAt = new Date();
+        if (videoUrl) {
+            rescue.video = videoUrl;
         }
 
+        pushStatusLog(rescue, status, message || `NGO updated status to ${status}.`, imageUrls, videoUrl);
         await rescue.save();
-        res.status(200).json({ success: true, message: `Status updated to ${finalStatus}`, rescue });
+
+        res.status(200).json({ success: true, message: `Status updated to ${status}.`, rescue });
     } catch (error) {
         console.error('[NGO Controller] updateNGOStatus error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-/**
- * @route   PUT /api/rescue/:id/reject-ngo
- * @desc    NGO rejects a pending rescue request (won't see it again)
- * @access  Private (ngo only)
- */
 const rejectCase = async (req, res) => {
     try {
-        console.log(`[NGO Controller] rejectCase: rescueId=${req.params.id}, ngoId=${req.user._id}`);
-
         const rescue = await RescueRequest.findById(req.params.id);
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
 
@@ -207,50 +149,27 @@ const rejectCase = async (req, res) => {
             return res.status(400).json({ success: false, message: `Cannot reject: status is '${rescue.status}'.` });
         }
 
-        // Add to rejectedBy array so this NGO won't see it again
         rescue.rejectedBy = Array.isArray(rescue.rejectedBy) ? rescue.rejectedBy : [];
-        if (!rescue.rejectedBy.includes(req.user._id)) {
+        if (!rescue.rejectedBy.some((id) => id.toString() === req.user._id.toString())) {
             rescue.rejectedBy.push(req.user._id);
-            await rescue.save();
         }
 
-        console.log(`[NGO Controller] Rescue ${rescue._id} rejected by NGO ${req.user._id}`);
-
-        // --- Auto-Escalation Logic ---
-        // Check if all active NGOs within 50km have rejected this case.
-        const User = require('../models/User');
-        const { haversineDistance } = require('../utils/haversine');
         const allNGOs = await User.find({ role: 'ngo', isApproved: true });
-
-        // Count NGOs within 50km
         let nearbyNgoCount = 0;
-        allNGOs.forEach(n => {
+        allNGOs.forEach((n) => {
             if (Number.isFinite(n.location?.lat) && Number.isFinite(n.location?.lng)) {
                 const dist = haversineDistance(rescue.location.lat, rescue.location.lng, n.location.lat, n.location.lng);
-                if (dist <= 50) nearbyNgoCount++;
+                if (dist <= 50) nearbyNgoCount += 1;
             }
         });
 
-        // If the number of rejections >= nearby NGOs, immediately escalate to Hospital Broadcast
-        if (rescue.rejectedBy.length >= nearbyNgoCount && rescue.status === 'pending') {
+        if (nearbyNgoCount > 0 && rescue.rejectedBy.length >= nearbyNgoCount) {
             rescue.status = 'hospital_broadcasted';
             rescue.escalatedAt = new Date();
-            await rescue.save();
-
-            console.log(`[Escalation] All ${nearbyNgoCount} nearby NGOs rejected Case ${rescue._id}. Escalating to Hospitals.`);
-
-            const { getIo } = require('../config/socket');
-            try {
-                const io = getIo();
-                io.to('role_hospital').emit('new_hospital_broadcast', {
-                    rescueRequestId: rescue._id,
-                    message: "New Emergency Escalted from NGOs!"
-                });
-            } catch (socketErr) {
-                console.error('[NGO Controller] Socket error emitting broadcast:', socketErr.message);
-            }
+            pushStatusLog(rescue, 'hospital_broadcasted', 'All nearby NGOs rejected the case. Escalated to hospitals.');
         }
 
+        await rescue.save();
         res.status(200).json({ success: true, message: 'Case rejected. You will not see this case again.', rescue });
     } catch (error) {
         console.error('[NGO Controller] rejectCase error:', error.message);
@@ -258,14 +177,8 @@ const rejectCase = async (req, res) => {
     }
 };
 
-/**
- * @route   GET /api/ngo/my-cases
- * @desc    Get all cases accepted by this NGO
- * @access  Private (ngo only)
- */
 const getMyCases = async (req, res) => {
     try {
-        console.log(`[NGO Controller] getMyCases for NGO: ${req.user._id}`);
         const cases = await RescueRequest.find({ assignedNGO: req.user._id })
             .populate('user', 'name phone email')
             .populate('assignedAmbulance', 'name vehicleNumber')
@@ -278,21 +191,14 @@ const getMyCases = async (req, res) => {
     }
 };
 
-/**
- * @route   GET /api/ngo/analytics
- * @desc    Get operational analytics for a specific NGO
- * @access  Private (ngo only)
- */
 const getAnalytics = async (req, res) => {
     try {
-        console.log(`[NGO Controller] getAnalytics for NGO: ${req.user._id}`);
         const ngoId = req.user._id;
-
         const [accepted, completed, rejected, nearbyPending] = await Promise.all([
             RescueRequest.countDocuments({ assignedNGO: ngoId }),
             RescueRequest.countDocuments({ assignedNGO: ngoId, status: 'completed' }),
             RescueRequest.countDocuments({ rejectedBy: ngoId }),
-            RescueRequest.countDocuments({ status: 'pending', rejectedBy: { $ne: ngoId } })
+            RescueRequest.countDocuments({ status: 'pending', rejectedBy: { $ne: ngoId } }),
         ]);
 
         const totalHandled = accepted + rejected;
@@ -305,8 +211,8 @@ const getAnalytics = async (req, res) => {
                 completed_count: completed,
                 rejected_count: rejected,
                 nearby_pending: nearbyPending,
-                acceptance_rate: acceptanceRate
-            }
+                acceptance_rate: acceptanceRate,
+            },
         });
     } catch (error) {
         console.error('[NGO Controller] getAnalytics error:', error.message);
@@ -314,72 +220,89 @@ const getAnalytics = async (req, res) => {
     }
 };
 
-/**
- * @route   PUT /api/ngo/rescue/:id/resolve
- * @desc    NGO resolves the case on the spot
- * @access  Private (ngo only)
- */
 const resolveOnSpot = async (req, res) => {
     try {
         const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
 
-        if (!['accepted', 'scheduled', 'on_the_way', 'reached', 'treating', 'ngo_accepted'].includes(rescue.status)) {
-            return res.status(400).json({ success: false, message: `Cannot resolve. Current status depends on: ${rescue.status}` });
+        if (!['accepted', 'scheduled', 'on_the_way', 'reached', 'treating'].includes(rescue.status)) {
+            return res.status(400).json({ success: false, message: `Cannot treat on spot from current status: ${rescue.status}` });
         }
 
         rescue.status = 'resolved_on_spot';
-        rescue.completedAt = new Date();
-        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
-        rescue.statusLogs.push({
-            status: 'resolved_on_spot',
-            message: 'Case resolved by NGO on the spot.',
-        });
+        rescue.outcome = 'on_spot_treated';
+        rescue.workStartedAt = rescue.workStartedAt || new Date();
+        pushStatusLog(rescue, 'resolved_on_spot', 'NGO treated the animal on the spot. Final completion or follow-up can be added next.');
         await rescue.save();
 
-        res.status(200).json({ success: true, message: 'Case resolved on spot successfully!', rescue });
+        res.status(200).json({ success: true, message: 'On-spot treatment recorded.', rescue });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-/**
- * @route   PUT /api/ngo/rescue/:id/escalate
- * @desc    NGO escalates the case to hospitals
- * @access  Private (ngo only)
- */
+const completeCase = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
+
+        if (!['resolved_on_spot', 'treating', 'reached'].includes(rescue.status)) {
+            return res.status(400).json({ success: false, message: `Cannot complete case from status: ${rescue.status}` });
+        }
+
+        rescue.status = 'completed';
+        rescue.completedAt = new Date();
+        rescue.outcome = rescue.outcome === 'on_spot_treated' ? 'on_spot_treated' : 'hospital_treated';
+        pushStatusLog(rescue, 'completed', rescue.outcome === 'on_spot_treated'
+            ? 'Case completed after on-spot treatment.'
+            : 'Case completed by NGO.');
+        await rescue.save();
+
+        res.status(200).json({ success: true, message: 'Case marked completed.', rescue });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const addFollowUp = async (req, res) => {
+    try {
+        const { scheduleDate, notes } = req.body;
+        const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
+
+        const parsedScheduleDate = new Date(scheduleDate);
+        if (Number.isNaN(parsedScheduleDate.getTime()) || parsedScheduleDate <= new Date()) {
+            return res.status(400).json({ success: false, message: 'Please select a valid future follow-up date.' });
+        }
+
+        rescue.followUps = Array.isArray(rescue.followUps) ? rescue.followUps : [];
+        rescue.followUps.push({
+            scheduledFor: parsedScheduleDate,
+            notes: notes || '',
+        });
+        pushStatusLog(rescue, 'scheduled', `Follow-up visit scheduled for ${parsedScheduleDate.toISOString()}. ${notes || ''}`.trim());
+        await rescue.save();
+
+        res.status(200).json({ success: true, message: 'Follow-up scheduled successfully.', rescue });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 const escalateToHospital = async (req, res) => {
     try {
         const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
 
-        if (!['accepted', 'scheduled', 'on_the_way', 'reached', 'treating', 'ngo_accepted'].includes(rescue.status)) {
-            return res.status(400).json({ success: false, message: `Cannot escalate. Current status depends on: ${rescue.status}` });
+        if (!['accepted', 'scheduled', 'on_the_way', 'reached', 'treating', 'resolved_on_spot'].includes(rescue.status)) {
+            return res.status(400).json({ success: false, message: `Cannot escalate. Current status: ${rescue.status}` });
         }
 
         rescue.status = 'hospital_broadcasted';
         rescue.escalatedAt = new Date();
-        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
-        rescue.statusLogs.push({
-            status: 'hospital_broadcasted',
-            message: 'Case escalated by NGO to nearby hospitals.',
-        });
+        rescue.workStartedAt = rescue.workStartedAt || new Date();
+        pushStatusLog(rescue, 'hospital_broadcasted', 'Case escalated by NGO to nearby hospitals.');
         await rescue.save();
-
-        // At this point, the system will broadcast to Govt hospitals (or Pvt if none).
-        // This can be triggered via a helper function or picked up by another cron.
-        // For real-time, we would emit a socket event here directly.
-        const { getIo } = require('../config/socket');
-        try {
-            const io = getIo();
-            // Emit to a specific "Govt Hospitals" room or handle in frontend based on user properties
-            io.to('role_hospital').emit('new_hospital_broadcast', {
-                rescueRequestId: rescue._id,
-                message: "New Emergency Escalted!"
-            });
-        } catch (socketErr) {
-            console.error('[NGO Controller] Socket error emitting broadcast:', socketErr.message);
-        }
 
         res.status(200).json({ success: true, message: 'Case escalated to hospitals.', rescue });
     } catch (error) {
@@ -395,5 +318,7 @@ module.exports = {
     getAnalytics,
     resolveOnSpot,
     escalateToHospital,
-    updateNGOStatus
+    updateNGOStatus,
+    completeCase,
+    addFollowUp,
 };

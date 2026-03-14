@@ -9,6 +9,7 @@ const {
     getPaymentHistory,
     pauseSubscription,
     cancelSubscription,
+    updateSubscriptionAmount,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
 
@@ -35,5 +36,8 @@ router.post('/subscription/pause', protect, pauseSubscription);
 
 // @route  POST /api/user/subscription/cancel
 router.post('/subscription/cancel', protect, cancelSubscription);
+
+// @route  PUT /api/user/subscription/amount
+router.put('/subscription/amount', protect, updateSubscriptionAmount);
 
 module.exports = router;

@@ -16,6 +16,7 @@ const Fundraisers = () => {
     const [activeTab, setActiveTab] = useState('cases');
     const [subscribing, setSubscribing] = useState(false);
     const [paymentHistoryMessage, setPaymentHistoryMessage] = useState('');
+    const [monthlyAmount, setMonthlyAmount] = useState('50');
 
     const fetchFundraisers = async () => {
         try {
@@ -47,7 +48,7 @@ const Fundraisers = () => {
     const handleJoinEmergencyFund = async () => {
         setSubscribing(true);
         try {
-            const { data } = await api.post('/user/subscribe-emergency', { amount: 50 });
+            const { data } = await api.post('/user/subscribe-emergency', { amount: Number(monthlyAmount) });
             toast.success('Monthly emergency support started from your wallet in test mode.');
             updateUser({
                 monthlySubscription: data.monthlySubscription,
@@ -114,14 +115,24 @@ const Fundraisers = () => {
                 </div>
 
                 {!user?.monthlySubscription?.isSubscribed ? (
-                    <button
-                        onClick={handleJoinEmergencyFund}
-                        disabled={subscribing}
-                        className="flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-600 to-rose-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-rose-200 transition-all hover:scale-105 active:scale-95 hover:from-rose-700 hover:to-rose-600"
-                    >
-                        <HeartIcon className="h-4 w-4" />
-                        Join Emergency Fund
-                    </button>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <input
+                            type="number"
+                            min="10"
+                            value={monthlyAmount}
+                            onChange={(e) => setMonthlyAmount(e.target.value)}
+                            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                            placeholder="Monthly amount"
+                        />
+                        <button
+                            onClick={handleJoinEmergencyFund}
+                            disabled={subscribing}
+                            className="flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-600 to-rose-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-rose-200 transition-all hover:scale-105 active:scale-95 hover:from-rose-700 hover:to-rose-600"
+                        >
+                            <HeartIcon className="h-4 w-4" />
+                            Join Emergency Fund
+                        </button>
+                    </div>
                 ) : (
                     <div className="flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-700">
                         <span className="h-2 w-2 animate-pulse rounded-full bg-rose-500" />

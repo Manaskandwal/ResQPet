@@ -30,6 +30,16 @@ const rescueRequestSchema = new mongoose.Schema(
             trim: true,
             maxlength: [1000, 'Description cannot exceed 1000 characters'],
         },
+        animalType: {
+            type: String,
+            enum: ['dog', 'cat', 'other'],
+            default: 'dog',
+        },
+        animalTypeOther: {
+            type: String,
+            trim: true,
+            default: '',
+        },
         // Up to 5 image URLs from Cloudinary
         images: {
             type: [String],
@@ -71,6 +81,7 @@ const rescueRequestSchema = new mongoose.Schema(
                 'resolved_on_spot',     // NGO treated at scene
                 'completed',
                 'cancelled',
+                'closed_unresolved',
                 'fundraiser_active',    // Waiting for public donations to meet goal
                 'refunded',             // Deposit/payment refunded
             ],
@@ -110,6 +121,13 @@ const rescueRequestSchema = new mongoose.Schema(
         pickedUpAt: { type: Date, default: null },
         deliveredAt: { type: Date, default: null },
         completedAt: { type: Date, default: null },
+        closedAt: { type: Date, default: null },
+        workStartedAt: { type: Date, default: null },
+        outcome: {
+            type: String,
+            enum: ['pending', 'on_spot_treated', 'hospital_treated', 'closed_unresolved'],
+            default: 'pending',
+        },
 
         // Admin override notes
         adminNotes: {
@@ -118,6 +136,12 @@ const rescueRequestSchema = new mongoose.Schema(
         },
         // NGOs or Hospitals that rejected this case
         rejectedBy: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            },
+        ],
+        rejectedHospitals: [
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User',
@@ -151,6 +175,22 @@ const rescueRequestSchema = new mongoose.Schema(
             type: Number,
             default: 0,
             min: 0,
+        },
+        followUps: {
+            type: [
+                {
+                    scheduledFor: { type: Date, required: true },
+                    notes: { type: String, trim: true, default: '' },
+                    status: {
+                        type: String,
+                        enum: ['scheduled', 'completed', 'cancelled', 'escalated'],
+                        default: 'scheduled',
+                    },
+                    createdAt: { type: Date, default: Date.now },
+                    completedAt: { type: Date, default: null },
+                },
+            ],
+            default: [],
         },
         statusLogs: {
             type: [

@@ -44,6 +44,19 @@ const HospitalDashboard = () => {
         }
     };
 
+    const handleRejectCase = async (id) => {
+        setActing((prev) => ({ ...prev, [id]: 'reject' }));
+        try {
+            const { data } = await api.put(`/hospital/rescue/${id}/reject-broadcast`);
+            toast.success(data.message);
+            setCases((prev) => prev.filter((c) => c._id !== id));
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to reject case.');
+        } finally {
+            setActing((prev) => ({ ...prev, [id]: false }));
+        }
+    };
+
     if (!user.isApproved) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
@@ -97,14 +110,23 @@ const HospitalDashboard = () => {
                             {c.images?.[0] && (
                                 <img src={c.images[0]} alt="rescue" className="w-full h-36 object-cover rounded-btn mb-3 border border-surface-border" />
                             )}
-                            <button
-                                onClick={() => handleAcceptCase(c._id)}
-                                disabled={acting[c._id]}
-                                className="btn bg-indigo-500 hover:bg-indigo-600 text-white w-full border-0"
-                            >
-                                <BuildingOffice2Icon className="w-4 h-4" />
-                                {acting[c._id] ? 'Claiming Case...' : 'Accept & Dispatch Ambulance'}
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleAcceptCase(c._id)}
+                                    disabled={!!acting[c._id]}
+                                    className="btn w-full border-0 bg-indigo-500 text-white hover:bg-indigo-600"
+                                >
+                                    <BuildingOffice2Icon className="w-4 h-4" />
+                                    {acting[c._id] === true ? 'Claiming Case...' : 'Accept & Dispatch Ambulance'}
+                                </button>
+                                <button
+                                    onClick={() => handleRejectCase(c._id)}
+                                    disabled={!!acting[c._id]}
+                                    className="btn-outline whitespace-nowrap"
+                                >
+                                    Reject
+                                </button>
+                            </div>
                         </div>
                     ))}
                     <button onClick={fetchData} className="btn-ghost w-full text-sm">Refresh</button>

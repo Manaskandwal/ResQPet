@@ -1,53 +1,74 @@
 const cron = require('node-cron');
 const RescueRequest = require('../models/RescueRequest');
+const User = require('../models/User');
+const WalletTransaction = require('../models/WalletTransaction');
 
-/**
- * Escalation Cron Job
- *
- * Runs every minute.
- * Finds all rescue requests still in 'pending' status where
- * the animal has been waiting for more than 5 minutes without
- * any NGO accepting.
- *
- * Action: Updates status to 'hospital_broadcasted' so
- *         nearby Govt hospitals can see and respond immediately (Pvt after 5 min).
- */
+const SERVICE_FEE = 30;
+
+const maybeRefundUnresolvedFee = async (rescue) => {
+    if (!rescue.depositDeducted || rescue.depositRefunded || rescue.workStartedAt) {
+        return;
+    }
+
+    const user = await User.findById(rescue.user);
+    if (!user) return;
+
+    user.walletBalance += SERVICE_FEE;
+    await user.save();
+
+    rescue.depositRefunded = true;
+    await WalletTransaction.create({
+        user: user._id,
+        amount: SERVICE_FEE,
+        type: 'refund',
+        description: `Rs ${SERVICE_FEE} service fee refunded for unresolved rescue #${rescue._id}`,
+        rescueRequest: rescue._id,
+        balanceAfter: user.walletBalance,
+    });
+};
+
 const startEscalationCron = () => {
     console.log('[Cron] Starting escalation cron job (every minute check)...');
 
     cron.schedule('* * * * *', async () => {
         try {
-            console.log('[Cron] Running escalation check at:', new Date().toISOString());
+            const now = Date.now();
+            const fiveMinutesAgo = new Date(now - 5 * 60 * 1000);
+            const thirtyMinutesAgo = new Date(now - 30 * 60 * 1000);
 
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-
-            // Find all pending rescues older than 5 minutes
             const stalePending = await RescueRequest.find({
                 status: 'pending',
                 createdAt: { $lte: fiveMinutesAgo },
             });
 
-            if (stalePending.length === 0) {
-                console.log('[Cron] No stale pending requests found.');
-                return;
-            }
+            await Promise.all(stalePending.map(async (rescue) => {
+                rescue.status = 'hospital_broadcasted';
+                rescue.escalatedAt = new Date();
+                rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
+                rescue.statusLogs.push({
+                    status: 'hospital_broadcasted',
+                    message: 'No NGO responded in time. Case escalated to hospitals.',
+                });
+                await rescue.save();
+            }));
 
-            console.log(`[Cron] Found ${stalePending.length} request(s) to escalate to hospitals.`);
-
-            // Escalate each stale request
-            const escalationPromises = stalePending.map(async (rescue) => {
-                try {
-                    rescue.status = 'hospital_broadcasted';
-                    rescue.escalatedAt = new Date();
-                    await rescue.save();
-                    console.log(`[Cron] Escalated rescue: ${rescue._id} (originally created at ${rescue.createdAt.toISOString()})`);
-                } catch (saveError) {
-                    console.error(`[Cron] Failed to escalate rescue ${rescue._id}:`, saveError.message);
-                }
+            const staleUnresolved = await RescueRequest.find({
+                status: { $in: ['pending', 'hospital_broadcasted'] },
+                createdAt: { $lte: thirtyMinutesAgo },
             });
 
-            await Promise.all(escalationPromises);
-            console.log(`[Cron] Escalation complete for ${stalePending.length} request(s).`);
+            await Promise.all(staleUnresolved.map(async (rescue) => {
+                rescue.status = 'closed_unresolved';
+                rescue.closedAt = new Date();
+                rescue.outcome = 'closed_unresolved';
+                rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
+                rescue.statusLogs.push({
+                    status: 'closed_unresolved',
+                    message: 'No responder accepted the case within 30 minutes. Case closed unresolved.',
+                });
+                await maybeRefundUnresolvedFee(rescue);
+                await rescue.save();
+            }));
         } catch (error) {
             console.error('[Cron] Escalation cron job encountered an error:', error.message);
         }

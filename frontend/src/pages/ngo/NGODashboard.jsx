@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../api/axios';
 import toast from 'react-hot-toast';
-import { StatusBadge } from '../../components/StatusComponents';
-import { SkeletonCard, SkeletonStatCard } from '../../components/Skeleton';
-import { formatIndianDateTime, formatIndianTime, toDateInputValue, toTimeInputValue } from '../../utils/dateTime';
 import {
     MapPinIcon,
     CheckIcon,
@@ -15,87 +10,67 @@ import {
     ChartBarIcon,
     CheckCircleIcon,
     PhoneIcon,
+    ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
+import { StatusBadge } from '../../components/StatusComponents';
+import { SkeletonCard, SkeletonStatCard } from '../../components/Skeleton';
+import { formatIndianDateTime, toDateInputValue, toTimeInputValue } from '../../utils/dateTime';
 
-const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting }) => {
+const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = 'Schedule Rescue' }) => {
     const initialDate = rescue?.scheduleDate ? new Date(rescue.scheduleDate) : new Date(Date.now() + 30 * 60 * 1000);
     const [date, setDate] = useState(toDateInputValue(initialDate));
     const [time, setTime] = useState(toTimeInputValue(initialDate));
+    const [notes, setNotes] = useState('');
 
     useEffect(() => {
         if (!open) return;
         const base = rescue?.scheduleDate ? new Date(rescue.scheduleDate) : new Date(Date.now() + 30 * 60 * 1000);
         setDate(toDateInputValue(base));
         setTime(toTimeInputValue(base));
+        setNotes('');
     }, [open, rescue]);
 
     if (!open || !rescue) return null;
 
     const handleSubmit = () => {
-        if (!date || !time) {
-            toast.error('Please select both date and time.');
-            return;
-        }
-
         const selectedDate = new Date(`${date}T${time}:00`);
-        if (Number.isNaN(selectedDate.getTime())) {
-            toast.error('Selected date/time is invalid.');
+        if (Number.isNaN(selectedDate.getTime()) || selectedDate.getTime() <= Date.now()) {
+            toast.error('Please select a valid future date and time.');
             return;
         }
-
-        if (selectedDate.getTime() <= Date.now()) {
-            toast.error('Scheduled date/time must be in the future.');
-            return;
-        }
-
-        onConfirm(selectedDate.toISOString());
+        onConfirm(selectedDate.toISOString(), notes);
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="w-full max-w-md bg-white rounded-card shadow-card-hover border border-surface-border">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-card border border-surface-border bg-white shadow-card-hover">
+                <div className="flex items-center justify-between border-b border-surface-border px-5 py-4">
                     <div>
-                        <h3 className="font-bold text-slate-800">Schedule Rescue</h3>
-                        <p className="text-xs text-surface-muted mt-1 truncate">{rescue.description}</p>
+                        <h3 className="font-bold text-slate-800">{title}</h3>
+                        <p className="mt-1 truncate text-xs text-surface-muted">{rescue.description}</p>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded hover:bg-surface-hover">
-                        <XMarkIcon className="w-5 h-5 text-slate-500" />
+                    <button onClick={onClose} className="rounded p-1.5 hover:bg-surface-hover">
+                        <XMarkIcon className="h-5 w-5 text-slate-500" />
                     </button>
                 </div>
-
-                <div className="p-5 space-y-4">
-                    <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-4 p-5">
+                    <div className="grid gap-4 sm:grid-cols-2">
                         <div className="form-group">
                             <label className="label">Date</label>
-                            <input
-                                type="date"
-                                className="input"
-                                value={date}
-                                min={toDateInputValue(new Date())}
-                                onChange={(e) => setDate(e.target.value)}
-                            />
+                            <input type="date" className="input" value={date} min={toDateInputValue(new Date())} onChange={(e) => setDate(e.target.value)} />
                         </div>
                         <div className="form-group">
                             <label className="label">Time</label>
-                            <input
-                                type="time"
-                                className="input"
-                                value={time}
-                                onChange={(e) => setTime(e.target.value)}
-                            />
+                            <input type="time" className="input" value={time} onChange={(e) => setTime(e.target.value)} />
                         </div>
                     </div>
-                    <div className="rounded-btn border border-primary-100 bg-primary-50 px-3 py-2 text-sm text-primary-700">
-                        The user and NGO team will see this slot in Indian date/time format.
-                    </div>
+                    <textarea className="textarea h-24" placeholder="Optional note for this visit" value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
-
-                <div className="flex gap-2 px-5 py-4 border-t border-surface-border">
+                <div className="flex gap-2 border-t border-surface-border px-5 py-4">
                     <button onClick={onClose} className="btn-ghost flex-1">Cancel</button>
-                    <button onClick={handleSubmit} disabled={submitting} className="btn-primary flex-1">
-                        {submitting ? 'Scheduling...' : 'Confirm Schedule'}
-                    </button>
+                    <button onClick={handleSubmit} disabled={submitting} className="btn-primary flex-1">{submitting ? 'Saving...' : 'Confirm'}</button>
                 </div>
             </div>
         </div>
@@ -106,7 +81,7 @@ const NGODashboard = () => {
     const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
-
+    const activeList = searchParams.get('list') || 'active';
     const [analytics, setAnalytics] = useState(null);
     const [nearbyCases, setNearbyCases] = useState([]);
     const [myCases, setMyCases] = useState([]);
@@ -114,21 +89,15 @@ const NGODashboard = () => {
     const [acting, setActing] = useState({});
     const [locationSet, setLocationSet] = useState(true);
     const [scheduleCase, setScheduleCase] = useState(null);
+    const [followUpCase, setFollowUpCase] = useState(null);
     const [gpsCoords, setGpsCoords] = useState(null);
+    const [mediaComments, setMediaComments] = useState({});
 
     useEffect(() => {
         if (!navigator.geolocation) return;
-
         navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                setGpsCoords({
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                });
-            },
-            (error) => {
-                console.warn('[NGODashboard] GPS location unavailable:', error.message);
-            },
+            (pos) => setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => undefined,
             { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
         );
     }, []);
@@ -136,23 +105,18 @@ const NGODashboard = () => {
     const fetchAll = useCallback(async () => {
         try {
             setLoading(true);
-            const nearbyUrl = gpsCoords
-                ? `/ngo/nearby?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}`
-                : '/ngo/nearby';
+            const nearbyUrl = gpsCoords ? `/ngo/nearby?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}` : '/ngo/nearby';
             const [analyticsRes, nearbyRes, mycasesRes] = await Promise.all([
                 api.get('/ngo/analytics'),
                 api.get(nearbyUrl),
                 api.get('/ngo/my-cases'),
             ]);
-
             setAnalytics(analyticsRes.data.analytics);
             setNearbyCases(nearbyRes.data.cases || []);
             setLocationSet(nearbyRes.data.locationSet ?? true);
             setMyCases(mycasesRes.data.cases || []);
         } catch (error) {
-            console.error('[NGODashboard] Fetch error:', error.message);
-            const msg = error.response?.data?.message || 'Failed to load panel data.';
-            toast.error(msg);
+            toast.error(error.response?.data?.message || 'Failed to load panel data.');
         } finally {
             setLoading(false);
         }
@@ -162,101 +126,84 @@ const NGODashboard = () => {
         if (user.isApproved) fetchAll();
     }, [fetchAll, user.isApproved]);
 
-    const handleAccept = async (id, type = 'immediate', scheduleDate = null) => {
-        setActing((prev) => ({ ...prev, [id]: 'accepting' }));
+    const withActing = async (id, state, action) => {
+        setActing((prev) => ({ ...prev, [id]: state }));
         try {
+            await action();
+        } finally {
+            setActing((prev) => ({ ...prev, [id]: null }));
+        }
+    };
+
+    const handleAccept = async (id, type = 'immediate', scheduleDate = null) => {
+        await withActing(id, 'accepting', async () => {
             await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate });
             toast.success(type === 'schedule' ? 'Case scheduled successfully.' : 'Case accepted successfully.');
             setScheduleCase(null);
             fetchAll();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to accept case.');
-        } finally {
-            setActing((prev) => ({ ...prev, [id]: null }));
-        }
+        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to accept case.'));
     };
 
-    const handleUpdateStatus = async (id, status, message = '', files = []) => {
-        setActing((prev) => ({ ...prev, [id]: 'updating' }));
-        try {
+    const handleUpdateStatus = async (id, status, files = []) => {
+        await withActing(id, 'updating', async () => {
             const formData = new FormData();
             formData.append('status', status);
-            formData.append('message', message);
-
-            if (files && files.length > 0) {
-                files.forEach((file) => formData.append('media', file));
-            }
-
-            try {
-                const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }));
-                formData.append('lat', pos.coords.latitude);
-                formData.append('lng', pos.coords.longitude);
-            } catch (e) {
-                console.log('[NGODashboard] Location denied or failed during status update');
-            }
-
-            await api.put(`/rescue/${id}/ngo-status`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-
+            formData.append('message', mediaComments[id] || `NGO updated the case to ${status}.`);
+            files.forEach((file) => formData.append('media', file));
+            await api.put(`/rescue/${id}/ngo-status`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            setMediaComments((prev) => ({ ...prev, [id]: '' }));
             toast.success(`Status updated to ${status}.`);
             fetchAll();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update status.');
-        } finally {
-            setActing((prev) => ({ ...prev, [id]: null }));
-        }
+        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to update status.'));
     };
 
     const handleReject = async (id) => {
-        setActing((prev) => ({ ...prev, [id]: 'rejecting' }));
-        try {
+        await withActing(id, 'rejecting', async () => {
             await api.put(`/rescue/${id}/reject-ngo`);
-            toast.success('Case passed. You will not see it again.');
-            setNearbyCases((prev) => prev.filter((c) => c._id !== id));
-            const analyticsRes = await api.get('/ngo/analytics');
-            setAnalytics(analyticsRes.data.analytics);
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to reject case.');
-        } finally {
-            setActing((prev) => ({ ...prev, [id]: null }));
-        }
+            toast.success('Case passed to other responders.');
+            fetchAll();
+        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to reject case.'));
     };
 
-    const handleResolve = async (id) => {
-        setActing((prev) => ({ ...prev, [id]: 'resolving' }));
-        try {
+    const handleTreatOnSpot = async (id) => {
+        await withActing(id, 'resolving', async () => {
             await api.put(`/rescue/${id}/resolve-ngo`);
-            toast.success('Case resolved on the spot.');
+            toast.success('On-spot treatment recorded.');
             fetchAll();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to resolve case.');
-        } finally {
-            setActing((prev) => ({ ...prev, [id]: null }));
-        }
+        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to treat on spot.'));
+    };
+
+    const handleComplete = async (id) => {
+        await withActing(id, 'completing', async () => {
+            await api.put(`/rescue/${id}/complete-ngo`);
+            toast.success('Case marked completed.');
+            fetchAll();
+        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to complete case.'));
     };
 
     const handleEscalate = async (id) => {
-        setActing((prev) => ({ ...prev, [id]: 'escalating' }));
-        try {
+        await withActing(id, 'escalating', async () => {
             await api.put(`/rescue/${id}/escalate-ngo`);
             toast.success('Case escalated to hospitals.');
             fetchAll();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to escalate case.');
-        } finally {
-            setActing((prev) => ({ ...prev, [id]: null }));
-        }
+        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to escalate case.'));
+    };
+
+    const handleFollowUp = async (id, scheduleDate, notes) => {
+        await withActing(id, 'followup', async () => {
+            await api.post(`/rescue/${id}/followup`, { scheduleDate, notes });
+            toast.success('Follow-up scheduled.');
+            setFollowUpCase(null);
+            fetchAll();
+        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to schedule follow-up.'));
     };
 
     if (!user.isApproved) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-                <div className="text-6xl mb-4">⏳</div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-2">Awaiting Admin Approval</h2>
-                <p className="text-surface-muted max-w-md">
-                    Your NGO account is under review. Once approved, you will be able to see and accept nearby rescue cases.
-                </p>
+            <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
+                <div className="mb-4 text-6xl">⌛</div>
+                <h2 className="mb-2 text-2xl font-bold text-slate-800">Awaiting Admin Approval</h2>
+                <p className="max-w-md text-surface-muted">Your NGO account is under review. Once approved, you will be able to see and accept nearby rescue cases.</p>
             </div>
         );
     }
@@ -267,30 +214,108 @@ const NGODashboard = () => {
         { id: 'my_cases', label: `My Cases (${myCases.length})` },
     ];
 
+    const scheduledCases = myCases.filter((c) => c.status === 'scheduled' || (c.followUps || []).some((follow) => follow.status === 'scheduled'));
+    const completedCases = myCases.filter((c) => c.status === 'completed');
+    const activeCases = myCases.filter((c) => !['completed', 'scheduled', 'cancelled', 'closed_unresolved'].includes(c.status));
+    const visibleCases = activeList === 'scheduled_list' ? scheduledCases : activeList === 'completed_list' ? completedCases : activeCases;
+
+    const renderCaseCard = (c) => (
+        <div key={c._id} className="card border-l-4 border-l-primary-500">
+            <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">ID: {c._id.slice(-6).toUpperCase()}</span>
+                        <StatusBadge status={c.status} />
+                    </div>
+                    <h3 className="text-lg font-bold leading-tight text-slate-800">{c.description}</h3>
+                    <p className="mt-1 text-sm text-surface-muted">Accepted: {formatIndianDateTime(c.acceptedAt || c.updatedAt)}</p>
+                    {c.scheduleDate && <p className="mt-1 text-sm text-primary-600">Scheduled for: {formatIndianDateTime(c.scheduleDate)}</p>}
+                </div>
+            </div>
+
+            <div className="mb-4 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-btn border border-surface-border bg-slate-50 p-3">
+                    <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Location</h4>
+                    <p className="flex items-start gap-1 text-sm font-medium text-slate-800">
+                        <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-500" />
+                        {c.location.address || 'Address provided via coordinates'}
+                    </p>
+                </div>
+                <div className="rounded-btn border border-surface-border bg-slate-50 p-3">
+                    <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Reporter Details</h4>
+                    <p className="text-sm font-medium text-slate-800">👤 {c.user?.name || 'Anonymous User'}</p>
+                    {c.user?.phone && (
+                        <p className="mt-1 flex items-center gap-1 text-sm font-medium text-slate-800">
+                            <PhoneIcon className="h-4 w-4 text-slate-400" />
+                            <a href={`tel:${c.user.phone}`} className="hover:text-primary-600">{c.user.phone}</a>
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {!['completed', 'cancelled', 'closed_unresolved'].includes(c.status) && (
+                <div className="mt-5 space-y-3 border-t border-surface-border pt-4">
+                    <div className="flex flex-wrap gap-2">
+                        {c.status === 'accepted' && <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 px-3 py-1 text-xs text-white">Go Out for Treatment</button>}
+                        {c.status === 'scheduled' && <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 px-3 py-1 text-xs text-white">Start Scheduled Visit</button>}
+                        {c.status === 'on_the_way' && <button onClick={() => handleUpdateStatus(c._id, 'reached')} className="btn bg-indigo-500 px-3 py-1 text-xs text-white">Mark Reached</button>}
+                        {c.status === 'reached' && <button onClick={() => handleUpdateStatus(c._id, 'treating')} className="btn bg-emerald-500 px-3 py-1 text-xs text-white">Start Treatment</button>}
+                        {c.status === 'treating' && (
+                            <>
+                                <button onClick={() => handleTreatOnSpot(c._id)} className="btn bg-teal-500 px-3 py-1 text-xs text-white">Treat on Spot</button>
+                                <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 px-3 py-1 text-xs text-white">Escalate to Hospital</button>
+                            </>
+                        )}
+                        {c.status === 'resolved_on_spot' && (
+                            <>
+                                <button onClick={() => handleComplete(c._id)} className="btn bg-emerald-600 px-3 py-1 text-xs text-white">Mark Case Completed</button>
+                                <button onClick={() => setFollowUpCase(c)} className="btn bg-amber-500 px-3 py-1 text-xs text-white">Add Follow-up Schedule</button>
+                                <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 px-3 py-1 text-xs text-white">Escalate to Hospital</button>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="rounded-[20px] border border-primary-100 bg-gradient-to-r from-primary-50 to-white p-4">
+                        <div className="mb-3 flex items-center gap-2">
+                            <ArrowUpTrayIcon className="h-5 w-5 text-primary-600" />
+                            <p className="text-sm font-bold text-primary-700">Upload Progress Media</p>
+                        </div>
+                        <textarea className="textarea h-20" placeholder="Add a note about this photo or video update" value={mediaComments[c._id] || ''} onChange={(e) => setMediaComments((prev) => ({ ...prev, [c._id]: e.target.value }))} />
+                        <div className="mt-3 flex items-center gap-3">
+                            <input
+                                type="file"
+                                id={`media-upload-${c._id}`}
+                                multiple
+                                accept="image/*,video/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const files = Array.from(e.target.files || []);
+                                    if (files.length > 0) handleUpdateStatus(c._id, c.status, files);
+                                    e.target.value = '';
+                                }}
+                            />
+                            <label htmlFor={`media-upload-${c._id}`} className="cursor-pointer rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white">Add Media Update</label>
+                            <button onClick={() => handleUpdateStatus(c._id, c.status)} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Save Comment Only</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="space-y-6">
-            <ScheduleModal
-                rescue={scheduleCase}
-                open={!!scheduleCase}
-                onClose={() => setScheduleCase(null)}
-                onConfirm={(isoDate) => handleAccept(scheduleCase._id, 'schedule', isoDate)}
-                submitting={scheduleCase ? acting[scheduleCase._id] === 'accepting' : false}
-            />
+            <ScheduleModal rescue={scheduleCase} open={!!scheduleCase} onClose={() => setScheduleCase(null)} onConfirm={(isoDate) => handleAccept(scheduleCase._id, 'schedule', isoDate)} submitting={scheduleCase ? acting[scheduleCase._id] === 'accepting' : false} />
+            <ScheduleModal rescue={followUpCase} open={!!followUpCase} onClose={() => setFollowUpCase(null)} onConfirm={(isoDate, notes) => handleFollowUp(followUpCase._id, isoDate, notes)} submitting={followUpCase ? acting[followUpCase._id] === 'followup' : false} title="Schedule Follow-up" />
 
             <div>
                 <h1 className="page-title">NGO Dashboard</h1>
                 <p className="page-subtitle">Manage operations and respond to rescue alerts.</p>
             </div>
 
-            <div className="flex gap-1 p-1 bg-slate-100 rounded-btn w-fit flex-wrap">
+            <div className="flex w-fit flex-wrap gap-1 rounded-btn bg-slate-100 p-1">
                 {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setSearchParams({ tab: tab.id })}
-                        className={`px-4 py-2 rounded-btn text-sm font-medium transition-all ${
-                            activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                        }`}
-                    >
+                    <button key={tab.id} onClick={() => setSearchParams({ tab: tab.id, ...(tab.id === 'my_cases' ? { list: activeList } : {}) })} className={`rounded-btn px-4 py-2 text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
                         {tab.label}
                     </button>
                 ))}
@@ -298,282 +323,66 @@ const NGODashboard = () => {
 
             {activeTab === 'overview' && (
                 <div className="space-y-6 animate-fade-in">
-                    <h2 className="text-lg font-bold text-slate-800 border-b border-surface-border pb-2">Operational Analytics</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {loading && !analytics ? (
-                            [1, 2, 3, 4].map((i) => <SkeletonStatCard key={i} />)
-                        ) : analytics ? (
+                    <h2 className="border-b border-surface-border pb-2 text-lg font-bold text-slate-800">Operational Analytics</h2>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        {loading && !analytics ? [1, 2, 3, 4].map((i) => <SkeletonStatCard key={i} />) : analytics && (
                             <>
-                                <div className="stat-card">
-                                    <div className="w-10 h-10 bg-amber-50 rounded-btn flex items-center justify-center mb-1">
-                                        <ClockIcon className="w-5 h-5 text-amber-600" />
-                                    </div>
-                                    <p className="stat-value">{analytics.nearby_pending}</p>
-                                    <p className="stat-label">Nearby Pending</p>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="w-10 h-10 bg-blue-50 rounded-btn flex items-center justify-center mb-1">
-                                        <ClipboardDocumentListIcon className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                    <p className="stat-value">{analytics.accepted_count}</p>
-                                    <p className="stat-label">Total Accepted</p>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="w-10 h-10 bg-green-50 rounded-btn flex items-center justify-center mb-1">
-                                        <CheckCircleIcon className="w-5 h-5 text-green-600" />
-                                    </div>
-                                    <p className="stat-value">{analytics.completed_count}</p>
-                                    <p className="stat-label">Completed</p>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="w-10 h-10 bg-indigo-50 rounded-btn flex items-center justify-center mb-1">
-                                        <ChartBarIcon className="w-5 h-5 text-indigo-600" />
-                                    </div>
-                                    <p className="stat-value">{analytics.acceptance_rate}%</p>
-                                    <p className="stat-label">Acceptance Rate</p>
-                                </div>
+                                <div className="stat-card"><div className="mb-1 flex h-10 w-10 items-center justify-center rounded-btn bg-amber-50"><ClockIcon className="h-5 w-5 text-amber-600" /></div><p className="stat-value">{analytics.nearby_pending}</p><p className="stat-label">Nearby Pending</p></div>
+                                <div className="stat-card"><div className="mb-1 flex h-10 w-10 items-center justify-center rounded-btn bg-blue-50"><ClipboardDocumentListIcon className="h-5 w-5 text-blue-600" /></div><p className="stat-value">{analytics.accepted_count}</p><p className="stat-label">Total Accepted</p></div>
+                                <div className="stat-card"><div className="mb-1 flex h-10 w-10 items-center justify-center rounded-btn bg-green-50"><CheckCircleIcon className="h-5 w-5 text-green-600" /></div><p className="stat-value">{analytics.completed_count}</p><p className="stat-label">Completed</p></div>
+                                <div className="stat-card"><div className="mb-1 flex h-10 w-10 items-center justify-center rounded-btn bg-indigo-50"><ChartBarIcon className="h-5 w-5 text-indigo-600" /></div><p className="stat-value">{analytics.acceptance_rate}%</p><p className="stat-label">Acceptance Rate</p></div>
                             </>
-                        ) : null}
+                        )}
                     </div>
                 </div>
             )}
 
             {activeTab === 'nearby' && (
                 <div className="space-y-4 animate-fade-in">
-                    {!locationSet && (
-                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-btn text-sm text-amber-700 flex items-start gap-2 mb-4">
-                            <span className="text-lg leading-none flex-shrink-0">📍</span>
-                            <span>
-                                <strong>NGO base location missing:</strong> ask admin to set your NGO location. Until then,
-                                rescue cards cannot calculate distance and will show "Distance unknown".
-                            </span>
-                        </div>
-                    )}
-
-                    {loading ? (
-                        <div className="space-y-4">{[1, 2, 3].map((i) => <SkeletonCard key={i} />)}</div>
-                    ) : nearbyCases.length === 0 ? (
-                        <div className="card text-center py-14">
-                            <div className="text-5xl mb-3">🌟</div>
-                            <p className="text-slate-700 font-semibold text-lg">No pending cases nearby.</p>
-                            <p className="text-surface-muted text-sm mt-1">Check back in a little while.</p>
-                            <button onClick={fetchAll} className="btn-outline mt-4">Refresh Dashboard</button>
-                        </div>
-                    ) : (
-                        nearbyCases.map((c) => (
-                            <div key={c._id} className="card-hover">
-                                <div className="flex items-start justify-between gap-3 mb-3">
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-slate-800 truncate">{c.description}</p>
-                                        <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                            <span className="text-xs text-surface-muted">👤 {c.user?.name}</span>
-                                            {c.distance !== null && c.distance !== undefined ? (
-                                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
-                                                    <MapPinIcon className="w-3 h-3" /> {c.distance.toFixed(1)} km away
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
-                                                    <MapPinIcon className="w-3 h-3" /> Distance unknown
-                                                </span>
-                                            )}
-                                        </div>
+                    {!locationSet && <div className="mb-4 flex items-start gap-2 rounded-btn border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700"><span className="text-lg leading-none">📍</span><span><strong>NGO base location missing:</strong> ask admin to set your NGO location.</span></div>}
+                    {loading ? <div className="space-y-4">{[1, 2, 3].map((i) => <SkeletonCard key={i} />)}</div> : nearbyCases.length === 0 ? (
+                        <div className="card py-14 text-center"><div className="mb-3 text-5xl">🌟</div><p className="text-lg font-semibold text-slate-700">No pending cases nearby.</p><button onClick={fetchAll} className="btn-outline mt-4">Refresh Dashboard</button></div>
+                    ) : nearbyCases.map((c) => (
+                        <div key={c._id} className="card-hover">
+                            <div className="mb-3 flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate font-semibold text-slate-800">{c.description}</p>
+                                    <div className="mt-1 flex flex-wrap items-center gap-3">
+                                        <span className="text-xs text-surface-muted">👤 {c.user?.name}</span>
+                                        <span className="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary-700">{c.distance !== null && c.distance !== undefined ? `${c.distance.toFixed(1)} km away` : 'Distance unknown'}</span>
                                     </div>
-                                    <StatusBadge status={c.status} />
                                 </div>
-
-                                {c.images?.[0] && (
-                                    <img src={c.images[0]} alt="rescue" className="w-full h-36 object-cover rounded-btn mb-3 border border-surface-border" />
-                                )}
-
-                                <p className="text-xs text-surface-muted mb-4">
-                                    📍 {c.location.address || `${c.location.lat.toFixed(4)}, ${c.location.lng.toFixed(4)}`}
-                                    {' · '}🕐 {formatIndianDateTime(c.createdAt)}
-                                </p>
-
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleAccept(c._id, 'immediate')}
-                                        disabled={!!acting[c._id]}
-                                        className="btn-primary flex-1"
-                                    >
-                                        {acting[c._id] === 'accepting' ? (
-                                            <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <CheckIcon className="w-4 h-4" />
-                                        )}
-                                        Accept Now
-                                    </button>
-                                    <button
-                                        onClick={() => setScheduleCase(c)}
-                                        disabled={!!acting[c._id]}
-                                        className="btn-outline flex-1"
-                                    >
-                                        <ClockIcon className="w-4 h-4" /> Schedule
-                                    </button>
-                                    <button onClick={() => handleReject(c._id)} disabled={!!acting[c._id]} className="btn-outline">
-                                        {acting[c._id] === 'rejecting' ? '...' : <XMarkIcon className="w-4 h-4" />}
-                                    </button>
-                                </div>
+                                <StatusBadge status={c.status} />
                             </div>
-                        ))
-                    )}
+                            {c.images?.[0] && <img src={c.images[0]} alt="rescue" className="mb-3 h-36 w-full rounded-btn border border-surface-border object-cover" />}
+                            <p className="mb-4 text-xs text-surface-muted">{c.location.address || `${c.location.lat.toFixed(4)}, ${c.location.lng.toFixed(4)}`} · {formatIndianDateTime(c.createdAt)}</p>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleAccept(c._id, 'immediate')} disabled={!!acting[c._id]} className="btn-primary flex-1">{acting[c._id] === 'accepting' ? '...' : <><CheckIcon className="h-4 w-4" /> Accept Now</>}</button>
+                                <button onClick={() => setScheduleCase(c)} disabled={!!acting[c._id]} className="btn-outline flex-1"><ClockIcon className="h-4 w-4" /> Schedule</button>
+                                <button onClick={() => handleReject(c._id)} disabled={!!acting[c._id]} className="btn-outline">{acting[c._id] === 'rejecting' ? '...' : <XMarkIcon className="h-4 w-4" />}</button>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
             {activeTab === 'my_cases' && (
-                <div className="space-y-4 animate-fade-in">
-                    {loading ? (
-                        <div className="space-y-4">{[1, 2].map((i) => <SkeletonCard key={i} />)}</div>
-                    ) : myCases.length === 0 ? (
-                        <div className="card text-center py-14">
-                            <div className="text-4xl mb-3">📋</div>
-                            <p className="text-slate-700 font-semibold">No active cases</p>
-                            <p className="text-surface-muted text-sm mt-1">Accept nearby cases to see them here.</p>
-                        </div>
-                    ) : (
-                        myCases.map((c) => (
-                            <div key={c._id} className="card border-l-4 border-l-primary-500">
-                                <div className="flex items-start justify-between gap-3 mb-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                                                ID: {c._id.slice(-6).toUpperCase()}
-                                            </span>
-                                            <StatusBadge status={c.status} />
-                                        </div>
-                                        <h3 className="font-bold text-slate-800 text-lg leading-tight">{c.description}</h3>
-                                        <p className="text-sm text-surface-muted mt-1">
-                                            Accepted: {formatIndianDateTime(c.acceptedAt || c.updatedAt)}
-                                        </p>
-                                        {c.scheduleDate && (
-                                            <p className="text-sm text-primary-600 mt-1">
-                                                Scheduled for: {formatIndianDateTime(c.scheduleDate)}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                                    <div className="bg-slate-50 p-3 rounded-btn border border-surface-border">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Location</h4>
-                                        <p className="text-sm font-medium text-slate-800 flex items-start gap-1">
-                                            <MapPinIcon className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-                                            {c.location.address || 'Address provided via coordinates'}
-                                        </p>
-                                        <a
-                                            href={`https://maps.google.com/?q=${c.location.lat},${c.location.lng}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-xs text-primary-600 font-medium hover:underline inline-flex items-center gap-1 mt-2 ml-5"
-                                        >
-                                            Open in Google Maps
-                                        </a>
-                                    </div>
-                                    <div className="bg-slate-50 p-3 rounded-btn border border-surface-border">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Reporter Details</h4>
-                                        <p className="text-sm font-medium text-slate-800 flex items-center gap-1">👤 {c.user?.name || 'Anonymous User'}</p>
-                                        {c.user?.phone && (
-                                            <p className="text-sm font-medium text-slate-800 flex items-center gap-1 mt-1">
-                                                <PhoneIcon className="w-4 h-4 text-slate-400" />
-                                                <a href={`tel:${c.user.phone}`} className="hover:text-primary-600">{c.user.phone}</a>
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {c.images && c.images.length > 0 && (
-                                    <div className="mt-4">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Attached Images</h4>
-                                        <div className="flex gap-2 overflow-x-auto pb-2 snap-x">
-                                            {c.images.map((img, i) => (
-                                                <img key={i} src={img} alt="rescue detail" className="h-32 w-48 object-cover rounded-btn snap-start border border-surface-border flex-shrink-0" />
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {['accepted', 'scheduled', 'on_the_way', 'reached', 'treating'].includes(c.status) && (
-                                    <div className="mt-5 space-y-3 border-t border-surface-border pt-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {c.status === 'accepted' && (
-                                                <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 text-white text-xs px-3 py-1">
-                                                    Move Out
-                                                </button>
-                                            )}
-                                            {c.status === 'scheduled' && (
-                                                <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 text-white text-xs px-3 py-1">
-                                                    Start Scheduled Visit
-                                                </button>
-                                            )}
-                                            {c.status === 'on_the_way' && (
-                                                <button onClick={() => handleUpdateStatus(c._id, 'reached')} className="btn bg-indigo-500 text-white text-xs px-3 py-1">
-                                                    Mark Reached
-                                                </button>
-                                            )}
-                                            {c.status === 'reached' && (
-                                                <button onClick={() => handleUpdateStatus(c._id, 'treating')} className="btn bg-emerald-500 text-white text-xs px-3 py-1">
-                                                    Start Treatment
-                                                </button>
-                                            )}
-                                            {c.status === 'treating' && (
-                                                <>
-                                                    <button onClick={() => handleResolve(c._id)} className="btn bg-teal-500 text-white text-xs px-3 py-1">
-                                                        Resolve Spot
-                                                    </button>
-                                                    <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 text-white text-xs px-3 py-1">
-                                                        Hospitalize
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="file"
-                                                id={`media-upload-${c._id}`}
-                                                multiple
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    const files = Array.from(e.target.files);
-                                                    if (files.length > 0) {
-                                                        handleUpdateStatus(c._id, c.status, '', files);
-                                                    }
-                                                }}
-                                            />
-                                            <label htmlFor={`media-upload-${c._id}`} className="cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700 underline">
-                                                Upload Progress Media
-                                            </label>
-                                        </div>
-
-                                        <div className="bg-slate-50 p-3 rounded-btn">
-                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-2">Status Log</h4>
-                                            <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-                                                {c.statusLogs?.map((log, i) => (
-                                                    <div key={i} className="text-xs flex flex-col gap-1 border-b border-slate-100 last:border-0 pb-1">
-                                                        <div className="flex gap-2 flex-wrap">
-                                                            <span className="text-slate-400 whitespace-nowrap">{formatIndianTime(log.timestamp)}</span>
-                                                            <span className="font-semibold text-slate-700 capitalize">{log.status}:</span>
-                                                            <span className="text-slate-600 italic">"{log.message}"</span>
-                                                        </div>
-                                                        {log.images?.length > 0 && (
-                                                            <div className="flex gap-1 overflow-x-auto mt-1">
-                                                                {log.images.map((img, idx) => (
-                                                                    <img key={idx} src={img} alt="progress" className="h-10 w-10 object-cover rounded shadow-sm" />
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                                {(!c.statusLogs || c.statusLogs.length === 0) && (
-                                                    <p className="text-xs text-slate-400">No logs yet.</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))
-                    )}
+                <div className="space-y-5 animate-fade-in">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-center"><p className="text-2xl font-bold text-blue-700">{activeCases.length}</p><p className="text-sm font-semibold text-blue-700">Active Cases</p></div>
+                        <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-center"><p className="text-2xl font-bold text-amber-700">{scheduledCases.length}</p><p className="text-sm font-semibold text-amber-700">Scheduled Cases</p></div>
+                        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-center"><p className="text-2xl font-bold text-emerald-700">{completedCases.length}</p><p className="text-sm font-semibold text-emerald-700">Completed Cases</p></div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {[
+                            ['active', `Active (${activeCases.length})`],
+                            ['scheduled_list', `Scheduled (${scheduledCases.length})`],
+                            ['completed_list', `Completed (${completedCases.length})`],
+                        ].map(([id, label]) => (
+                            <button key={id} onClick={() => setSearchParams({ tab: 'my_cases', list: id })} className={`rounded-full px-4 py-2 text-sm font-semibold ${activeList === id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}`}>{label}</button>
+                        ))}
+                    </div>
+                    {loading ? <div className="space-y-4">{[1, 2].map((i) => <SkeletonCard key={i} />)}</div> : visibleCases.length === 0 ? <div className="card py-14 text-center"><div className="mb-3 text-4xl">📋</div><p className="font-semibold text-slate-700">No cases in this section</p></div> : visibleCases.map(renderCaseCard)}
                 </div>
             )}
         </div>

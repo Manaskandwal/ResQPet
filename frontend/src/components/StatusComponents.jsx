@@ -16,10 +16,11 @@ const statusMap = {
     en_route: { label: 'En Route', cls: 'badge-enroute' },
     enroute: { label: 'En Route', cls: 'badge-enroute' },
     picked_up: { label: 'Picked Up', cls: 'badge-pickedup' },
-    resolved_on_spot: { label: 'Resolved on Spot', cls: 'badge-completed bg-teal-100 text-teal-700' },
+    resolved_on_spot: { label: 'On-Spot Treated', cls: 'badge-completed bg-teal-100 text-teal-700' },
     fundraiser_active: { label: 'Fundraiser Active', cls: 'badge-escalated bg-rose-100 text-rose-700' },
     delivered: { label: 'Delivered', cls: 'badge-completed' },
     completed: { label: 'Completed', cls: 'badge-completed' },
+    closed_unresolved: { label: 'Closed Unresolved', cls: 'badge-cancelled bg-slate-200 text-slate-700' },
     cancelled: { label: 'Cancelled', cls: 'badge-cancelled' },
 };
 
