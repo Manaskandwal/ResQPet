@@ -9,6 +9,7 @@ const Login = () => {
     const navigate = useNavigate();
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState(''); // Local error state for immediate feedback
 
     // If already logged in, redirect to dashboard
     useEffect(() => {
@@ -21,26 +22,43 @@ const Login = () => {
         }
     }, [user, authLoading, navigate]);
 
-    const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    const handleChange = (e) => {
+        setErrorMsg(''); // Clear error when typing
+        setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Basic frontend validation
+        if (!form.email.trim() || !form.password.trim()) {
+            setErrorMsg('Please fill in all fields.');
+            return;
+        }
+
         setLoading(true);
+        setErrorMsg('');
+        
         try {
             console.log('[Login] Attempting login for:', form.email);
             const { data } = await api.post('/auth/login', form);
-            login(data.user, data.token);
-            toast.success(`Welcome back, ${data.user.name}! 🐾`);
-
-            // Role-based redirect
-            const routes = {
-                user: '/user/dashboard', ngo: '/ngo/dashboard',
-                hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
-            };
-            navigate(routes[data.user.role] || '/');
+            
+            if (data.success) {
+                login(data.user, data.token);
+                toast.success(`Welcome back, ${data.user.name}! 🐾`);
+    
+                // Role-based redirect
+                const routes = {
+                    user: '/user/dashboard', ngo: '/ngo/dashboard',
+                    hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
+                };
+                navigate(routes[data.user.role] || '/');
+            }
         } catch (error) {
-            console.error('[Login] Error:', error.response?.data?.message || error.message);
-            toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+            const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+            console.error('[Login] Error:', message);
+            setErrorMsg(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -56,47 +74,83 @@ const Login = () => {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <img src="/logo.svg" alt="PawSaarthi" className="h-12 mx-auto mb-2" />
-                    <p className="text-surface-muted mt-1">All in One Animal Platform</p>
+                    <p className="text-surface-muted mt-1 text-sm font-medium">All in One Animal Platform</p>
                 </div>
 
                 {/* Card */}
-                <div className="card shadow-card-hover">
-                    <h2 className="text-xl font-bold text-slate-800 mb-6">Sign in to your account</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="card shadow-card-hover border-surface-border">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2>
+                    <p className="text-slate-500 text-sm mb-6">Sign in to your account to continue</p>
+                    
+                    {/* Error Box */}
+                    {errorMsg && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 animate-pulse-soft">
+                            <span className="text-red-500 mt-0.5">⚠️</span>
+                            <p className="text-sm text-red-700 font-medium">{errorMsg}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="form-group">
-                            <label className="label" htmlFor="email">Email address</label>
-                            <input id="email" name="email" type="email" autoComplete="email"
-                                required className="input" placeholder="you@example.com"
-                                value={form.email} onChange={handleChange} />
+                            <label className="label text-slate-700 font-semibold" htmlFor="email">Email Address</label>
+                            <input 
+                                id="email" 
+                                name="email" 
+                                type="email" 
+                                autoComplete="email"
+                                required 
+                                className="input focus:ring-primary-500" 
+                                placeholder="name@example.com"
+                                value={form.email} 
+                                onChange={handleChange} 
+                            />
                         </div>
                         <div className="form-group">
-                            <label className="label" htmlFor="password">Password</label>
-                            <input id="password" name="password" type="password" autoComplete="current-password"
-                                required className="input" placeholder="••••••••"
-                                value={form.password} onChange={handleChange} />
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label className="label text-slate-700 font-semibold m-0" htmlFor="password">Password</label>
+                            </div>
+                            <input 
+                                id="password" 
+                                name="password" 
+                                type="password" 
+                                autoComplete="current-password"
+                                required 
+                                className="input focus:ring-primary-500" 
+                                placeholder="••••••••"
+                                value={form.password} 
+                                onChange={handleChange} 
+                            />
                         </div>
-                        <button type="submit" disabled={loading}
-                            className="btn-primary w-full btn-lg mt-2">
+                        
+                        <button 
+                            type="submit" 
+                            disabled={loading}
+                            className={`btn-primary w-full btn-lg mt-2 flex items-center justify-center gap-2 ${loading ? 'opacity-80' : ''}`}
+                        >
                             {loading ? (
-                                <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Signing in...</>
-                            ) : 'Sign In'}
+                                <><span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Signing in...</>
+                            ) : (
+                                'Sign In'
+                            )}
                         </button>
                     </form>
-                    <p className="text-center text-sm text-surface-muted mt-6">
-                        Don&apos;t have an account?{' '}
-                        <Link to="/register" className="text-primary-600 font-semibold hover:underline">
-                            Register here
+                    
+                    <p className="text-center text-sm text-surface-muted mt-8">
+                        New to PawSaarthi?{' '}
+                        <Link to="/register" className="text-primary-600 font-bold hover:text-primary-700 transition-colors">
+                            Create an account
                         </Link>
                     </p>
                 </div>
 
-                {/* Demo hint */}
-                <p className="text-center text-xs text-surface-muted mt-4">
-                    Admin: admin@pawsaarthi.com / Admin@123456 (after seeding)
-                </p>
+                {/* Footer links or info */}
+                <div className="mt-8 text-center text-xs text-slate-400 space-y-2">
+                    <p>© 2024 ResQPet • Made for Animals 🐾</p>
+                </div>
             </div>
         </div>
     );
 };
+
 
 export default Login;

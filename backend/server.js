@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
 const http = require('http'); // <-- Added for Socket.io
 const connectDB = require('./config/db');
 const { connectCloudinary } = require('./config/cloudinary');
@@ -78,12 +79,11 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ─── Request Logger (dev mode) ────────────────────────────────────────────────
-if (process.env.NODE_ENV !== 'production') {
-    app.use((req, res, next) => {
-        console.log(`[Request] ${req.method} ${req.path}`);
-        next();
-    });
+// ─── Request Logger ───────────────────────────────────────────────────────────
+if (isDev) {
+    app.use(morgan('dev')); // Colorized logs for development
+} else {
+    app.use(morgan('combined')); // Detailed logs for production
 }
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
