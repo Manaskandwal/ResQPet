@@ -17,6 +17,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import UserDashboard from './pages/user/UserDashboard';
 import SubmitRescue from './pages/user/SubmitRescue';
 import RescueDetail from './pages/user/RescueDetail';
+import PaymentHistory from './pages/user/PaymentHistory';
+import Impact from './pages/Impact';
 
 // NGO
 import NGODashboard from './pages/ngo/NGODashboard';
@@ -66,6 +68,8 @@ export default function App() {
           <Route path="/user/dashboard" element={<UserDashboard />} />
           <Route path="/user/submit-rescue" element={<SubmitRescue />} />
           <Route path="/user/rescue/:id" element={<RescueDetail />} />
+          <Route path="/user/payments" element={<PaymentHistory />} />
+          <Route path="/impact" element={<Impact />} />
         </Route>
       </Route>
 

@@ -20,6 +20,7 @@ const navConfig = {
         { to: '/user/dashboard', label: 'Home', Icon: HomeIcon },
         { to: '/user/submit-rescue', label: 'Report Animal', Icon: PlusCircleIcon },
         { to: '/fundraisers', label: 'Fundraisers', Icon: HeartIcon },
+        { to: '/impact', label: 'Impact', Icon: ClipboardDocumentListIcon },
     ],
     ngo: [
         { to: '/ngo/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
@@ -43,28 +44,37 @@ const navConfig = {
 };
 
 const comingSoon = [
-    { icon: '🚑', label: 'Emergency Ambulance' },
-    { icon: '👨‍⚕️', label: 'Consult a Vet' },
-    { icon: '🛍️', label: 'Pet Marketplace' },
+    { tag: 'EMS', label: 'Emergency Ambulance' },
+    { tag: 'Vet', label: 'Consult a Vet' },
+    { tag: 'Shop', label: 'Pet Marketplace' },
 ];
 
+const phaseTwoRoles = new Set(['admin', 'user', 'hospital']);
+
 const roleLabels = {
-    user: 'Citizen', ngo: 'NGO', hospital: 'Hospital',
-    ambulance: 'Ambulance', admin: 'Admin',
+    user: 'Citizen',
+    ngo: 'NGO',
+    hospital: 'Hospital',
+    ambulance: 'Ambulance',
+    admin: 'Admin',
 };
 
 const roleIcons = {
-    user: HeartIcon, ngo: MapPinIcon, hospital: BuildingOffice2Icon,
-    ambulance: TruckIcon, admin: ShieldCheckIcon,
+    user: HeartIcon,
+    ngo: MapPinIcon,
+    hospital: BuildingOffice2Icon,
+    ambulance: TruckIcon,
+    admin: ShieldCheckIcon,
 };
 
 const Sidebar = ({ open, onClose }) => {
     const { user } = useAuth();
     const links = navConfig[user?.role] || [];
     const RoleIcon = roleIcons[user?.role] || HomeIcon;
+    const showComingSoon = phaseTwoRoles.has(user?.role);
 
     const handleComingSoon = (label) => {
-        toast(`${label} is coming in Phase 2! 🚀`, { icon: '⏳' });
+        toast(`${label} is coming in Phase 2!`, { icon: '⏳' });
     };
 
     return (
@@ -76,7 +86,6 @@ const Sidebar = ({ open, onClose }) => {
                 lg:translate-x-0
             `}
         >
-            {/* Logo */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-surface-border">
                 <img src="/logo.svg" alt="PawSaarthi" className="h-8" />
                 <button onClick={onClose} className="lg:hidden p-1.5 rounded hover:bg-surface-hover">
@@ -84,7 +93,6 @@ const Sidebar = ({ open, onClose }) => {
                 </button>
             </div>
 
-            {/* Role badge */}
             <div className="px-3 py-2.5 mx-3 mt-3 rounded-btn bg-primary-50 border border-primary-100 flex items-center gap-2">
                 <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <RoleIcon className="w-3.5 h-3.5 text-primary-600" />
@@ -95,7 +103,6 @@ const Sidebar = ({ open, onClose }) => {
                 </div>
             </div>
 
-            {/* Navigation links */}
             <nav className="flex-1 px-2 mt-3 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
                 <p className="text-[10px] uppercase tracking-widest text-surface-muted font-semibold px-2 mb-1">
                     Menu
@@ -105,7 +112,7 @@ const Sidebar = ({ open, onClose }) => {
                         key={`${to}-${label}`}
                         to={to}
                         onClick={onClose}
-                        className={({ isActive }) => isActive ? 'nav-link-active' : 'nav-link'}
+                        className={({ isActive }) => (isActive ? 'nav-link-active' : 'nav-link')}
                         end
                     >
                         <Icon className="w-4 h-4 flex-shrink-0" />
@@ -113,31 +120,33 @@ const Sidebar = ({ open, onClose }) => {
                     </NavLink>
                 ))}
 
-                {/* ── Coming Soon ─────────────────────────────────── */}
-                <div className="mt-3">
-                    <div className="flex items-center gap-2 px-2 mb-1">
-                        <p className="text-[10px] uppercase tracking-widest text-surface-muted font-semibold">
-                            Coming Soon
-                        </p>
-                        <span className="px-1.5 py-0.5 bg-violet-50 border border-violet-200 rounded-full text-[9px] text-violet-600 font-bold uppercase">
-                            Phase 2
-                        </span>
+                {showComingSoon && (
+                    <div className="mt-3">
+                        <div className="flex items-center gap-2 px-2 mb-1">
+                            <p className="text-[10px] uppercase tracking-widest text-surface-muted font-semibold">
+                                Coming Soon
+                            </p>
+                            <span className="px-1.5 py-0.5 bg-violet-50 border border-violet-200 rounded-full text-[9px] text-violet-600 font-bold uppercase">
+                                Phase 2
+                            </span>
+                        </div>
+                        {comingSoon.map(({ tag, label }) => (
+                            <button
+                                key={label}
+                                onClick={() => handleComingSoon(label)}
+                                className="nav-link w-full text-left opacity-50 group"
+                            >
+                                <span className="text-[11px] leading-none flex-shrink-0 font-semibold uppercase tracking-wide text-slate-400">
+                                    {tag}
+                                </span>
+                                <span className="truncate text-slate-400">{label}</span>
+                                <LockClosedIcon className="w-3 h-3 text-slate-300 ml-auto flex-shrink-0" />
+                            </button>
+                        ))}
                     </div>
-                    {comingSoon.map(({ icon, label }) => (
-                        <button
-                            key={label}
-                            onClick={() => handleComingSoon(label)}
-                            className="nav-link w-full text-left opacity-50 group"
-                        >
-                            <span className="text-sm leading-none flex-shrink-0">{icon}</span>
-                            <span className="truncate text-slate-400">{label}</span>
-                            <LockClosedIcon className="w-3 h-3 text-slate-300 ml-auto flex-shrink-0" />
-                        </button>
-                    ))}
-                </div>
+                )}
             </nav>
 
-            {/* Footer */}
             <div className="px-3 py-3 border-t border-surface-border">
                 <p className="text-[10px] text-surface-muted text-center">
                     PawSaarthi © {new Date().getFullYear()} · Phase 1

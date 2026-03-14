@@ -1,6 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { submitRescue, getMyRescues, getRescueById, cancelRescue, makeFundraiser } = require('../controllers/rescueController');
+const {
+    submitRescue,
+    getMyRescues,
+    getRescueById,
+    cancelRescue,
+    makeFundraiser,
+    getImpactFeed,
+    toggleImpactLike,
+    addImpactComment,
+} = require('../controllers/rescueController');
 const { acceptCase, rejectCase, resolveOnSpot, escalateToHospital, updateNGOStatus } = require('../controllers/ngoController');
 const { assignAmbulance } = require('../controllers/hospitalController');
 const { updateStatus } = require('../controllers/ambulanceController');
@@ -23,6 +32,9 @@ router.post(
 
 // @route  GET /api/rescue/mine
 router.get('/mine', protect, allowRoles('user'), getMyRescues);
+
+// @route  GET /api/rescue/impact/feed
+router.get('/impact/feed', protect, getImpactFeed);
 
 // @route  GET /api/rescue/:id
 router.get('/:id', protect, getRescueById);
@@ -53,5 +65,11 @@ router.put('/:id/status', protect, allowRoles('ambulance'), updateStatus);
 
 // @route  PUT /api/rescue/:id/fundraiser
 router.put('/:id/fundraiser', protect, allowRoles('user'), makeFundraiser);
+
+// @route  POST /api/rescue/:id/impact/like
+router.post('/:id/impact/like', protect, toggleImpactLike);
+
+// @route  POST /api/rescue/:id/impact/comment
+router.post('/:id/impact/comment', protect, addImpactComment);
 
 module.exports = router;

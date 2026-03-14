@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
-import { Dialog, Transition } from '@headlessui/react';
 import { StatusBadge } from '../../components/StatusComponents';
 import { SkeletonCard } from '../../components/Skeleton';
-import { TruckIcon, XMarkIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline';
+import { formatIndianDateTime } from '../../utils/dateTime';
+import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
 
 const HospitalDashboard = () => {
     const { user } = useAuth();
@@ -17,8 +17,8 @@ const HospitalDashboard = () => {
         try {
             console.log('[HospitalDashboard] Fetching broadcasted cases...');
             const { data } = await api.get('/hospital/escalated');
-            setCases(data.cases);
-            console.log('[HospitalDashboard] Cases:', casesRes.data.count, 'Ambulances:', ambRes.data.count);
+            setCases(data.cases || []);
+            console.log('[HospitalDashboard] Cases loaded:', data.count || 0);
         } catch (error) {
             console.error('[HospitalDashboard] Fetch error:', error.message);
             toast.error('Failed to load dashboard data.');
@@ -27,18 +27,20 @@ const HospitalDashboard = () => {
         }
     }, []);
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleAcceptCase = async (id) => {
-        setActing(p => ({ ...p, [id]: true }));
+        setActing((prev) => ({ ...prev, [id]: true }));
         try {
-            const { data } = await api.put(`/hospital/rescue/${id}/accept`);
+            const { data } = await api.put(`/hospital/rescue/${id}/accept-broadcast`);
             toast.success(data.message);
-            setCases(prev => prev.filter(c => c._id !== id));
+            setCases((prev) => prev.filter((c) => c._id !== id));
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to claim case.');
         } finally {
-            setActing(p => ({ ...p, [id]: false }));
+            setActing((prev) => ({ ...prev, [id]: false }));
         }
     };
 
@@ -55,11 +57,10 @@ const HospitalDashboard = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="page-title">Hospital Dashboard 🏥</h1>
+                <h1 className="page-title">Hospital Dashboard</h1>
                 <p className="page-subtitle">Escalated cases needing ambulance dispatch</p>
             </div>
 
-            {/* Capacity row */}
             <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                 <div className="stat-card">
                     <div className="w-10 h-10 bg-orange-50 rounded-btn flex items-center justify-center mb-1">
@@ -71,11 +72,11 @@ const HospitalDashboard = () => {
             </div>
 
             {loading ? (
-                <div className="space-y-4">{[1, 2, 3].map(i => <SkeletonCard key={i} />)}</div>
+                <div className="space-y-4">{[1, 2, 3].map((i) => <SkeletonCard key={i} />)}</div>
             ) : cases.length === 0 ? (
                 <div className="card text-center py-14">
-                    <div className="text-5xl mb-3">✅</div>
-                    <p className="text-slate-700 font-semibold text-lg">No escalated cases nearby!</p>
+                    <div className="text-5xl mb-3">OK</div>
+                    <p className="text-slate-700 font-semibold text-lg">No escalated cases nearby.</p>
                     <p className="text-surface-muted text-sm mt-1">All clear. Cases requiring hospitals will appear here.</p>
                     <button onClick={fetchData} className="btn-outline mt-4">Refresh</button>
                 </div>
@@ -87,8 +88,8 @@ const HospitalDashboard = () => {
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-slate-800 truncate">{c.description}</p>
                                     <p className="text-xs text-surface-muted mt-0.5">
-                                        👤 {c.user?.name}  · 📍 {c.distance} km ·
-                                        🕐 Escalated: {c.escalatedAt ? new Date(c.escalatedAt).toLocaleString() : 'N/A'}
+                                        User: {c.user?.name} · Distance: {Number.isFinite(c.distance) ? `${c.distance.toFixed(1)} km` : 'N/A'} ·
+                                        {' '}Escalated: {formatIndianDateTime(c.escalatedAt)}
                                     </p>
                                 </div>
                                 <StatusBadge status={c.status} />
@@ -106,7 +107,7 @@ const HospitalDashboard = () => {
                             </button>
                         </div>
                     ))}
-                    <button onClick={fetchData} className="btn-ghost w-full text-sm">🔄 Refresh</button>
+                    <button onClick={fetchData} className="btn-ghost w-full text-sm">Refresh</button>
                 </div>
             )}
         </div>

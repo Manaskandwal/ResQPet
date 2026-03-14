@@ -5,10 +5,102 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { StatusBadge } from '../../components/StatusComponents';
 import { SkeletonCard, SkeletonStatCard } from '../../components/Skeleton';
+import { formatIndianDateTime, formatIndianTime, toDateInputValue, toTimeInputValue } from '../../utils/dateTime';
 import {
-    MapPinIcon, CheckIcon, XMarkIcon, ClockIcon,
-    ClipboardDocumentListIcon, ChartBarIcon, CheckCircleIcon, PhoneIcon
+    MapPinIcon,
+    CheckIcon,
+    XMarkIcon,
+    ClockIcon,
+    ClipboardDocumentListIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    PhoneIcon,
 } from '@heroicons/react/24/outline';
+
+const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting }) => {
+    const initialDate = rescue?.scheduleDate ? new Date(rescue.scheduleDate) : new Date(Date.now() + 30 * 60 * 1000);
+    const [date, setDate] = useState(toDateInputValue(initialDate));
+    const [time, setTime] = useState(toTimeInputValue(initialDate));
+
+    useEffect(() => {
+        if (!open) return;
+        const base = rescue?.scheduleDate ? new Date(rescue.scheduleDate) : new Date(Date.now() + 30 * 60 * 1000);
+        setDate(toDateInputValue(base));
+        setTime(toTimeInputValue(base));
+    }, [open, rescue]);
+
+    if (!open || !rescue) return null;
+
+    const handleSubmit = () => {
+        if (!date || !time) {
+            toast.error('Please select both date and time.');
+            return;
+        }
+
+        const selectedDate = new Date(`${date}T${time}:00`);
+        if (Number.isNaN(selectedDate.getTime())) {
+            toast.error('Selected date/time is invalid.');
+            return;
+        }
+
+        if (selectedDate.getTime() <= Date.now()) {
+            toast.error('Scheduled date/time must be in the future.');
+            return;
+        }
+
+        onConfirm(selectedDate.toISOString());
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md bg-white rounded-card shadow-card-hover border border-surface-border">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
+                    <div>
+                        <h3 className="font-bold text-slate-800">Schedule Rescue</h3>
+                        <p className="text-xs text-surface-muted mt-1 truncate">{rescue.description}</p>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 rounded hover:bg-surface-hover">
+                        <XMarkIcon className="w-5 h-5 text-slate-500" />
+                    </button>
+                </div>
+
+                <div className="p-5 space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="form-group">
+                            <label className="label">Date</label>
+                            <input
+                                type="date"
+                                className="input"
+                                value={date}
+                                min={toDateInputValue(new Date())}
+                                onChange={(e) => setDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="label">Time</label>
+                            <input
+                                type="time"
+                                className="input"
+                                value={time}
+                                onChange={(e) => setTime(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <div className="rounded-btn border border-primary-100 bg-primary-50 px-3 py-2 text-sm text-primary-700">
+                        The user and NGO team will see this slot in Indian date/time format.
+                    </div>
+                </div>
+
+                <div className="flex gap-2 px-5 py-4 border-t border-surface-border">
+                    <button onClick={onClose} className="btn-ghost flex-1">Cancel</button>
+                    <button onClick={handleSubmit} disabled={submitting} className="btn-primary flex-1">
+                        {submitting ? 'Scheduling...' : 'Confirm Schedule'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const NGODashboard = () => {
     const { user } = useAuth();
@@ -18,27 +110,45 @@ const NGODashboard = () => {
     const [analytics, setAnalytics] = useState(null);
     const [nearbyCases, setNearbyCases] = useState([]);
     const [myCases, setMyCases] = useState([]);
-
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState({});
     const [locationSet, setLocationSet] = useState(true);
+    const [scheduleCase, setScheduleCase] = useState(null);
+    const [gpsCoords, setGpsCoords] = useState(null);
+
+    useEffect(() => {
+        if (!navigator.geolocation) return;
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setGpsCoords({
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                });
+            },
+            (error) => {
+                console.warn('[NGODashboard] GPS location unavailable:', error.message);
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+    }, []);
 
     const fetchAll = useCallback(async () => {
         try {
             setLoading(true);
-
-            // Depending on tab, fetch specific data (or all at once for simplicity)
+            const nearbyUrl = gpsCoords
+                ? `/ngo/nearby?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}`
+                : '/ngo/nearby';
             const [analyticsRes, nearbyRes, mycasesRes] = await Promise.all([
                 api.get('/ngo/analytics'),
-                api.get('/ngo/nearby'),
-                api.get('/ngo/my-cases')
+                api.get(nearbyUrl),
+                api.get('/ngo/my-cases'),
             ]);
 
             setAnalytics(analyticsRes.data.analytics);
-            setNearbyCases(nearbyRes.data.cases);
+            setNearbyCases(nearbyRes.data.cases || []);
             setLocationSet(nearbyRes.data.locationSet ?? true);
-            setMyCases(mycasesRes.data.cases);
-
+            setMyCases(mycasesRes.data.cases || []);
         } catch (error) {
             console.error('[NGODashboard] Fetch error:', error.message);
             const msg = error.response?.data?.message || 'Failed to load panel data.';
@@ -46,94 +156,96 @@ const NGODashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [gpsCoords]);
 
     useEffect(() => {
         if (user.isApproved) fetchAll();
     }, [fetchAll, user.isApproved]);
 
     const handleAccept = async (id, type = 'immediate', scheduleDate = null) => {
-        setActing((p) => ({ ...p, [id]: 'accepting' }));
+        setActing((prev) => ({ ...prev, [id]: 'accepting' }));
         try {
             await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate });
-            toast.success(type === 'schedule' ? 'Case scheduled!' : 'Case accepted! 🐾 Please respond immediately.');
+            toast.success(type === 'schedule' ? 'Case scheduled successfully.' : 'Case accepted successfully.');
+            setScheduleCase(null);
             fetchAll();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to accept case.');
         } finally {
-            setActing((p) => ({ ...p, [id]: null }));
+            setActing((prev) => ({ ...prev, [id]: null }));
         }
     };
 
     const handleUpdateStatus = async (id, status, message = '', files = []) => {
-        setActing((p) => ({ ...p, [id]: 'updating' }));
+        setActing((prev) => ({ ...prev, [id]: 'updating' }));
         try {
             const formData = new FormData();
             formData.append('status', status);
             formData.append('message', message);
 
             if (files && files.length > 0) {
-                files.forEach(file => formData.append('media', file));
+                files.forEach((file) => formData.append('media', file));
             }
 
-            // Get location if possible
             try {
                 const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }));
                 formData.append('lat', pos.coords.latitude);
                 formData.append('lng', pos.coords.longitude);
-            } catch (e) { console.log('Location denied or failed'); }
+            } catch (e) {
+                console.log('[NGODashboard] Location denied or failed during status update');
+            }
 
             await api.put(`/rescue/${id}/ngo-status`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
-            toast.success(`Status updated to ${status}`);
+
+            toast.success(`Status updated to ${status}.`);
             fetchAll();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update status.');
         } finally {
-            setActing((p) => ({ ...p, [id]: null }));
+            setActing((prev) => ({ ...prev, [id]: null }));
         }
     };
 
     const handleReject = async (id) => {
-        setActing((p) => ({ ...p, [id]: 'rejecting' }));
+        setActing((prev) => ({ ...prev, [id]: 'rejecting' }));
         try {
             await api.put(`/rescue/${id}/reject-ngo`);
-            toast.success('Case passed. You won\'t see it again.');
+            toast.success('Case passed. You will not see it again.');
             setNearbyCases((prev) => prev.filter((c) => c._id !== id));
-            // Optional: refetch analytics to update rejected count
             const analyticsRes = await api.get('/ngo/analytics');
             setAnalytics(analyticsRes.data.analytics);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to reject case.');
         } finally {
-            setActing((p) => ({ ...p, [id]: null }));
+            setActing((prev) => ({ ...prev, [id]: null }));
         }
     };
 
     const handleResolve = async (id) => {
-        setActing((p) => ({ ...p, [id]: 'resolving' }));
+        setActing((prev) => ({ ...prev, [id]: 'resolving' }));
         try {
             await api.put(`/rescue/${id}/resolve-ngo`);
-            toast.success('Case resolved on spot! Excellent work.');
+            toast.success('Case resolved on the spot.');
             fetchAll();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to resolve case.');
         } finally {
-            setActing((p) => ({ ...p, [id]: null }));
+            setActing((prev) => ({ ...prev, [id]: null }));
         }
     };
 
     const handleEscalate = async (id) => {
-        setActing((p) => ({ ...p, [id]: 'escalating' }));
+        setActing((prev) => ({ ...prev, [id]: 'escalating' }));
         try {
             await api.put(`/rescue/${id}/escalate-ngo`);
-            toast.success('Case escalated! System is pinging nearby hospitals.');
+            toast.success('Case escalated to hospitals.');
             fetchAll();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to escalate case.');
         } finally {
-            setActing((p) => ({ ...p, [id]: null }));
+            setActing((prev) => ({ ...prev, [id]: null }));
         }
     };
 
@@ -143,7 +255,7 @@ const NGODashboard = () => {
                 <div className="text-6xl mb-4">⏳</div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Awaiting Admin Approval</h2>
                 <p className="text-surface-muted max-w-md">
-                    Your NGO account is under review. Once approved, you'll be able to see and accept nearby rescue cases.
+                    Your NGO account is under review. Once approved, you will be able to see and accept nearby rescue cases.
                 </p>
             </div>
         );
@@ -157,30 +269,39 @@ const NGODashboard = () => {
 
     return (
         <div className="space-y-6">
+            <ScheduleModal
+                rescue={scheduleCase}
+                open={!!scheduleCase}
+                onClose={() => setScheduleCase(null)}
+                onConfirm={(isoDate) => handleAccept(scheduleCase._id, 'schedule', isoDate)}
+                submitting={scheduleCase ? acting[scheduleCase._id] === 'accepting' : false}
+            />
+
             <div>
-                <h1 className="page-title">NGO Dashboard 🐾</h1>
+                <h1 className="page-title">NGO Dashboard</h1>
                 <p className="page-subtitle">Manage operations and respond to rescue alerts.</p>
             </div>
 
-            {/* Tabs Navigation */}
             <div className="flex gap-1 p-1 bg-slate-100 rounded-btn w-fit flex-wrap">
                 {tabs.map((tab) => (
-                    <button key={tab.id}
+                    <button
+                        key={tab.id}
                         onClick={() => setSearchParams({ tab: tab.id })}
-                        className={`px-4 py-2 rounded-btn text-sm font-medium transition-all
-              ${activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                        className={`px-4 py-2 rounded-btn text-sm font-medium transition-all ${
+                            activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
                         {tab.label}
                     </button>
                 ))}
             </div>
 
-            {/* ── Overview Tab ─────────────────────────────────── */}
             {activeTab === 'overview' && (
                 <div className="space-y-6 animate-fade-in">
                     <h2 className="text-lg font-bold text-slate-800 border-b border-surface-border pb-2">Operational Analytics</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {loading && !analytics ? (
-                            [1, 2, 3, 4].map(i => <SkeletonStatCard key={i} />)
+                            [1, 2, 3, 4].map((i) => <SkeletonStatCard key={i} />)
                         ) : analytics ? (
                             <>
                                 <div className="stat-card">
@@ -217,26 +338,24 @@ const NGODashboard = () => {
                 </div>
             )}
 
-            {/* ── Nearby Cases Tab ─────────────────────────────── */}
             {activeTab === 'nearby' && (
                 <div className="space-y-4 animate-fade-in">
-                    {/* No-location tip */}
                     {!locationSet && (
                         <div className="p-3 bg-amber-50 border border-amber-200 rounded-btn text-sm text-amber-700 flex items-start gap-2 mb-4">
                             <span className="text-lg leading-none flex-shrink-0">📍</span>
                             <span>
-                                <strong>Tip:</strong> Your account has no location set. You're seeing all pending cases.
-                                Ask admin to update your base location to filter by 50km radius.
+                                <strong>NGO base location missing:</strong> ask admin to set your NGO location. Until then,
+                                rescue cards cannot calculate distance and will show "Distance unknown".
                             </span>
                         </div>
                     )}
 
                     {loading ? (
-                        <div className="space-y-4">{[1, 2, 3].map(i => <SkeletonCard key={i} />)}</div>
+                        <div className="space-y-4">{[1, 2, 3].map((i) => <SkeletonCard key={i} />)}</div>
                     ) : nearbyCases.length === 0 ? (
                         <div className="card text-center py-14">
                             <div className="text-5xl mb-3">🌟</div>
-                            <p className="text-slate-700 font-semibold text-lg">No pending cases nearby!</p>
+                            <p className="text-slate-700 font-semibold text-lg">No pending cases nearby.</p>
                             <p className="text-surface-muted text-sm mt-1">Check back in a little while.</p>
                             <button onClick={fetchAll} className="btn-outline mt-4">Refresh Dashboard</button>
                         </div>
@@ -250,11 +369,11 @@ const NGODashboard = () => {
                                             <span className="text-xs text-surface-muted">👤 {c.user?.name}</span>
                                             {c.distance !== null && c.distance !== undefined ? (
                                                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
-                                                    <MapPinIcon className="w-3 h-3" />{c.distance.toFixed(1)} km away
+                                                    <MapPinIcon className="w-3 h-3" /> {c.distance.toFixed(1)} km away
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1 text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">
-                                                    <MapPinIcon className="w-3 h-3" />Distance unknown
+                                                    <MapPinIcon className="w-3 h-3" /> Distance unknown
                                                 </span>
                                             )}
                                         </div>
@@ -268,7 +387,7 @@ const NGODashboard = () => {
 
                                 <p className="text-xs text-surface-muted mb-4">
                                     📍 {c.location.address || `${c.location.lat.toFixed(4)}, ${c.location.lng.toFixed(4)}`}
-                                    {' · '}🕐 {new Date(c.createdAt).toLocaleString()}
+                                    {' · '}🕐 {formatIndianDateTime(c.createdAt)}
                                 </p>
 
                                 <div className="flex gap-2">
@@ -277,14 +396,15 @@ const NGODashboard = () => {
                                         disabled={!!acting[c._id]}
                                         className="btn-primary flex-1"
                                     >
-                                        {acting[c._id] === 'accepting' ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <CheckIcon className="w-4 h-4" />}
+                                        {acting[c._id] === 'accepting' ? (
+                                            <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <CheckIcon className="w-4 h-4" />
+                                        )}
                                         Accept Now
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            const date = prompt("Enter schedule date (YYYY-MM-DD HH:MM):");
-                                            if (date) handleAccept(c._id, 'schedule', new Date(date));
-                                        }}
+                                        onClick={() => setScheduleCase(c)}
                                         disabled={!!acting[c._id]}
                                         className="btn-outline flex-1"
                                     >
@@ -300,11 +420,10 @@ const NGODashboard = () => {
                 </div>
             )}
 
-            {/* ── My Cases Tab (Accepted) ──────────────────────── */}
             {activeTab === 'my_cases' && (
                 <div className="space-y-4 animate-fade-in">
                     {loading ? (
-                        <div className="space-y-4">{[1, 2].map(i => <SkeletonCard key={i} />)}</div>
+                        <div className="space-y-4">{[1, 2].map((i) => <SkeletonCard key={i} />)}</div>
                     ) : myCases.length === 0 ? (
                         <div className="card text-center py-14">
                             <div className="text-4xl mb-3">📋</div>
@@ -317,11 +436,20 @@ const NGODashboard = () => {
                                 <div className="flex items-start justify-between gap-3 mb-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">ID: {c._id.slice(-6).toUpperCase()}</span>
+                                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                                ID: {c._id.slice(-6).toUpperCase()}
+                                            </span>
                                             <StatusBadge status={c.status} />
                                         </div>
                                         <h3 className="font-bold text-slate-800 text-lg leading-tight">{c.description}</h3>
-                                        <p className="text-sm text-surface-muted mt-1">Accepted: {new Date(c.acceptedAt || c.updatedAt).toLocaleString()}</p>
+                                        <p className="text-sm text-surface-muted mt-1">
+                                            Accepted: {formatIndianDateTime(c.acceptedAt || c.updatedAt)}
+                                        </p>
+                                        {c.scheduleDate && (
+                                            <p className="text-sm text-primary-600 mt-1">
+                                                Scheduled for: {formatIndianDateTime(c.scheduleDate)}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -334,17 +462,16 @@ const NGODashboard = () => {
                                         </p>
                                         <a
                                             href={`https://maps.google.com/?q=${c.location.lat},${c.location.lng}`}
-                                            target="_blank" rel="noreferrer"
+                                            target="_blank"
+                                            rel="noreferrer"
                                             className="text-xs text-primary-600 font-medium hover:underline inline-flex items-center gap-1 mt-2 ml-5"
                                         >
-                                            Open in Google Maps ↗
+                                            Open in Google Maps
                                         </a>
                                     </div>
                                     <div className="bg-slate-50 p-3 rounded-btn border border-surface-border">
                                         <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Reporter Details</h4>
-                                        <p className="text-sm font-medium text-slate-800 flex items-center gap-1">
-                                            👤 {c.user?.name || 'Anonymous User'}
-                                        </p>
+                                        <p className="text-sm font-medium text-slate-800 flex items-center gap-1">👤 {c.user?.name || 'Anonymous User'}</p>
                                         {c.user?.phone && (
                                             <p className="text-sm font-medium text-slate-800 flex items-center gap-1 mt-1">
                                                 <PhoneIcon className="w-4 h-4 text-slate-400" />
@@ -369,18 +496,33 @@ const NGODashboard = () => {
                                     <div className="mt-5 space-y-3 border-t border-surface-border pt-4">
                                         <div className="flex flex-wrap gap-2">
                                             {c.status === 'accepted' && (
-                                                <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 text-white text-xs px-3 py-1">🚀 Move Out (Left)</button>
+                                                <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 text-white text-xs px-3 py-1">
+                                                    Move Out
+                                                </button>
+                                            )}
+                                            {c.status === 'scheduled' && (
+                                                <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="btn bg-blue-500 text-white text-xs px-3 py-1">
+                                                    Start Scheduled Visit
+                                                </button>
                                             )}
                                             {c.status === 'on_the_way' && (
-                                                <button onClick={() => handleUpdateStatus(c._id, 'reached')} className="btn bg-indigo-500 text-white text-xs px-3 py-1">📍 Reached (Manual)</button>
+                                                <button onClick={() => handleUpdateStatus(c._id, 'reached')} className="btn bg-indigo-500 text-white text-xs px-3 py-1">
+                                                    Mark Reached
+                                                </button>
                                             )}
                                             {c.status === 'reached' && (
-                                                <button onClick={() => handleUpdateStatus(c._id, 'treating')} className="btn bg-emerald-500 text-white text-xs px-3 py-1">🩹 Start Treatment</button>
+                                                <button onClick={() => handleUpdateStatus(c._id, 'treating')} className="btn bg-emerald-500 text-white text-xs px-3 py-1">
+                                                    Start Treatment
+                                                </button>
                                             )}
                                             {c.status === 'treating' && (
                                                 <>
-                                                    <button onClick={() => handleResolve(c._id)} className="btn bg-teal-500 text-white text-xs px-3 py-1">✅ Resolve Spot</button>
-                                                    <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 text-white text-xs px-3 py-1">🏥 Hospitalize</button>
+                                                    <button onClick={() => handleResolve(c._id)} className="btn bg-teal-500 text-white text-xs px-3 py-1">
+                                                        Resolve Spot
+                                                    </button>
+                                                    <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 text-white text-xs px-3 py-1">
+                                                        Hospitalize
+                                                    </button>
                                                 </>
                                             )}
                                         </div>
@@ -394,13 +536,12 @@ const NGODashboard = () => {
                                                 onChange={(e) => {
                                                     const files = Array.from(e.target.files);
                                                     if (files.length > 0) {
-                                                        const msg = prompt("Add a status message (optional):");
-                                                        handleUpdateStatus(c._id, c.status, msg, files);
+                                                        handleUpdateStatus(c._id, c.status, '', files);
                                                     }
                                                 }}
                                             />
                                             <label htmlFor={`media-upload-${c._id}`} className="cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700 underline">
-                                                📷 Upload Progress Media
+                                                Upload Progress Media
                                             </label>
                                         </div>
 
@@ -409,8 +550,8 @@ const NGODashboard = () => {
                                             <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
                                                 {c.statusLogs?.map((log, i) => (
                                                     <div key={i} className="text-xs flex flex-col gap-1 border-b border-slate-100 last:border-0 pb-1">
-                                                        <div className="flex gap-2">
-                                                            <span className="text-slate-400 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                                                        <div className="flex gap-2 flex-wrap">
+                                                            <span className="text-slate-400 whitespace-nowrap">{formatIndianTime(log.timestamp)}</span>
                                                             <span className="font-semibold text-slate-700 capitalize">{log.status}:</span>
                                                             <span className="text-slate-600 italic">"{log.message}"</span>
                                                         </div>
@@ -423,7 +564,9 @@ const NGODashboard = () => {
                                                         )}
                                                     </div>
                                                 ))}
-                                                {(!c.statusLogs || c.statusLogs.length === 0) && <p className="text-xs text-slate-400">No logs yet.</p>}
+                                                {(!c.statusLogs || c.statusLogs.length === 0) && (
+                                                    <p className="text-xs text-slate-400">No logs yet.</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

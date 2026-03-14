@@ -278,4 +278,13 @@ const setUserLocation = async (req, res) => {
     }
 };
 
-module.exports = { getAnalytics, getAllUsers, getPendingApprovals, approveUser, deleteUser, getAllRescues, overrideRescueStatus, setUserLocation };
+module.exports = {
+    getAnalytics,
+    getAllUsers,
+    getPendingApprovals,
+    approveUser,
+    deleteUser,
+    getAllRescues,
+    overrideRescueStatus,
+    setUserLocation,
+};

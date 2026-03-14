@@ -1,5 +1,13 @@
 const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
+const Donation = require('../models/Donation');
+
+const addOneMonth = (dateLike) => {
+    const base = dateLike ? new Date(dateLike) : new Date();
+    const next = new Date(base);
+    next.setMonth(next.getMonth() + 1);
+    return next;
+};
 
 /**
  * @route   GET /api/user/profile
@@ -95,26 +103,187 @@ const getNgos = async (req, res) => {
 
 /**
  * @route   POST /api/user/subscribe-emergency
- * @desc    Subscribe to monthly emergency funds
+ * @desc    Subscribe to monthly emergency funds in test wallet mode
  * @access  Private
  */
 const subscribeEmergency = async (req, res) => {
     try {
-        const { amount } = req.body;
+        const contributionAmount = Number(req.body.amount) || 50;
         const user = await User.findById(req.user._id);
 
+        if (contributionAmount < 10) {
+            return res.status(400).json({ success: false, message: 'Minimum monthly contribution is ₹10.' });
+        }
+
+        if (user.walletBalance < contributionAmount) {
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient wallet balance for the first monthly contribution. Please top up your wallet and try again.',
+            });
+        }
+
+        const startedAt = new Date();
+        const nextPaymentDate = addOneMonth(startedAt);
+
+        user.walletBalance -= contributionAmount;
         user.monthlySubscription = {
             isSubscribed: true,
-            amount: amount || 50,
-            lastDeductedAt: new Date(),
+            amount: contributionAmount,
+            startedAt,
+            lastDeductedAt: startedAt,
+            nextPaymentDate,
+            status: 'active',
+            pausedUntil: null,
+            cancelledAt: null,
+            paymentSource: 'wallet_test',
         };
-
         await user.save();
-        res.status(200).json({ success: true, message: 'Subscribed to Emergency Fund' });
+
+        await WalletTransaction.create({
+            user: user._id,
+            amount: contributionAmount,
+            type: 'debit',
+            description: 'Monthly emergency fund contribution activated from wallet (test mode)',
+            balanceAfter: user.walletBalance,
+        });
+
+        const payment = await Donation.create({
+            user: user._id,
+            amount: contributionAmount,
+            type: 'subscription',
+            status: 'active',
+            paymentMethod: 'wallet',
+            paymentSource: 'wallet_test',
+            isGeneral: true,
+            subscriptionStartedAt: startedAt,
+            nextPaymentDate,
+            note: 'First recurring contribution collected from wallet in test mode.',
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Monthly emergency contribution started in test wallet mode.',
+            monthlySubscription: user.monthlySubscription,
+            walletBalance: user.walletBalance,
+            payment,
+        });
     } catch (error) {
         console.error('[User Controller] subscribeEmergency error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-module.exports = { getProfile, updateProfile, getWallet, getNgos, subscribeEmergency };
+/**
+ * @route   GET /api/user/payment-history
+ * @desc    Get recurring payment history and wallet activity
+ * @access  Private
+ */
+const getPaymentHistory = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('walletBalance monthlySubscription');
+        const [subscriptionPayments, walletTransactions] = await Promise.all([
+            Donation.find({ user: req.user._id, type: 'subscription' }).sort({ createdAt: -1 }).limit(50),
+            WalletTransaction.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(50),
+        ]);
+
+        res.status(200).json({
+            success: true,
+            walletBalance: user.walletBalance,
+            monthlySubscription: user.monthlySubscription,
+            subscriptionPayments,
+            walletTransactions,
+            paymentModeMessage: user.monthlySubscription?.isSubscribed
+                ? 'Recurring contributions are currently collected from wallet balance in test mode. UPI autopay can replace this later.'
+                : 'Recurring contributions are currently disabled. Wallet top-up works now; UPI autopay can be added later.',
+        });
+    } catch (error) {
+        console.error('[User Controller] getPaymentHistory error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   POST /api/user/subscription/pause
+ * @desc    Pause recurring support for one billing cycle
+ * @access  Private
+ */
+const pauseSubscription = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        const subscription = user?.monthlySubscription;
+
+        if (!subscription?.isSubscribed || subscription.status !== 'active') {
+            return res.status(400).json({ success: false, message: 'No active subscription found to pause.' });
+        }
+
+        const pausedUntil = addOneMonth(subscription.nextPaymentDate || new Date());
+        subscription.status = 'paused';
+        subscription.pausedUntil = pausedUntil;
+        subscription.nextPaymentDate = pausedUntil;
+        user.monthlySubscription = subscription;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Subscription paused for one billing cycle.',
+            monthlySubscription: user.monthlySubscription,
+        });
+    } catch (error) {
+        console.error('[User Controller] pauseSubscription error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   POST /api/user/subscription/cancel
+ * @desc    Cancel recurring support
+ * @access  Private
+ */
+const cancelSubscription = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        const previous = { ...user.monthlySubscription.toObject?.() };
+
+        if (!previous?.isSubscribed) {
+            return res.status(400).json({ success: false, message: 'No active subscription found to cancel.' });
+        }
+
+        user.monthlySubscription.isSubscribed = false;
+        user.monthlySubscription.status = 'cancelled';
+        user.monthlySubscription.cancelledAt = new Date();
+        await user.save();
+
+        await Donation.create({
+            user: user._id,
+            amount: previous.amount || 0,
+            type: 'subscription',
+            status: 'cancelled',
+            paymentMethod: 'wallet',
+            paymentSource: 'wallet_test',
+            isGeneral: true,
+            subscriptionStartedAt: previous.startedAt || null,
+            nextPaymentDate: previous.nextPaymentDate || null,
+            note: 'Recurring contribution cancelled by user.',
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Subscription cancelled successfully.',
+            monthlySubscription: user.monthlySubscription,
+        });
+    } catch (error) {
+        console.error('[User Controller] cancelSubscription error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = {
+    getProfile,
+    updateProfile,
+    getWallet,
+    getNgos,
+    subscribeEmergency,
+    getPaymentHistory,
+    pauseSubscription,
+    cancelSubscription,
+};

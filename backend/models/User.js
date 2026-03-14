@@ -113,7 +113,21 @@ const userSchema = new mongoose.Schema(
         monthlySubscription: {
             isSubscribed: { type: Boolean, default: false },
             amount: { type: Number, default: 0 },
+            startedAt: { type: Date, default: null },
             lastDeductedAt: { type: Date, default: null },
+            nextPaymentDate: { type: Date, default: null },
+            status: {
+                type: String,
+                enum: ['inactive', 'active', 'paused', 'cancelled'],
+                default: 'inactive',
+            },
+            pausedUntil: { type: Date, default: null },
+            cancelledAt: { type: Date, default: null },
+            paymentSource: {
+                type: String,
+                enum: ['wallet_test', 'upi_future'],
+                default: 'wallet_test',
+            },
         },
         // NGO Payment Config (configured by admin or NGO)
         paymentDetails: {

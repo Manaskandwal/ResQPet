@@ -132,6 +132,16 @@ server.listen(PORT, () => {
     startEscalationCron();
     // Start ambulance sequential dispatch cron job
     startAmbulanceDispatchCron();
+    // Start recurring emergency fund deductions
+    startRecurringEmergencyDeduction();
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('[Server] Unhandled promise rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('[Server] Uncaught exception:', error);
 });
 
 module.exports = { app, server };

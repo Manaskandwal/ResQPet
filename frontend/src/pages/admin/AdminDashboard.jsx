@@ -4,13 +4,22 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { SkeletonStatCard, SkeletonRow } from '../../components/Skeleton';
 import { StatusBadge } from '../../components/StatusComponents';
+import { formatIndianDateTime } from '../../utils/dateTime';
 import {
-    UsersIcon, ClipboardDocumentListIcon, CheckCircleIcon,
-    ClockIcon, ShieldCheckIcon, TruckIcon, BuildingOffice2Icon,
-    HeartIcon, TrashIcon, MapPinIcon, PencilSquareIcon, XMarkIcon, CheckIcon,
+    UsersIcon,
+    ClipboardDocumentListIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    ShieldCheckIcon,
+    TruckIcon,
+    BuildingOffice2Icon,
+    HeartIcon,
+    TrashIcon,
+    MapPinIcon,
+    XMarkIcon,
+    CheckIcon,
 } from '@heroicons/react/24/outline';
 
-// ── Location Editor Modal ──────────────────────────────────────────────────────
 const LocationModal = ({ user, onClose, onSaved }) => {
     const [form, setForm] = useState({
         lat: user.location?.lat ?? '',
@@ -21,20 +30,35 @@ const LocationModal = ({ user, onClose, onSaved }) => {
     const [detecting, setDetecting] = useState(false);
 
     const detectLocation = () => {
-        if (!navigator.geolocation) { toast.error('Geolocation not supported in this browser.'); return; }
+        if (!navigator.geolocation) {
+            toast.error('Geolocation not supported in this browser.');
+            return;
+        }
+
         setDetecting(true);
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                setForm((p) => ({ ...p, lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6) }));
+                setForm((prev) => ({
+                    ...prev,
+                    lat: pos.coords.latitude.toFixed(6),
+                    lng: pos.coords.longitude.toFixed(6),
+                }));
                 setDetecting(false);
                 toast.success('Current location captured!');
             },
-            () => { toast.error('Could not get location. Check browser permissions.'); setDetecting(false); }
+            () => {
+                toast.error('Could not get location. Check browser permissions.');
+                setDetecting(false);
+            }
         );
     };
 
     const handleSave = async () => {
-        if (!form.lat || !form.lng) { toast.error('Latitude and Longitude are required.'); return; }
+        if (!form.lat || !form.lng) {
+            toast.error('Latitude and Longitude are required.');
+            return;
+        }
+
         setSaving(true);
         try {
             const { data } = await api.put(`/admin/users/${user._id}/location`, {
@@ -42,8 +66,13 @@ const LocationModal = ({ user, onClose, onSaved }) => {
                 lng: parseFloat(form.lng),
                 address: form.address,
             });
+
             toast.success(data.message);
-            onSaved(user._id, { lat: parseFloat(form.lat), lng: parseFloat(form.lng), address: form.address });
+            onSaved(user._id, {
+                lat: parseFloat(form.lat),
+                lng: parseFloat(form.lng),
+                address: form.address,
+            });
             onClose();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to save location.');
@@ -55,63 +84,85 @@ const LocationModal = ({ user, onClose, onSaved }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <div className="bg-white rounded-card shadow-card-hover w-full max-w-md animate-slide-up">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
                     <div>
                         <h3 className="font-bold text-slate-800">Set Base Location</h3>
-                        <p className="text-xs text-surface-muted mt-0.5">{user.orgName || user.name} · <span className="capitalize">{user.role}</span></p>
+                        <p className="text-xs text-surface-muted mt-0.5">
+                            {user.orgName || user.name} · <span className="capitalize">{user.role}</span>
+                        </p>
                     </div>
                     <button onClick={onClose} className="p-1.5 rounded hover:bg-surface-hover">
                         <XMarkIcon className="w-5 h-5 text-slate-500" />
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 space-y-4">
-                    {/* Current location */}
                     <button
                         onClick={detectLocation}
                         disabled={detecting}
                         className="btn-outline w-full gap-2"
                     >
                         <MapPinIcon className="w-4 h-4" />
-                        {detecting ? 'Detecting...' : '📍 Use My Current Location (Admin Device)'}
+                        {detecting ? 'Detecting...' : 'Use My Current Location (Admin Device)'}
                     </button>
 
                     <div className="flex gap-3">
                         <div className="form-group flex-1">
                             <label className="label">Latitude</label>
-                            <input className="input" type="number" step="any" placeholder="e.g. 28.6704"
-                                value={form.lat} onChange={(e) => setForm((p) => ({ ...p, lat: e.target.value }))} />
+                            <input
+                                className="input"
+                                type="number"
+                                step="any"
+                                placeholder="e.g. 28.6704"
+                                value={form.lat}
+                                onChange={(e) => setForm((prev) => ({ ...prev, lat: e.target.value }))}
+                            />
                         </div>
                         <div className="form-group flex-1">
                             <label className="label">Longitude</label>
-                            <input className="input" type="number" step="any" placeholder="e.g. 77.3819"
-                                value={form.lng} onChange={(e) => setForm((p) => ({ ...p, lng: e.target.value }))} />
+                            <input
+                                className="input"
+                                type="number"
+                                step="any"
+                                placeholder="e.g. 77.3819"
+                                value={form.lng}
+                                onChange={(e) => setForm((prev) => ({ ...prev, lng: e.target.value }))}
+                            />
                         </div>
                     </div>
 
                     <div className="form-group">
-                        <label className="label">Location Label <span className="text-surface-muted font-normal">(optional)</span></label>
-                        <input className="input" type="text" placeholder="e.g. Shahdara, Delhi"
-                            value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
+                        <label className="label">
+                            Location Label <span className="text-surface-muted font-normal">(optional)</span>
+                        </label>
+                        <input
+                            className="input"
+                            type="text"
+                            placeholder="e.g. Shahdara, Delhi"
+                            value={form.address}
+                            onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
+                        />
                     </div>
 
-                    {/* Preview */}
                     {form.lat && form.lng && (
                         <div className="p-3 bg-primary-50 border border-primary-100 rounded-btn text-xs text-primary-700">
-                            📍 <strong>{form.address || 'Base location'}</strong> — lat: {form.lat}, lng: {form.lng}
+                            <strong>{form.address || 'Base location'}</strong> - lat: {form.lat}, lng: {form.lng}
                             <br />
-                            <span className="text-primary-500">NGO will see all pending rescues within <strong>50km</strong> of this point.</span>
+                            <span className="text-primary-500">
+                                NGO will see all pending rescues within <strong>50km</strong> of this point.
+                            </span>
                         </div>
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="flex gap-2 px-5 py-4 border-t border-surface-border">
                     <button onClick={onClose} className="btn-ghost flex-1">Cancel</button>
                     <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
-                        {saving ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <CheckIcon className="w-4 h-4" />}
+                        {saving ? (
+                            <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <CheckIcon className="w-4 h-4" />
+                        )}
                         Save Location
                     </button>
                 </div>
@@ -120,7 +171,6 @@ const LocationModal = ({ user, onClose, onSaved }) => {
     );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
@@ -143,6 +193,7 @@ const AdminDashboard = () => {
                 api.get('/admin/users'),
                 api.get('/admin/rescue-requests'),
             ]);
+
             setAnalytics(analyticsRes.data.analytics);
             setPending(pendingRes.data.users);
             setUsers(usersRes.data.users);
@@ -156,39 +207,41 @@ const AdminDashboard = () => {
         }
     }, []);
 
-    useEffect(() => { fetchAll(); }, [fetchAll]);
+    useEffect(() => {
+        fetchAll();
+    }, [fetchAll]);
 
     const handleApprove = async (userId, approve) => {
-        setActing((p) => ({ ...p, [userId]: true }));
+        setActing((prev) => ({ ...prev, [userId]: true }));
         try {
             const { data } = await api.put(`/admin/approve/${userId}`, { approve });
             toast.success(data.message);
-            setPending((p) => p.filter((u) => u._id !== userId));
+            setPending((prev) => prev.filter((u) => u._id !== userId));
             fetchAll();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Action failed.');
         } finally {
-            setActing((p) => ({ ...p, [userId]: false }));
+            setActing((prev) => ({ ...prev, [userId]: false }));
         }
     };
 
     const handleDelete = async (userId) => {
         if (!confirm('Are you sure you want to delete this user?')) return;
-        setActing((p) => ({ ...p, [userId]: true }));
+
+        setActing((prev) => ({ ...prev, [userId]: true }));
         try {
             await api.delete(`/admin/user/${userId}`);
             toast.success('User deleted.');
-            setUsers((p) => p.filter((u) => u._id !== userId));
+            setUsers((prev) => prev.filter((u) => u._id !== userId));
         } catch (error) {
             toast.error(error.response?.data?.message || 'Delete failed.');
         } finally {
-            setActing((p) => ({ ...p, [userId]: false }));
+            setActing((prev) => ({ ...prev, [userId]: false }));
         }
     };
 
-    // Called by modal on successful save — update local state without refetch
     const handleLocationSaved = (userId, newLocation) => {
-        setUsers((prev) => prev.map((u) => u._id === userId ? { ...u, location: newLocation } : u));
+        setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, location: newLocation } : u)));
     };
 
     const statCards = analytics ? [
@@ -213,7 +266,6 @@ const AdminDashboard = () => {
 
     return (
         <div className="space-y-6">
-            {/* Location modal */}
             {locationModal && (
                 <LocationModal
                     user={locationModal}
@@ -223,27 +275,28 @@ const AdminDashboard = () => {
             )}
 
             <div>
-                <h1 className="page-title">Admin Dashboard 🛡️</h1>
+                <h1 className="page-title">Admin Dashboard</h1>
                 <p className="page-subtitle">Platform management and oversight</p>
             </div>
 
-            {/* Tabs */}
             <div className="flex gap-1 p-1 bg-slate-100 rounded-btn w-fit flex-wrap">
                 {tabs.map((tab) => (
-                    <button key={tab.id}
+                    <button
+                        key={tab.id}
                         onClick={() => setSearchParams({ tab: tab.id })}
-                        className={`px-4 py-2 rounded-btn text-sm font-medium transition-all
-              ${activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                        className={`px-4 py-2 rounded-btn text-sm font-medium transition-all ${
+                            activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
                         {tab.label}
                     </button>
                 ))}
             </div>
 
-            {/* ── Overview Tab ─────────────────────────────────── */}
             {activeTab === 'overview' && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     {loading ? (
-                        [1, 2, 3, 4, 5, 6, 7, 8].map(i => <SkeletonStatCard key={i} />)
+                        [1, 2, 3, 4, 5, 6, 7, 8].map((i) => <SkeletonStatCard key={i} />)
                     ) : (
                         statCards.map(({ label, value, Icon, color, bg }) => (
                             <div key={label} className="stat-card">
@@ -258,14 +311,13 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* ── Approvals Tab ────────────────────────────────── */}
             {activeTab === 'approvals' && (
                 <div className="space-y-3">
                     {loading ? (
-                        [1, 2, 3].map(i => <div key={i} className="card animate-pulse h-20" />)
+                        [1, 2, 3].map((i) => <div key={i} className="card animate-pulse h-20" />)
                     ) : pending.length === 0 ? (
                         <div className="card text-center py-12">
-                            <div className="text-5xl mb-3">✅</div>
+                            <div className="text-5xl mb-3">OK</div>
                             <p className="text-slate-700 font-semibold">No pending approvals!</p>
                         </div>
                     ) : (
@@ -276,12 +328,18 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-slate-800 truncate">{u.orgName || u.name}</p>
-                                    <p className="text-xs text-surface-muted">{u.email} · <span className="capitalize font-medium">{u.role}</span></p>
+                                    <p className="text-xs text-surface-muted">
+                                        {u.email} · <span className="capitalize font-medium">{u.role}</span>
+                                    </p>
                                     {u.regNumber && <p className="text-xs text-surface-muted">Reg: {u.regNumber}</p>}
                                 </div>
                                 <div className="flex gap-2 flex-shrink-0">
-                                    <button onClick={() => handleApprove(u._id, true)} disabled={acting[u._id]} className="btn-primary btn-sm">
-                                        {acting[u._id] ? '...' : '✓ Approve'}
+                                    <button
+                                        onClick={() => handleApprove(u._id, true)}
+                                        disabled={acting[u._id]}
+                                        className="btn-primary btn-sm"
+                                    >
+                                        {acting[u._id] ? '...' : 'Approve'}
                                     </button>
                                 </div>
                             </div>
@@ -290,35 +348,36 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* ── Users Tab ───────────────────────────────────── */}
             {activeTab === 'users' && (
                 <div className="card overflow-hidden p-0">
                     <div className="px-5 py-4 border-b border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                             <h3 className="font-semibold text-slate-800">
-                                Users ({users.filter(u => roleFilter === 'all' || u.role === roleFilter).length})
+                                Users ({users.filter((u) => roleFilter === 'all' || u.role === roleFilter).length})
                             </h3>
                             <span className="text-xs text-surface-muted flex items-center gap-1 mt-1">
-                                <MapPinIcon className="w-3 h-3" /> Click 📍 to set base location for NGO/Hospital/Ambulance
+                                <MapPinIcon className="w-3 h-3" /> Click map pin to set base location for NGO, Hospital, or Ambulance
                             </span>
                         </div>
 
-                        {/* Role Filter */}
                         <div className="flex bg-slate-100 p-1 rounded-btn text-xs font-medium overflow-x-auto">
                             {['all', 'user', 'ngo', 'hospital', 'ambulance'].map((r) => (
                                 <button
                                     key={r}
                                     onClick={() => setRoleFilter(r)}
-                                    className={`px-3 py-1.5 rounded-btn capitalize transition-all whitespace-nowrap ${roleFilter === r ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    className={`px-3 py-1.5 rounded-btn capitalize transition-all whitespace-nowrap ${
+                                        roleFilter === r ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                                    }`}
                                 >
                                     {r === 'user' ? 'Citizen' : r}
                                 </button>
                             ))}
                         </div>
                     </div>
+
                     <div className="divide-y divide-surface-border">
                         {loading ? (
-                            [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
+                            [1, 2, 3, 4, 5].map((i) => <SkeletonRow key={i} />)
                         ) : (
                             users
                                 .filter((u) => roleFilter === 'all' || u.role === roleFilter)
@@ -330,7 +389,6 @@ const AdminDashboard = () => {
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-semibold text-slate-800 truncate">{u.orgName || u.name}</p>
                                             <p className="text-xs text-surface-muted truncate">{u.email}</p>
-                                            {/* Location pill for org roles */}
                                             {orgRoles.includes(u.role) && (
                                                 <p className="text-[10px] mt-0.5 flex items-center gap-1">
                                                     {u.location?.lat ? (
@@ -353,23 +411,25 @@ const AdminDashboard = () => {
                                                 {u.role}
                                             </span>
                                             {u.role === 'user' && (
-                                                <span className="text-xs text-slate-500 font-medium">₹{u.walletBalance}</span>
+                                                <span className="text-xs text-slate-500 font-medium">Rs {u.walletBalance}</span>
                                             )}
-                                            {/* Set Location button for org accounts */}
                                             {orgRoles.includes(u.role) && (
                                                 <button
                                                     onClick={() => setLocationModal(u)}
                                                     title="Set base location"
-                                                    className={`p-1.5 rounded transition-colors ${u.location?.lat
-                                                        ? 'text-green-600 hover:bg-green-50'
-                                                        : 'text-amber-500 hover:bg-amber-50'}`}
+                                                    className={`p-1.5 rounded transition-colors ${
+                                                        u.location?.lat ? 'text-green-600 hover:bg-green-50' : 'text-amber-500 hover:bg-amber-50'
+                                                    }`}
                                                 >
                                                     <MapPinIcon className="w-4 h-4" />
                                                 </button>
                                             )}
                                             {u.role !== 'admin' && (
-                                                <button onClick={() => handleDelete(u._id)} disabled={acting[u._id]}
-                                                    className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+                                                <button
+                                                    onClick={() => handleDelete(u._id)}
+                                                    disabled={acting[u._id]}
+                                                    className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                                                >
                                                     <TrashIcon className="w-4 h-4" />
                                                 </button>
                                             )}
@@ -381,11 +441,10 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* ── Rescues Tab ──────────────────────────────────── */}
             {activeTab === 'rescues' && (
                 <div className="space-y-3">
                     {loading ? (
-                        [1, 2, 3].map(i => <div key={i} className="card animate-pulse h-20" />)
+                        [1, 2, 3].map((i) => <div key={i} className="card animate-pulse h-20" />)
                     ) : (
                         rescues.map((r) => (
                             <div key={r._id} className="card">
@@ -393,7 +452,7 @@ const AdminDashboard = () => {
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-semibold text-slate-800 truncate">{r.description}</p>
                                         <p className="text-xs text-surface-muted mt-0.5">
-                                            👤 {r.user?.name} · 🕐 {new Date(r.createdAt).toLocaleString()}
+                                            {r.user?.name} · {formatIndianDateTime(r.createdAt)}
                                         </p>
                                     </div>
                                     <StatusBadge status={r.status} />

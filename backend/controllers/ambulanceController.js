@@ -74,6 +74,7 @@ const updateStatus = async (req, res) => {
         }
 
         // Update status and timestamp
+        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
         rescue.status = status;
         if (status === 'en_route') rescue.enRouteAt = new Date();
         if (status === 'picked_up') rescue.pickedUpAt = new Date();
@@ -83,6 +84,12 @@ const updateStatus = async (req, res) => {
             rescue.completedAt = new Date();
             console.log(`[Ambulance Controller] Rescue ${rescue._id} marked COMPLETED.`);
         }
+        rescue.statusLogs.push({
+            status: rescue.status,
+            message: rescue.status === 'completed'
+                ? 'Ambulance completed transport and the rescue reached safe completion.'
+                : `Ambulance updated status to ${rescue.status}.`,
+        });
 
         await rescue.save();
 
@@ -195,6 +202,11 @@ const acceptPing = async (req, res) => {
         rescue.assignedAmbulance = req.user._id;
         rescue.ambulanceAssignedAt = new Date();
         rescue.activeAmbulancePings = []; // clear pings
+        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
+        rescue.statusLogs.push({
+            status: 'ambulance_assigned',
+            message: `${req.user.name} accepted the ambulance dispatch.`,
+        });
 
         await rescue.save();
         await User.findByIdAndUpdate(req.user._id, { isAvailable: false }); // mark ambulance busy

@@ -170,8 +170,13 @@ const acceptBroadcastedCase = async (req, res) => {
         }
 
         // Claim the case
+        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
         rescue.status = 'hospital_accepted';
         rescue.assignedHospital = req.user._id;
+        rescue.statusLogs.push({
+            status: 'hospital_accepted',
+            message: `${req.user.orgName || req.user.name} accepted the escalated rescue.`,
+        });
 
         // Auto-ping linked available ambulances immediately
         const availableAmbulances = await User.find({
@@ -188,6 +193,10 @@ const acceptBroadcastedCase = async (req, res) => {
             pingedAt: new Date()
         }));
         rescue.pingRejectors = [];
+        rescue.statusLogs.push({
+            status: 'ambulance_pinged',
+            message: 'Hospital started ambulance dispatch for this case.',
+        });
 
         await rescue.save();
         console.log(`[Hospital Controller] Hospital ${req.user._id} claimed rescue ${rescue._id} and pushed to ambulance_pinged state.`);

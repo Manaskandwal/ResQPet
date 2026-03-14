@@ -54,6 +54,11 @@ const rescueRequestSchema = new mongoose.Schema(
             type: String,
             enum: [
                 'pending',
+                'accepted',
+                'scheduled',
+                'on_the_way',
+                'reached',
+                'treating',
                 'ngo_accepted',
                 'hospital_escalated',
                 'hospital_broadcasted', // Waiting for any hospital to accept
@@ -98,6 +103,7 @@ const rescueRequestSchema = new mongoose.Schema(
         },
         // Timestamps for SLA tracking
         acceptedAt: { type: Date, default: null },
+        scheduleDate: { type: Date, default: null },
         escalatedAt: { type: Date, default: null },
         ambulanceAssignedAt: { type: Date, default: null },
         enRouteAt: { type: Date, default: null },
@@ -146,6 +152,18 @@ const rescueRequestSchema = new mongoose.Schema(
             default: 0,
             min: 0,
         },
+        statusLogs: {
+            type: [
+                {
+                    status: { type: String, default: '' },
+                    message: { type: String, default: '' },
+                    timestamp: { type: Date, default: Date.now },
+                    images: { type: [String], default: [] },
+                    video: { type: String, default: null },
+                },
+            ],
+            default: [],
+        },
 
         // ─── Future-Ready Fields (Phase 2) ────────────────────────────────────────
         // Service type — extended beyond rescue in Phase 2
@@ -161,6 +179,22 @@ const rescueRequestSchema = new mongoose.Schema(
             type: String,
             enum: ['na', 'pending', 'paid', 'refunded', 'disputed'],
             default: 'na', // 'na' = not applicable (free rescue in Phase 1)
+        },
+        impact: {
+            likes: [
+                {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                },
+            ],
+            comments: [
+                {
+                    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+                    name: { type: String, default: '' },
+                    message: { type: String, required: true, trim: true, maxlength: 300 },
+                    createdAt: { type: Date, default: Date.now },
+                },
+            ],
         },
 
         // Commission record reference (populated when serviceType is paid in Phase 2)

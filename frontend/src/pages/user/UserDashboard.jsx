@@ -5,6 +5,7 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { StatusBadge, StatusTimeline } from '../../components/StatusComponents';
 import { SkeletonCard, SkeletonStatCard } from '../../components/Skeleton';
+import { formatIndianDate, formatIndianDateTime } from '../../utils/dateTime';
 import {
     WalletIcon, PlusCircleIcon, ClipboardDocumentListIcon,
     ArrowUpTrayIcon, CheckCircleIcon, ClockIcon,
@@ -229,7 +230,7 @@ const UserDashboard = () => {
                                     <div key={txn._id} className="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
                                         <div>
                                             <p className="text-xs font-medium text-slate-700 truncate max-w-[160px]">{txn.description}</p>
-                                            <p className="text-[11px] text-surface-muted">{new Date(txn.createdAt).toLocaleDateString()}</p>
+                                            <p className="text-[11px] text-surface-muted">{formatIndianDate(txn.createdAt)}</p>
                                         </div>
                                         <span className={`text-sm font-bold ${txn.type === 'credit' || txn.type === 'refund' ? 'text-green-600' : 'text-red-500'}`}>
                                             {txn.type === 'debit' ? '-' : '+'}₹{txn.amount}
@@ -279,9 +280,9 @@ const UserDashboard = () => {
                                         <img src={rescue.images[0]} alt="rescue" className="w-full h-32 object-cover rounded-btn mb-3" />
                                     )}
                                     <div className="divider" />
-                                    <StatusTimeline status={rescue.status} />
+                                    <StatusTimeline rescue={rescue} />
                                     <p className="text-[11px] text-surface-muted mt-3">
-                                        Reported {new Date(rescue.createdAt).toLocaleString()}
+                                        Reported {formatIndianDateTime(rescue.createdAt)}
                                     </p>
                                 </Link>
                             ))}

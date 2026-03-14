@@ -251,4 +251,133 @@ const makeFundraiser = async (req, res) => {
     }
 };
 
-module.exports = { submitRescue, getMyRescues, getRescueById, cancelRescue, makeFundraiser };
+/**
+ * @route   GET /api/rescue/impact/feed
+ * @desc    Get completed rescue stories for the impact page
+ * @access  Private
+ */
+const getImpactFeed = async (req, res) => {
+    try {
+        const rescues = await RescueRequest.find({
+            status: { $in: ['completed', 'resolved_on_spot'] },
+        })
+            .populate('user', 'name')
+            .populate('assignedNGO', 'name orgName')
+            .sort({ completedAt: -1, updatedAt: -1 })
+            .limit(30);
+
+        const feed = rescues.map((rescue) => {
+            const beforeImage = rescue.images?.[0] || null;
+            const statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
+            const afterLog = [...statusLogs].reverse().find((log) => (log.images && log.images.length) || log.video);
+            const afterImage = afterLog?.images?.[0] || rescue.images?.[rescue.images.length - 1] || null;
+
+            return {
+                _id: rescue._id,
+                description: rescue.description,
+                status: rescue.status,
+                location: rescue.location,
+                createdAt: rescue.createdAt,
+                completedAt: rescue.completedAt,
+                beforeImage,
+                afterImage,
+                beforeCount: rescue.images?.length || 0,
+                afterSummary: afterLog?.message || (rescue.status === 'resolved_on_spot' ? 'Resolved on the spot by the NGO team.' : 'Reached safe completion after rescue and transport.'),
+                helperName: rescue.assignedNGO?.orgName || rescue.assignedNGO?.name || rescue.user?.name || 'ResQPet team',
+                likesCount: rescue.impact?.likes?.length || 0,
+                liked: (rescue.impact?.likes || []).some((likeId) => likeId.toString() === req.user._id.toString()),
+                commentsCount: rescue.impact?.comments?.length || 0,
+                comments: (rescue.impact?.comments || []).slice(-3).reverse(),
+            };
+        });
+
+        res.status(200).json({ success: true, feed });
+    } catch (error) {
+        console.error('[Rescue Controller] getImpactFeed error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   POST /api/rescue/:id/impact/like
+ * @desc    Toggle like on a completed rescue story
+ * @access  Private
+ */
+const toggleImpactLike = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findById(req.params.id);
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
+        if (!['completed', 'resolved_on_spot'].includes(rescue.status)) {
+            return res.status(400).json({ success: false, message: 'Only completed rescue stories can be liked.' });
+        }
+
+        const likes = Array.isArray(rescue.impact?.likes) ? rescue.impact.likes.map((id) => id.toString()) : [];
+        const userId = req.user._id.toString();
+        const hasLiked = likes.includes(userId);
+
+        rescue.impact = rescue.impact || { likes: [], comments: [] };
+        rescue.impact.likes = hasLiked
+            ? rescue.impact.likes.filter((id) => id.toString() !== userId)
+            : [...rescue.impact.likes, req.user._id];
+
+        await rescue.save();
+
+        res.status(200).json({
+            success: true,
+            liked: !hasLiked,
+            likesCount: rescue.impact.likes.length,
+        });
+    } catch (error) {
+        console.error('[Rescue Controller] toggleImpactLike error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   POST /api/rescue/:id/impact/comment
+ * @desc    Add a comment to a completed rescue story
+ * @access  Private
+ */
+const addImpactComment = async (req, res) => {
+    try {
+        const message = String(req.body.message || '').trim();
+        if (!message) {
+            return res.status(400).json({ success: false, message: 'Comment message is required.' });
+        }
+
+        const rescue = await RescueRequest.findById(req.params.id);
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
+        if (!['completed', 'resolved_on_spot'].includes(rescue.status)) {
+            return res.status(400).json({ success: false, message: 'Only completed rescue stories can receive comments.' });
+        }
+
+        rescue.impact = rescue.impact || { likes: [], comments: [] };
+        rescue.impact.comments.push({
+            user: req.user._id,
+            name: req.user.name,
+            message,
+        });
+        await rescue.save();
+
+        const comments = rescue.impact.comments.slice(-5).reverse();
+        res.status(200).json({
+            success: true,
+            commentsCount: rescue.impact.comments.length,
+            comments,
+        });
+    } catch (error) {
+        console.error('[Rescue Controller] addImpactComment error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = {
+    submitRescue,
+    getMyRescues,
+    getRescueById,
+    cancelRescue,
+    makeFundraiser,
+    getImpactFeed,
+    toggleImpactLike,
+    addImpactComment,
+};

@@ -8,6 +8,7 @@ import {
     ArrowRightOnRectangleIcon,
     UserGroupIcon,
     ArrowUturnLeftIcon,
+    CreditCardIcon,
 } from '@heroicons/react/24/outline';
 import AdminUserSwitcher from './AdminUserSwitcher';
 
@@ -42,13 +43,6 @@ const Navbar = ({ onMenuClick }) => {
                     {/* Logo */}
                     <div className="hidden lg:flex items-center">
                         <img src="/logo.svg" alt="PawSaarthi" className="h-8" />
-                    </div>
-
-                    {/* Desktop nav links */}
-                    <div className="hidden md:flex items-center gap-6 ml-4">
-                        <Link to="/fundraisers" className="text-sm font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-btn transition-colors">
-                            Fundraisers
-                        </Link>
                     </div>
 
                     {/* Right side */}
@@ -157,6 +151,20 @@ const Navbar = ({ onMenuClick }) => {
                                                     )}
                                                 </Menu.Item>
                                             </div>
+                                        )}
+
+                                        {user?.role === 'user' && (
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <Link
+                                                        to="/user/payments"
+                                                        className={`${active ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600'} flex w-full items-center gap-2 rounded-btn px-3 py-2 text-sm font-medium transition-all`}
+                                                    >
+                                                        <CreditCardIcon className="w-4 h-4" />
+                                                        Payment History
+                                                    </Link>
+                                                )}
+                                            </Menu.Item>
                                         )}
 
                                         <Menu.Item>

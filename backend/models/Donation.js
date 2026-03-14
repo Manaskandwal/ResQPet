@@ -37,6 +37,10 @@ const donationSchema = new mongoose.Schema(
             type: String,
             default: 'razorpay',
         },
+        paymentSource: {
+            type: String,
+            default: 'razorpay',
+        },
         // Razorpay specifics
         razorpayOrderId: {
             type: String,
@@ -61,7 +65,20 @@ const donationSchema = new mongoose.Schema(
         isGeneral: {
             type: Boolean,
             default: false,
-        }
+        },
+        subscriptionStartedAt: {
+            type: Date,
+            default: null,
+        },
+        nextPaymentDate: {
+            type: Date,
+            default: null,
+        },
+        note: {
+            type: String,
+            trim: true,
+            default: '',
+        },
     },
     {
         timestamps: true,
