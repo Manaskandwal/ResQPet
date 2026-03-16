@@ -220,6 +220,16 @@ const makeFundraiser = async (req, res) => {
 
 const getImpactFeed = async (req, res) => {
     try {
+        await RescueRequest.updateMany(
+            { status: 'resolved_on_spot' },
+            {
+                $set: {
+                    status: 'completed',
+                    outcome: 'on_spot_treated',
+                },
+            }
+        );
+
         const rescues = await RescueRequest.find({
             status: { $in: ['completed'] },
         })
@@ -231,8 +241,9 @@ const getImpactFeed = async (req, res) => {
         const feed = rescues.map((rescue) => {
             const beforeImage = rescue.images?.[0] || null;
             const statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
-            const afterLog = [...statusLogs].reverse().find((log) => (log.images && log.images.length) || log.video);
-            const afterImage = afterLog?.images?.[0] || rescue.images?.[rescue.images.length - 1] || null;
+            const afterLog = [...statusLogs].reverse().find((log) => (log.images && log.images.length && log.images[0] !== beforeImage) || log.video);
+            const fallbackAfter = [...(rescue.images || [])].reverse().find((image) => image && image !== beforeImage) || null;
+            const afterImage = afterLog?.images?.[0] || fallbackAfter || null;
 
             return {
                 _id: rescue._id,
@@ -243,7 +254,7 @@ const getImpactFeed = async (req, res) => {
                 completedAt: rescue.completedAt,
                 beforeImage,
                 afterImage,
-                afterSummary: afterLog?.message || 'Reached safe completion after treatment.',
+                afterSummary: afterLog?.message || (rescue.outcome === 'on_spot_treated' ? 'The animal improved through on-spot treatment and follow-up care.' : 'Reached safe completion after treatment.'),
                 helperName: rescue.assignedNGO?.orgName || rescue.assignedNGO?.name || rescue.user?.name || 'ResQPet team',
                 likesCount: rescue.impact?.likes?.length || 0,
                 liked: (rescue.impact?.likes || []).some((likeId) => likeId.toString() === req.user._id.toString()),

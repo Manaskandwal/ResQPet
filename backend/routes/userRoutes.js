@@ -8,6 +8,7 @@ const {
     subscribeEmergency,
     getPaymentHistory,
     pauseSubscription,
+    resumeSubscription,
     cancelSubscription,
     updateSubscriptionAmount,
 } = require('../controllers/userController');
@@ -33,6 +34,9 @@ router.get('/payment-history', protect, getPaymentHistory);
 
 // @route  POST /api/user/subscription/pause
 router.post('/subscription/pause', protect, pauseSubscription);
+
+// @route  POST /api/user/subscription/resume
+router.post('/subscription/resume', protect, resumeSubscription);
 
 // @route  POST /api/user/subscription/cancel
 router.post('/subscription/cancel', protect, cancelSubscription);

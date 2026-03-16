@@ -22,11 +22,13 @@ import { formatIndianDateTime, formatIndianTime } from '../../utils/dateTime';
 
 const getTreatmentStory = (rescue) => {
     const logs = Array.isArray(rescue?.statusLogs) ? rescue.statusLogs : [];
-    const afterLog = [...logs].reverse().find((log) => (log.images && log.images.length > 0) || log.video);
+    const beforeImage = rescue?.images?.[0] || null;
+    const afterLog = [...logs].reverse().find((log) => (log.images && log.images.find((image) => image !== beforeImage)) || log.video);
+    const fallbackAfter = [...(rescue?.images || [])].reverse().find((image) => image && image !== beforeImage) || null;
 
     return {
-        beforeImage: rescue?.images?.[0] || null,
-        afterImage: afterLog?.images?.[0] || rescue?.images?.[rescue?.images?.length - 1] || null,
+        beforeImage,
+        afterImage: afterLog?.images?.find((image) => image !== beforeImage) || fallbackAfter || null,
         notes: logs
             .filter((log) => ['treating', 'reached', 'resolved_on_spot', 'completed'].includes(log.status))
             .slice(-4)

@@ -49,7 +49,7 @@ const Home = () => {
         <div className="min-h-screen bg-white font-sans">
 
             {/* ── Topbar ──────────────────────────────────────────────────────────── */}
-            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-100">
+            <nav className="sticky top-0 z-50 bg-white border-b border-slate-100">
                 <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-[8px] flex items-center justify-center shadow-sm">

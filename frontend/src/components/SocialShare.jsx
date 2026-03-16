@@ -1,93 +1,128 @@
-import { ShareIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { useMemo } from 'react';
+import { ShareIcon, DocumentDuplicateIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 const socialButtons = [
-    {
-        id: 'whatsapp',
-        label: 'WhatsApp',
-        bg: 'bg-green-500 hover:bg-green-600',
-        icon: (
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
-                <path d="M20.52 3.48A11.86 11.86 0 0 0 12.03 0C5.4 0 .02 5.37.02 12c0 2.11.55 4.17 1.6 5.99L0 24l6.2-1.62A11.94 11.94 0 0 0 12.03 24h.01c6.62 0 11.99-5.38 11.99-12 0-3.2-1.25-6.21-3.51-8.52ZM12.04 21.9a9.9 9.9 0 0 1-5.03-1.37l-.36-.21-3.68.96.98-3.58-.24-.37a9.9 9.9 0 1 1 8.33 4.57Zm5.43-7.41c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.94 1.17-.17.2-.35.22-.65.08-.3-.15-1.28-.47-2.43-1.5-.9-.8-1.51-1.8-1.68-2.1-.17-.3-.02-.46.13-.6.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.66-1.6-.9-2.2-.24-.56-.48-.48-.66-.49h-.56c-.2 0-.5.08-.76.38-.27.3-1.03 1-1.03 2.43 0 1.42 1.05 2.8 1.19 2.99.15.2 2.06 3.15 5 4.41.7.3 1.25.47 1.67.6.7.22 1.33.19 1.83.11.56-.08 1.77-.72 2.02-1.42.25-.7.25-1.31.18-1.43-.07-.12-.26-.2-.56-.35Z" />
-            </svg>
-        ),
-    },
-    {
-        id: 'twitter',
-        label: 'Twitter',
-        bg: 'bg-sky-500 hover:bg-sky-600',
-        icon: (
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
-                <path d="M18.9 2H22l-6.77 7.74L23.2 22h-6.27l-4.9-6.4L6.43 22H3.32l7.24-8.27L.8 2h6.43l4.43 5.85L18.9 2Zm-1.1 18h1.73L6.3 3.9H4.45L17.8 20Z" />
-            </svg>
-        ),
-    },
-    {
-        id: 'facebook',
-        label: 'Facebook',
-        bg: 'bg-blue-600 hover:bg-blue-700',
-        icon: (
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
-                <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.02 10.13 11.93v-8.44H7.08v-3.5h3.05V9.39c0-3.03 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.48 0-1.94.93-1.94 1.88v2.27h3.3l-.53 3.5h-2.77V24C19.61 23.09 24 18.1 24 12.07Z" />
-            </svg>
-        ),
-    },
+    { id: 'whatsapp', label: 'WhatsApp', bg: 'bg-green-500 hover:bg-green-600' },
+    { id: 'twitter', label: 'Twitter', bg: 'bg-sky-500 hover:bg-sky-600' },
+    { id: 'facebook', label: 'Facebook', bg: 'bg-blue-600 hover:bg-blue-700' },
 ];
 
-const getPosterVisual = (rescue) => ({
-    title: rescue?.status === 'resolved_on_spot' ? 'Saved on the spot' : 'Recovery in progress',
-    subtitle: rescue?.location?.address || 'Shared via ResQPet',
-    image: rescue?.images?.[0] || null,
-});
+const loadImage = (src) =>
+    new Promise((resolve, reject) => {
+        if (!src) {
+            resolve(null);
+            return;
+        }
+        const image = new Image();
+        image.crossOrigin = 'anonymous';
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = src;
+    });
+
+const createPosterFile = async (rescue) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#ecfdf5';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+    const beforeImage = rescue?.images?.[0] || null;
+    const afterImage = [...(rescue?.images || [])].reverse().find((image) => image && image !== beforeImage) || null;
+    const [before, after] = await Promise.all([loadImage(beforeImage), loadImage(afterImage)]);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 48px sans-serif';
+    ctx.fillText('ResQPet Rescue Story', 90, 130);
+    ctx.font = '28px sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(rescue.location?.address || 'Shared via ResQPet', 90, 180);
+
+    const drawPanel = (x, y, label, image) => {
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(x, y, 420, 420);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillText(label, x, y - 20);
+        if (image) {
+            ctx.drawImage(image, x, y, 420, 420);
+        } else {
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(x, y, 420, 420);
+            ctx.fillStyle = '#e5e7eb';
+            ctx.font = '22px sans-serif';
+            ctx.fillText('No image available', x + 110, y + 220);
+        }
+    };
+
+    drawPanel(90, 260, 'Before', before);
+    drawPanel(570, 260, 'After', after);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 34px sans-serif';
+    ctx.fillText(rescue.description.slice(0, 55), 90, 760);
+    ctx.font = '28px sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`Status: ${rescue.status.replaceAll('_', ' ')}`, 90, 820);
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    return new File([blob], `resqpet-${rescue._id}.png`, { type: 'image/png' });
+};
 
 const SocialShare = ({ rescue }) => {
     const shareUrl = window.location.href;
-    const poster = getPosterVisual(rescue);
-    const shareText = [
+    const shareText = useMemo(() => [
         'Help ResQPet spread this rescue story.',
         `Case: ${rescue.description}`,
         `Status: ${rescue.status.replaceAll('_', ' ')}`,
-        poster.subtitle ? `Location: ${poster.subtitle}` : null,
+        rescue.location?.address ? `Location: ${rescue.location.address}` : null,
         `Follow the journey: ${shareUrl}`,
-    ].filter(Boolean).join('\n');
+    ].filter(Boolean).join('\n'), [rescue, shareUrl]);
 
-    const handleShare = async (platform) => {
-        let url = '';
-        switch (platform) {
-            case 'twitter':
-                url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-                break;
-            case 'whatsapp':
-                url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-                break;
-            case 'facebook':
-                url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-                break;
-            case 'native':
-                if (navigator.share) {
-                    try {
-                        await navigator.share({
-                            title: 'ResQPet Rescue Story',
-                            text: shareText,
-                            url: shareUrl,
-                        });
-                        toast.success('Shared successfully.');
-                        return;
-                    } catch (err) {
-                        console.error('Error sharing:', err);
-                    }
-                }
-                await navigator.clipboard.writeText(shareText);
-                toast.success('Share text copied.');
+    const handlePlatformShare = async (platform) => {
+        const encodedText = encodeURIComponent(shareText);
+        if (platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank', 'noopener,noreferrer');
+        if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank', 'noopener,noreferrer');
+        if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'noopener,noreferrer');
+    };
+
+    const handleNativeShare = async () => {
+        try {
+            const file = await createPosterFile(rescue);
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                await navigator.share({
+                    title: 'ResQPet Rescue Story',
+                    text: shareText,
+                    files: [file],
+                    url: shareUrl,
+                });
+                toast.success('Story card shared.');
                 return;
-            case 'copy':
-                await navigator.clipboard.writeText(shareText);
-                toast.success('Share text copied.');
-                return;
-            default:
-                return;
+            }
+            await navigator.clipboard.writeText(shareText);
+            toast.success('Share text copied. Native image sharing is not available on this device.');
+        } catch (error) {
+            toast.error('Unable to prepare story card.');
         }
-        window.open(url, '_blank', 'noopener,noreferrer');
+    };
+
+    const handleDownloadPoster = async () => {
+        try {
+            const file = await createPosterFile(rescue);
+            const url = URL.createObjectURL(file);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = file.name;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            toast.error('Unable to create story card.');
+        }
     };
 
     return (
@@ -100,33 +135,21 @@ const SocialShare = ({ rescue }) => {
                     </div>
                     <div>
                         <h4 className="text-lg font-bold text-slate-900">Share this rescue beautifully</h4>
-                        <p className="mt-1 text-sm text-slate-600">
-                            If no updated treatment image exists, the section uses a general rescue poster style so the share card still looks strong.
-                        </p>
+                        <p className="mt-1 text-sm text-slate-600">Native share now sends a generated story card image with before/after panels when the device supports file sharing.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         {socialButtons.map((button) => (
-                            <button
-                                key={button.id}
-                                onClick={() => handleShare(button.id)}
-                                title={button.label}
-                                className={`flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5 ${button.bg}`}
-                            >
-                                {button.icon}
+                            <button key={button.id} onClick={() => handlePlatformShare(button.id)} title={button.label} className={`flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5 ${button.bg}`}>
+                                {button.label[0]}
                             </button>
                         ))}
-                        <button
-                            onClick={() => handleShare('native')}
-                            title="More options"
-                            className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5"
-                        >
+                        <button onClick={handleNativeShare} title="Share story card" className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5">
                             <ShareIcon className="h-5 w-5" />
                         </button>
-                        <button
-                            onClick={() => handleShare('copy')}
-                            title="Copy text"
-                            className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5"
-                        >
+                        <button onClick={handleDownloadPoster} title="Download story card" className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5">
+                            <ArrowDownTrayIcon className="h-5 w-5" />
+                        </button>
+                        <button onClick={() => navigator.clipboard.writeText(shareText).then(() => toast.success('Share text copied.'))} title="Copy text" className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5">
                             <DocumentDuplicateIcon className="h-5 w-5" />
                         </button>
                     </div>
@@ -137,21 +160,14 @@ const SocialShare = ({ rescue }) => {
                     <div className="relative">
                         <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-100/90">
                             <span>ResQPet Story</span>
-                            <span>{poster.title}</span>
+                            <span>{rescue.outcome === 'on_spot_treated' ? 'On-spot recovery' : 'Recovery in progress'}</span>
                         </div>
-                        {poster.image ? (
-                            <img src={poster.image} alt="Rescue poster" className="mb-3 h-36 w-full rounded-[18px] object-cover" />
-                        ) : (
-                            <div className="mb-3 flex h-36 w-full items-center justify-center rounded-[18px] border border-white/10 bg-white/10 text-center">
-                                <div>
-                                    <p className="text-4xl">🐾</p>
-                                    <p className="mt-2 text-sm font-semibold">General rescue poster</p>
-                                    <p className="text-xs text-slate-300">Used when no updated photo is available</p>
-                                </div>
-                            </div>
-                        )}
-                        <p className="line-clamp-2 text-sm font-semibold">{rescue.description}</p>
-                        <p className="mt-1 text-xs text-slate-300">{poster.subtitle}</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            {rescue.images?.[0] ? <img src={rescue.images[0]} alt="before" className="h-36 w-full rounded-[18px] object-cover" /> : <div className="flex h-36 items-center justify-center rounded-[18px] bg-white/10 text-xs">Before</div>}
+                            {[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0]) ? <img src={[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0])} alt="after" className="h-36 w-full rounded-[18px] object-cover" /> : <div className="flex h-36 items-center justify-center rounded-[18px] bg-white/10 text-xs">After</div>}
+                        </div>
+                        <p className="mt-3 line-clamp-2 text-sm font-semibold">{rescue.description}</p>
+                        <p className="mt-1 text-xs text-slate-300">{rescue.location?.address || 'Shared via ResQPet'}</p>
                     </div>
                 </div>
             </div>

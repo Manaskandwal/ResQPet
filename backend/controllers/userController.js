@@ -259,6 +259,33 @@ const pauseSubscription = async (req, res) => {
     }
 };
 
+const resumeSubscription = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        const subscription = normalizeMonthlySubscription(user);
+
+        if (!subscription.isSubscribed || subscription.status !== 'paused') {
+            return res.status(400).json({ success: false, message: 'No paused subscription found to resume.' });
+        }
+
+        user.monthlySubscription = {
+            ...subscription,
+            status: 'active',
+            pausedUntil: null,
+        };
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Subscription resumed. Your existing billing schedule is unchanged.',
+            monthlySubscription: user.monthlySubscription,
+        });
+    } catch (error) {
+        console.error('[User Controller] resumeSubscription error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 const cancelSubscription = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
@@ -308,6 +335,7 @@ module.exports = {
     subscribeEmergency,
     getPaymentHistory,
     pauseSubscription,
+    resumeSubscription,
     cancelSubscription,
     updateSubscriptionAmount,
 };

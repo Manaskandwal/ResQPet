@@ -29,7 +29,7 @@ const Navbar = ({ onMenuClick }) => {
 
     return (
         <>
-            <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-surface-border">
+            <header className="sticky top-0 z-10 bg-white border-b border-surface-border">
                 <div className="flex items-center justify-between px-5 md:px-8 h-16">
                     {/* Mobile hamburger */}
                     <button

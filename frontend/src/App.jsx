@@ -1,41 +1,43 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
-// Public
 import Home from './pages/Home';
-import Fundraisers from './pages/Fundraisers';
-
-// Auth pages
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-
-// Layout
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// User pages
-import UserDashboard from './pages/user/UserDashboard';
-import SubmitRescue from './pages/user/SubmitRescue';
-import RescueDetail from './pages/user/RescueDetail';
-import PaymentHistory from './pages/user/PaymentHistory';
-import Impact from './pages/Impact';
+const Fundraisers = lazy(() => import('./pages/Fundraisers'));
+const Login = lazy(() => import('./pages/auth/Login'));
+const Register = lazy(() => import('./pages/auth/Register'));
+const UserDashboard = lazy(() => import('./pages/user/UserDashboard'));
+const SubmitRescue = lazy(() => import('./pages/user/SubmitRescue'));
+const RescueDetail = lazy(() => import('./pages/user/RescueDetail'));
+const PaymentHistory = lazy(() => import('./pages/user/PaymentHistory'));
+const Impact = lazy(() => import('./pages/Impact'));
+const MyRescueReports = lazy(() => import('./pages/user/MyRescueReports'));
+const NGODashboard = lazy(() => import('./pages/ngo/NGODashboard'));
+const HospitalDashboard = lazy(() => import('./pages/hospital/HospitalDashboard'));
+const AmbulanceDashboard = lazy(() => import('./pages/ambulance/AmbulanceDashboard'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 
-// NGO
-import NGODashboard from './pages/ngo/NGODashboard';
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+      <p className="text-sm text-surface-muted font-medium">Loading PawSaarthi...</p>
+    </div>
+  </div>
+);
 
-// Hospital
-import HospitalDashboard from './pages/hospital/HospitalDashboard';
+const withSuspense = (element) => (
+  <Suspense fallback={<RouteFallback />}>
+    {element}
+  </Suspense>
+);
 
-// Ambulance
-import AmbulanceDashboard from './pages/ambulance/AmbulanceDashboard';
-
-// Admin
-import AdminDashboard from './pages/admin/AdminDashboard';
-
-/** Redirect authenticated users to their dashboard */
 const DashboardRedirect = () => {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <RouteFallback />;
   if (!user) return <Navigate to="/login" replace />;
 
   const routes = {
@@ -45,7 +47,7 @@ const DashboardRedirect = () => {
     ambulance: '/ambulance/dashboard',
     admin: '/admin/dashboard',
   };
-  // isAdmin users are always redirected to admin dashboard regardless of impersonated role
+
   if (user.isAdmin && !user.impersonating) return <Navigate to="/admin/dashboard" replace />;
   return <Navigate to={routes[user.role] || '/user/dashboard'} replace />;
 };
@@ -53,55 +55,47 @@ const DashboardRedirect = () => {
 export default function App() {
   return (
     <Routes>
-      {/* Public */}
       <Route path="/" element={<Home />} />
-      <Route path="/fundraisers" element={<Fundraisers />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-
-      {/* Dashboard redirect */}
+      <Route path="/login" element={withSuspense(<Login />)} />
+      <Route path="/register" element={withSuspense(<Register />)} />
       <Route path="/dashboard" element={<DashboardRedirect />} />
 
-      {/* User */}
       <Route element={<ProtectedRoute allowedRoles={['user']} />}>
         <Route element={<Layout />}>
-          <Route path="/user/dashboard" element={<UserDashboard />} />
-          <Route path="/user/submit-rescue" element={<SubmitRescue />} />
-          <Route path="/user/rescue/:id" element={<RescueDetail />} />
-          <Route path="/user/payments" element={<PaymentHistory />} />
-          <Route path="/impact" element={<Impact />} />
+          <Route path="/user/dashboard" element={withSuspense(<UserDashboard />)} />
+          <Route path="/user/submit-rescue" element={withSuspense(<SubmitRescue />)} />
+          <Route path="/user/rescue/:id" element={withSuspense(<RescueDetail />)} />
+          <Route path="/user/payments" element={withSuspense(<PaymentHistory />)} />
+          <Route path="/user/reports" element={withSuspense(<MyRescueReports />)} />
+          <Route path="/fundraisers" element={withSuspense(<Fundraisers />)} />
+          <Route path="/impact" element={withSuspense(<Impact />)} />
         </Route>
       </Route>
 
-      {/* NGO */}
       <Route element={<ProtectedRoute allowedRoles={['ngo']} />}>
         <Route element={<Layout />}>
-          <Route path="/ngo/dashboard" element={<NGODashboard />} />
+          <Route path="/ngo/dashboard" element={withSuspense(<NGODashboard />)} />
         </Route>
       </Route>
 
-      {/* Hospital */}
       <Route element={<ProtectedRoute allowedRoles={['hospital']} />}>
         <Route element={<Layout />}>
-          <Route path="/hospital/dashboard" element={<HospitalDashboard />} />
+          <Route path="/hospital/dashboard" element={withSuspense(<HospitalDashboard />)} />
         </Route>
       </Route>
 
-      {/* Ambulance */}
       <Route element={<ProtectedRoute allowedRoles={['ambulance']} />}>
         <Route element={<Layout />}>
-          <Route path="/ambulance/dashboard" element={<AmbulanceDashboard />} />
+          <Route path="/ambulance/dashboard" element={withSuspense(<AmbulanceDashboard />)} />
         </Route>
       </Route>
 
-      {/* Admin */}
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route element={<Layout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={withSuspense(<AdminDashboard />)} />
         </Route>
       </Route>
 
-      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

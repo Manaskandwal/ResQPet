@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -8,7 +8,7 @@ import { SkeletonCard, SkeletonStatCard } from '../../components/Skeleton';
 import { formatIndianDate, formatIndianDateTime } from '../../utils/dateTime';
 import {
     WalletIcon, PlusCircleIcon, ClipboardDocumentListIcon,
-    ArrowUpTrayIcon, CheckCircleIcon, ClockIcon,
+    CheckCircleIcon, ClockIcon, ArrowRightIcon, ChevronDoubleDownIcon,
 } from '@heroicons/react/24/outline';
 
 // ── Razorpay helper ────────────────────────────────────────────────────────────
@@ -23,6 +23,7 @@ const loadRazorpay = () =>
     });
 
 const UserDashboard = () => {
+    const navigate = useNavigate();
     const { user, updateUser } = useAuth();
     const [rescues, setRescues] = useState([]);
     const [wallet, setWallet] = useState({ walletBalance: user?.walletBalance || 0, transactions: [] });
@@ -221,7 +222,16 @@ const UserDashboard = () => {
 
                     {/* Recent transactions */}
                     <div className="card mt-4">
-                        <h3 className="font-semibold text-slate-700 text-sm mb-3">Recent Transactions</h3>
+                        <div className="mb-3 flex items-center justify-between">
+                            <h3 className="font-semibold text-slate-700 text-sm">Recent Transactions</h3>
+                            <button
+                                onClick={() => navigate('/user/payments?tab=all')}
+                                className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
+                            >
+                                View All
+                                <ArrowRightIcon className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
                         {wallet.transactions.length === 0 ? (
                             <p className="text-surface-muted text-sm text-center py-4">No transactions yet.</p>
                         ) : (
@@ -264,7 +274,7 @@ const UserDashboard = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {rescues.map((rescue) => (
+                            {[rescues[0]].map((rescue) => (
                                 <Link key={rescue._id} to={`/user/rescue/${rescue._id}`}
                                     className="card-hover block cursor-pointer">
                                     <div className="flex items-start justify-between gap-3 mb-3">
@@ -286,6 +296,15 @@ const UserDashboard = () => {
                                     </p>
                                 </Link>
                             ))}
+                            {rescues.length > 1 && (
+                                <Link
+                                    to="/user/reports"
+                                    className="flex flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-slate-300 bg-white/80 px-4 py-5 text-sm font-semibold text-slate-600 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+                                >
+                                    <ChevronDoubleDownIcon className="h-5 w-5" />
+                                    <span>View More Rescue Reports</span>
+                                </Link>
+                            )}
                         </div>
                     )}
                 </div>

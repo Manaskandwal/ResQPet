@@ -105,7 +105,8 @@ const getTimelineConfig = (rescueOrStatus) => {
         'fundraiser_active',
     ]);
 
-    const isHospitalPath = hospitalPathStatuses.has(status) || rescue.assignedHospital || rescue.assignedAmbulance;
+    const isOnSpotCompletion = status === 'completed' && rescue.outcome === 'on_spot_treated' && !rescue.assignedHospital && !rescue.assignedAmbulance;
+    const isHospitalPath = !isOnSpotCompletion && (hospitalPathStatuses.has(status) || rescue.assignedHospital || rescue.assignedAmbulance);
     const definition = isHospitalPath ? timelineDefinitions.hospital : timelineDefinitions.ngo;
     const effectiveStatus = definition.aliases[status] || status;
     const currentIdx = definition.steps.findIndex((step) => step.key === effectiveStatus);

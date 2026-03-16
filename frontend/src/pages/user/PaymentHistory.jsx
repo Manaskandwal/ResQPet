@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeftIcon, PauseCircleIcon, StopCircleIcon, WalletIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon, PauseCircleIcon, PlayCircleIcon, StopCircleIcon, WalletIcon, PencilSquareIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { formatIndianDateTime } from '../../utils/dateTime';
@@ -9,7 +9,8 @@ import { useAuth } from '../../context/AuthContext';
 const PaymentHistory = () => {
     const navigate = useNavigate();
     const { updateUser } = useAuth();
-    const [activeTab, setActiveTab] = useState('subscription');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [editingAmount, setEditingAmount] = useState(false);
     const [monthlyAmount, setMonthlyAmount] = useState('50');
     const [data, setData] = useState({
         walletBalance: 0,
@@ -20,6 +21,7 @@ const PaymentHistory = () => {
     });
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState(false);
+    const activeTab = searchParams.get('tab') || 'subscription';
 
     const loadHistory = async () => {
         try {
@@ -30,7 +32,7 @@ const PaymentHistory = () => {
                 walletBalance: response.data.walletBalance,
                 monthlySubscription: response.data.monthlySubscription,
             });
-        } catch (error) {
+        } catch {
             toast.error('Failed to load payment history.');
         } finally {
             setLoading(false);
@@ -56,6 +58,23 @@ const PaymentHistory = () => {
 
     const subscription = data.monthlySubscription;
     const isActiveMember = subscription?.isSubscribed && subscription?.status === 'active';
+    const isPausedMember = subscription?.isSubscribed && subscription?.status === 'paused';
+    const allTransactions = [
+        ...(data.subscriptionPayments || []).map((item) => ({
+            ...item,
+            kind: 'subscription',
+            occurredAt: item.createdAt,
+            title: `Recurring contribution Rs ${item.amount}`,
+            amountLabel: `Rs ${item.amount}`,
+        })),
+        ...(data.walletTransactions || []).map((item) => ({
+            ...item,
+            kind: 'wallet',
+            occurredAt: item.createdAt,
+            title: item.description,
+            amountLabel: `${item.type === 'debit' ? '-' : '+'}Rs ${item.amount}`,
+        })),
+    ].sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt));
 
     return (
         <div className="mx-auto max-w-5xl space-y-6">
@@ -81,8 +100,13 @@ const PaymentHistory = () => {
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                     <div className="mb-5 flex gap-2 rounded-full bg-slate-100 p-1">
-                        <button onClick={() => setActiveTab('subscription')} className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold ${activeTab === 'subscription' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>Subscription History</button>
-                        <button onClick={() => setActiveTab('wallet')} className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold ${activeTab === 'wallet' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>Wallet History</button>
+                        {[
+                            ['subscription', 'Subscription History'],
+                            ['wallet', 'Wallet History'],
+                            ['all', 'All Transactions'],
+                        ].map(([id, label]) => (
+                            <button key={id} onClick={() => setSearchParams({ tab: id })} className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold ${activeTab === id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>{label}</button>
+                        ))}
                     </div>
 
                     {loading ? <p className="text-sm text-slate-500">Loading history...</p> : activeTab === 'subscription' ? (
@@ -105,7 +129,7 @@ const PaymentHistory = () => {
                                 </div>
                             ))}
                         </div>
-                    ) : (
+                    ) : activeTab === 'wallet' ? (
                         <div className="space-y-3">
                             {data.walletTransactions.length === 0 ? <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">No wallet transactions yet.</p> : data.walletTransactions.map((txn) => (
                                 <div key={txn._id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4">
@@ -115,6 +139,21 @@ const PaymentHistory = () => {
                                         <p className="mt-1 text-xs text-slate-400">Balance after: Rs {txn.balanceAfter}</p>
                                     </div>
                                     <span className={`text-sm font-bold ${txn.type === 'debit' ? 'text-rose-600' : 'text-emerald-600'}`}>{txn.type === 'debit' ? '-' : '+'}Rs {txn.amount}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {allTransactions.map((item) => (
+                                <div key={`${item.kind}-${item._id}`} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p className="font-semibold text-slate-800">{item.title}</p>
+                                            <p className="mt-1 text-xs text-slate-500">{formatIndianDateTime(item.occurredAt)}</p>
+                                        </div>
+                                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase ${item.kind === 'wallet' ? 'bg-slate-200 text-slate-700' : 'bg-emerald-100 text-emerald-700'}`}>{item.kind}</span>
+                                    </div>
+                                    <p className="mt-2 text-sm font-semibold text-slate-700">{item.amountLabel}</p>
                                 </div>
                             ))}
                         </div>
@@ -143,22 +182,31 @@ const PaymentHistory = () => {
 
                     <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                         <h3 className="text-lg font-bold text-slate-900">Subscription Controls</h3>
-                        <p className="mt-1 text-sm text-slate-500">Choose the monthly amount, then start, pause, or cancel support from here.</p>
-                        <div className="mt-5 space-y-3">
+                        <p className="mt-1 text-sm text-slate-500">Choose the monthly amount, then start, pause, resume, or cancel support from here.</p>
+                        <div className="mt-5 space-y-4">
                             <div>
                                 <label className="mb-2 block text-sm font-semibold text-slate-700">Monthly amount</label>
-                                <div className="flex gap-2">
-                                    <input type="number" min="10" value={monthlyAmount} onChange={(e) => setMonthlyAmount(e.target.value)} className="input-field" />
-                                    <button onClick={() => handleAction('put', '/user/subscription/amount', { amount: Number(monthlyAmount) }, 'Monthly support amount updated.')} disabled={acting} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Update</button>
+                                <div className="flex items-center gap-2">
+                                    {editingAmount ? (
+                                        <>
+                                            <input type="number" min="10" value={monthlyAmount} onChange={(e) => setMonthlyAmount(e.target.value)} className="input-field" />
+                                            <button onClick={() => handleAction('put', '/user/subscription/amount', { amount: Number(monthlyAmount) }, 'Monthly support amount updated.').then(() => setEditingAmount(false))} disabled={acting} className="rounded-full bg-emerald-600 p-2 text-white">
+                                                <CheckIcon className="h-4 w-4" />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <div className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                            <span className="font-semibold text-slate-800">Rs {monthlyAmount}</span>
+                                            <button onClick={() => setEditingAmount(true)} className="rounded-full p-1 text-slate-500 hover:bg-white">
+                                                <PencilSquareIcon className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {!subscription?.isSubscribed ? (
-                                <button
-                                    onClick={() => handleAction('post', '/user/subscribe-emergency', { amount: Number(monthlyAmount) }, 'Monthly support started.')}
-                                    disabled={acting}
-                                    className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700"
-                                >
+                                <button onClick={() => handleAction('post', '/user/subscribe-emergency', { amount: Number(monthlyAmount) }, 'Monthly support started.')} disabled={acting} className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
                                     Start Monthly Support
                                 </button>
                             ) : (
@@ -167,6 +215,12 @@ const PaymentHistory = () => {
                                         <button onClick={() => handleAction('post', '/user/subscription/pause', {}, 'Subscription paused for one month.')} disabled={acting} className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
                                             <PauseCircleIcon className="h-5 w-5" />
                                             Pause for One Month
+                                        </button>
+                                    )}
+                                    {isPausedMember && (
+                                        <button onClick={() => handleAction('put', '/user/subscription/amount', { amount: Number(monthlyAmount) }, 'Monthly support amount updated.').then(() => handleAction('post', '/user/subscription/resume', {}, 'Monthly support resumed.'))} disabled={acting} className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                                            <PlayCircleIcon className="h-5 w-5" />
+                                            Resume Support
                                         </button>
                                     )}
                                     <button onClick={() => handleAction('post', '/user/subscription/cancel', {}, 'Subscription cancelled.')} disabled={acting} className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
