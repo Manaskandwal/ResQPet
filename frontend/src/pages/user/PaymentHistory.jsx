@@ -77,7 +77,7 @@ const PaymentHistory = () => {
     ].sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt));
 
     return (
-        <div className="mx-auto max-w-5xl space-y-6">
+        <div className="space-y-6">
             <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm">
                 <ArrowLeftIcon className="h-4 w-4" />
                 Back

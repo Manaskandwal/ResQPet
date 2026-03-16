@@ -60,7 +60,7 @@ const Impact = () => {
     }
 
     return (
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="space-y-6">
             <div className="rounded-[32px] border border-slate-200 bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(255,255,255,1),rgba(251,191,36,0.16))] p-7 shadow-sm">
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">Impact</p>
                 <h1 className="mt-2 text-3xl font-bold text-slate-900">Successful rescues and their journeys</h1>

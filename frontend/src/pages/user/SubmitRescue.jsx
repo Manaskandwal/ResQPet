@@ -26,7 +26,7 @@ const MAX_VIDEO = 1;
 const animalOptions = [
     { value: 'dog', label: 'Dog' },
     { value: 'cat', label: 'Cat' },
-    { value: 'other', label: 'Not in the list? Tell us which animal this is and we will try to add it in future updates.' },
+    { value: 'other', label: 'Not in list?' },
 ];
 
 const LocationPicker = ({ onPick }) => {
@@ -42,6 +42,7 @@ const SubmitRescue = () => {
     const navigate = useNavigate();
     const galleryRef = useRef(null);
     const cameraRef = useRef(null);
+    const hasDetected = useRef(false);
     const [form, setForm] = useState({
         description: '',
         lat: null,
@@ -55,12 +56,15 @@ const SubmitRescue = () => {
     const [geoLoading, setGeoLoading] = useState(false);
 
     useEffect(() => {
-        detectLocation();
+        if (!hasDetected.current) {
+            detectLocation(true);
+            hasDetected.current = true;
+        }
     }, []);
 
-    const detectLocation = () => {
+    const detectLocation = (silent = false) => {
         if (!navigator.geolocation) {
-            toast.error('Geolocation is not supported on this browser.');
+            if (!silent) toast.error('Geolocation is not supported on this browser.');
             return;
         }
         setGeoLoading(true);
@@ -68,10 +72,10 @@ const SubmitRescue = () => {
             (pos) => {
                 setForm((current) => ({ ...current, lat: pos.coords.latitude, lng: pos.coords.longitude }));
                 setGeoLoading(false);
-                toast.success('Location detected.');
+                if (!silent) toast.success('Location detected.');
             },
             () => {
-                toast.error('Could not detect location. Please pin it on the map.');
+                if (!silent) toast.error('Could not detect location. Please pin it on the map.');
                 setGeoLoading(false);
             },
             { timeout: 8000 }
@@ -166,7 +170,7 @@ const SubmitRescue = () => {
     const defaultCenter = form.lat ? [form.lat, form.lng] : [28.6139, 77.209];
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6 animate-slide-up">
+        <div className="space-y-6 animate-slide-up">
             <div className="flex items-center gap-3">
                 <button onClick={() => navigate(-1)} className="btn-ghost p-2">
                     <ArrowLeftIcon className="h-5 w-5" />
@@ -192,116 +196,137 @@ const SubmitRescue = () => {
                             ))}
                         </select>
                         {form.animalType === 'other' && (
-                            <input
-                                type="text"
-                                className="input-field mt-3"
-                                placeholder="Which animal is this?"
-                                value={form.animalTypeOther}
-                                onChange={(e) => setForm((current) => ({ ...current, animalTypeOther: e.target.value }))}
-                            />
+                            <div className="mt-4 space-y-4 animate-fade-in">
+                                <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 text-sm text-amber-800">
+                                    <p className="font-bold mb-1">We are sorry!</p>
+                                    Currently, we only support Dogs and Cats for emergency rescue coordination. Please tell us which animal this is, and we will try to include it in our next phase.
+                                </div>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    placeholder="Which animal is this? (e.g. Cow, Bird, Monkey)"
+                                    value={form.animalTypeOther}
+                                    onChange={(e) => setForm((current) => ({ ...current, animalTypeOther: e.target.value }))}
+                                    required
+                                    autoFocus
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={loading || !form.animalTypeOther.trim()}
+                                    className="btn-accent w-full py-4 text-lg font-bold shadow-lg"
+                                >
+                                    {loading ? 'Submitting...' : 'Submit Request for this Animal'}
+                                </button>
+                            </div>
                         )}
                     </div>
 
-                    <div>
-                        <h3 className="mb-3 font-semibold text-slate-800">Describe the Situation</h3>
-                        <textarea
-                            className="textarea h-28"
-                            placeholder="e.g. Injured dog on the road near XYZ market, unable to walk..."
-                            value={form.description}
-                            onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
-                            required
-                            maxLength={1000}
-                        />
-                        <p className="mt-1 text-right text-[11px] text-surface-muted">{form.description.length}/1000</p>
-                    </div>
-                </div>
-
-                <div className="card">
-                    <div className="mb-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-slate-800">Location</h3>
-                        <button type="button" onClick={detectLocation} disabled={geoLoading} className="btn-outline btn-sm">
-                            <MapPinIcon className="h-4 w-4" />
-                            {geoLoading ? 'Detecting...' : 'Use GPS'}
-                        </button>
-                    </div>
-                    {form.lat && (
-                        <p className="mb-2 text-xs font-medium text-primary-600">
-                            {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
-                        </p>
+                    {form.animalType !== 'other' && (
+                        <div className="animate-fade-in space-y-4">
+                            <h3 className="mb-3 font-semibold text-slate-800">Describe the Situation</h3>
+                            <textarea
+                                className="textarea h-28"
+                                placeholder="e.g. Injured dog on the road near XYZ market, unable to walk..."
+                                value={form.description}
+                                onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
+                                required
+                                maxLength={1000}
+                            />
+                            <p className="mt-1 text-right text-[11px] text-surface-muted">{form.description.length}/1000</p>
+                        </div>
                     )}
-                    <div className="h-56 overflow-hidden rounded-btn border border-surface-border">
-                        <MapContainer center={defaultCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
-                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>' />
-                            <LocationPicker onPick={(lat, lng) => setForm((current) => ({ ...current, lat, lng }))} />
-                            {form.lat && <Marker position={[form.lat, form.lng]} />}
-                        </MapContainer>
-                    </div>
-                    <p className="mt-1 text-[11px] text-surface-muted">Tap the map to pin the animal&apos;s exact location.</p>
-                    <input
-                        type="text"
-                        className="input mt-2 text-xs"
-                        placeholder="Optional: add a landmark or address description"
-                        value={form.address}
-                        onChange={(e) => setForm((current) => ({ ...current, address: e.target.value }))}
-                    />
                 </div>
 
-                <div className="card">
-                    <div className="mb-4 flex items-center justify-between">
-                        <div>
-                            <h3 className="font-semibold text-slate-800">Photos or Video</h3>
-                            <p className="text-xs text-surface-muted">Upload up to 5 images and 1 video. New files are appended until the limit is reached.</p>
+                {form.animalType !== 'other' && (
+                    <>
+                        <div className="card animate-fade-in">
+                            <div className="mb-3 flex items-center justify-between">
+                                <h3 className="font-semibold text-slate-800">Location</h3>
+                                <button type="button" onClick={() => detectLocation(false)} disabled={geoLoading} className="btn-outline btn-sm">
+                                    <MapPinIcon className="h-4 w-4" />
+                                    {geoLoading ? 'Detecting...' : 'Use GPS'}
+                                </button>
+                            </div>
+                            {form.lat && (
+                                <p className="mb-2 text-xs font-medium text-primary-600">
+                                    {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
+                                </p>
+                            )}
+                            <div className="h-56 overflow-hidden rounded-btn border border-surface-border">
+                                <MapContainer center={defaultCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+                                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>' />
+                                    <LocationPicker onPick={(lat, lng) => setForm((current) => ({ ...current, lat, lng }))} />
+                                    {form.lat && <Marker position={[form.lat, form.lng]} />}
+                                </MapContainer>
+                            </div>
+                            <p className="mt-1 text-[11px] text-surface-muted">Tap the map to pin the animal&apos;s exact location.</p>
+                            <input
+                                type="text"
+                                className="input mt-2 text-xs"
+                                placeholder="Optional: add a landmark or address description"
+                                value={form.address}
+                                onChange={(e) => setForm((current) => ({ ...current, address: e.target.value }))}
+                            />
                         </div>
-                        <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                            {mediaItems.filter((item) => item.kind === 'image').length}/{MAX_IMAGES} images, {mediaItems.filter((item) => item.kind === 'video').length}/{MAX_VIDEO} video
-                        </div>
-                    </div>
 
-                    <input ref={galleryRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleMediaPick} />
-                    <input ref={cameraRef} type="file" accept="image/*,video/*" capture="environment" className="hidden" onChange={handleMediaPick} />
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <button type="button" onClick={() => galleryRef.current?.click()} className="flex items-center justify-center gap-2 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-700">
-                            <PhotoIcon className="h-5 w-5" />
-                            Select Media
-                        </button>
-                        <button type="button" onClick={() => cameraRef.current?.click()} className="flex items-center justify-center gap-2 rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm font-semibold text-emerald-700">
-                            <CameraIcon className="h-5 w-5" />
-                            Open Camera / Record Now
-                        </button>
-                    </div>
-
-                    {mediaItems.length > 0 && (
-                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                            {mediaItems.map((item) => (
-                                <div key={item.id} className="overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm">
-                                    <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
-                                        <p className="truncate text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{item.kind}</p>
-                                        <button type="button" onClick={() => handleRemoveMedia(item.id)} className="rounded-full p-1 text-rose-500 hover:bg-rose-50">
-                                            <TrashIcon className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                    <div className="p-3">
-                                        {item.kind === 'video' ? (
-                                            <video src={item.preview} controls className="h-48 w-full rounded-[16px] object-cover" />
-                                        ) : (
-                                            <img src={item.preview} alt={item.file.name} className="h-48 w-full rounded-[16px] object-cover" />
-                                        )}
-                                        <p className="mt-2 truncate text-xs text-slate-500">{item.file.name}</p>
-                                    </div>
+                        <div className="card animate-fade-in">
+                            <div className="mb-4 flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-semibold text-slate-800">Photos or Video</h3>
+                                    <p className="text-xs text-surface-muted">Upload up to 5 images and 1 video. New files are appended until the limit is reached.</p>
                                 </div>
-                            ))}
+                                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                    {mediaItems.filter((item) => item.kind === 'image').length}/{MAX_IMAGES} images, {mediaItems.filter((item) => item.kind === 'video').length}/{MAX_VIDEO} video
+                                </div>
+                            </div>
+
+                            <input ref={galleryRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleMediaPick} />
+                            <input ref={cameraRef} type="file" accept="image/*,video/*" capture="environment" className="hidden" onChange={handleMediaPick} />
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <button type="button" onClick={() => galleryRef.current?.click()} className="flex items-center justify-center gap-2 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-700">
+                                    <PhotoIcon className="h-5 w-5" />
+                                    Select Media
+                                </button>
+                                <button type="button" onClick={() => cameraRef.current?.click()} className="flex items-center justify-center gap-2 rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm font-semibold text-emerald-700">
+                                    <CameraIcon className="h-5 w-5" />
+                                    Open Camera / Record Now
+                                </button>
+                            </div>
+
+                            {mediaItems.length > 0 && (
+                                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                    {mediaItems.map((item) => (
+                                        <div key={item.id} className="overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm">
+                                            <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+                                                <p className="truncate text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{item.kind}</p>
+                                                <button type="button" onClick={() => handleRemoveMedia(item.id)} className="rounded-full p-1 text-rose-500 hover:bg-rose-50">
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                            <div className="p-3">
+                                                {item.kind === 'video' ? (
+                                                    <video src={item.preview} controls className="h-48 w-full rounded-[16px] object-cover" />
+                                                ) : (
+                                                    <img src={item.preview} alt={item.file.name} className="h-48 w-full rounded-[16px] object-cover" />
+                                                )}
+                                                <p className="mt-2 truncate text-xs text-slate-500">{item.file.name}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
 
-                <button type="submit" disabled={loading} className="btn-accent btn-lg w-full">
-                    {loading ? 'Uploading and submitting...' : 'Submit Rescue Request'}
-                </button>
+                        <button type="submit" disabled={loading} className="btn-accent btn-lg w-full">
+                            {loading ? 'Uploading and submitting...' : 'Submit Rescue Request'}
+                        </button>
 
-                <div className="rounded-btn border border-amber-100 bg-amber-50 p-3 text-center text-xs text-amber-700">
-                    Rs 30 is a small service fee. It will be refunded only if the rescue cannot proceed before any NGO visit or transport work starts.
-                </div>
+                        <div className="rounded-btn border border-amber-100 bg-amber-50 p-3 text-center text-xs text-amber-700">
+                            Rs 30 is a small service fee. It will be refunded only if the rescue cannot proceed before any NGO visit or transport work starts.
+                        </div>
+                    </>
+                )}
             </form>
         </div>
     );

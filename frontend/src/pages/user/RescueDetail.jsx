@@ -120,7 +120,7 @@ const RescueDetail = () => {
     const treatmentStory = getTreatmentStory(rescue);
 
     return (
-        <div className="mx-auto max-w-3xl space-y-5 animate-slide-up">
+        <div className="space-y-5 animate-slide-up">
             <div className="flex items-center gap-3">
                 <button onClick={() => navigate(-1)} className="btn-ghost p-2">
                     <ArrowLeftIcon className="h-5 w-5" />
@@ -217,22 +217,11 @@ const RescueDetail = () => {
                                 <img src={treatmentStory.afterImage} alt="After treatment" className="h-56 w-full rounded-[18px] object-cover" />
                             ) : (
                                 <div className="flex h-56 items-center justify-center rounded-[18px] bg-white text-center text-sm text-slate-500">
-                                    No after-treatment media uploaded yet. The status notes below still capture the outcome.
+                                    No after-treatment media uploaded yet. The status captures the outcome.
                                 </div>
                             )}
                         </div>
                     </div>
-                    {treatmentStory.notes.length > 0 && (
-                        <div className="mt-4 grid gap-3 md:grid-cols-2">
-                            {treatmentStory.notes.map((log, index) => (
-                                <div key={`${log.timestamp}-${index}`} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{log.status.replaceAll('_', ' ')}</p>
-                                    <p className="mt-1 text-sm text-slate-700">{log.message}</p>
-                                    <p className="mt-2 text-[11px] text-slate-400">{formatIndianDateTime(log.timestamp)}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
             )}
 

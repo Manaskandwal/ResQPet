@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Dialog, Transition } from '@headlessui/react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -9,6 +10,7 @@ import { formatIndianDate, formatIndianDateTime } from '../../utils/dateTime';
 import {
     WalletIcon, PlusCircleIcon, ClipboardDocumentListIcon,
     CheckCircleIcon, ClockIcon, ArrowRightIcon, ChevronDoubleDownIcon,
+    XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 // ── Razorpay helper ────────────────────────────────────────────────────────────
@@ -31,6 +33,7 @@ const UserDashboard = () => {
     const [topupAmt, setTopupAmt] = useState('');
     const [paying, setPaying] = useState(false);
     const [mockPaying, setMockPaying] = useState(false);
+    const [walletModalOpen, setWalletModalOpen] = useState(false);
     const topupRef = useRef(null);
 
     const fetchData = useCallback(async () => {
@@ -151,9 +154,23 @@ const UserDashboard = () => {
     return (
         <div className="space-y-6">
             {/* Page header */}
-            <div>
-                <h1 className="page-title">Hello, {user?.name?.split(' ')[0]}! 👋</h1>
-                <p className="page-subtitle">Help animals in need around you.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="page-title">Hello, {user?.name?.split(' ')[0]}! 👋</h1>
+                    <p className="page-subtitle">Help animals in need around you.</p>
+                </div>
+                <button
+                    onClick={() => setWalletModalOpen(true)}
+                    className="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-95 group"
+                >
+                    <div className="w-8 h-8 bg-primary-50 rounded-xl flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                        <WalletIcon className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div className="text-left">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">Wallet</p>
+                        <p className="text-sm font-bold text-slate-700 leading-none">₹{wallet.walletBalance.toFixed(2)}</p>
+                    </div>
+                </button>
             </div>
 
             {/* Stat cards */}
@@ -170,90 +187,8 @@ const UserDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Wallet Card */}
-                <div className="lg:col-span-1">
-                    <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-card overflow-hidden relative">
-                        {/* Decorative circle */}
-                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full" />
-                        <div className="absolute -right-4 top-8 w-20 h-20 bg-white/5 rounded-full" />
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-4">
-                                <WalletIcon className="w-5 h-5 text-primary-200" />
-                                <span className="text-primary-100 text-sm font-medium">Wallet Balance</span>
-                            </div>
-                            <p className="text-4xl font-bold mb-1">Rs {wallet.walletBalance.toFixed(2)}</p>
-                            <p className="text-primary-200 text-xs mb-1">Rs 30 small service fee per rescue. Refunded only if work never starts.</p>
-
-                            {/* ── TEST MODE banner ─────────────────────── */}
-                            <div className="flex items-center gap-1.5 mb-3 px-2 py-1 bg-amber-400/20 border border-amber-300/40 rounded-btn">
-                                <span className="text-amber-300 text-[10px] font-bold uppercase tracking-wider">🛠 Test Mode</span>
-                                <span className="text-amber-200/80 text-[10px]">— mock payment, no Razorpay needed</span>
-                            </div>
-
-                            {/* Quick-add test buttons */}
-                            <div className="flex gap-2 mb-3">
-                                {[50, 100, 200].map((amt) => (
-                                    <button key={amt} onClick={() => handleMockTopup(amt)}
-                                        disabled={mockPaying}
-                                        className="flex-1 py-2 rounded-btn bg-white/20 hover:bg-white/30 border border-white/30
-                                                   text-white text-sm font-semibold transition-all active:scale-95">
-                                        {mockPaying ? '…' : `+₹${amt}`}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Real Razorpay (enable when you have live keys) */}
-                            <p className="text-primary-300/60 text-[10px] mb-2">— or use Razorpay (live keys required) —</p>
-                            <div className="flex gap-2 opacity-60">
-                                <input
-                                    ref={topupRef}
-                                    type="number" min="10" step="10" placeholder="Amount (₹)"
-                                    value={topupAmt}
-                                    onChange={(e) => setTopupAmt(e.target.value)}
-                                    className="flex-1 px-3 py-2 rounded-btn bg-white/10 border border-white/20
-                             text-white placeholder-primary-300 text-sm focus:outline-none"
-                                />
-                                <button onClick={handleTopup} disabled={paying} className="btn bg-white/10 border border-white/20 text-white font-bold text-sm px-4 flex-shrink-0">
-                                    {paying ? '...' : 'Pay'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Recent transactions */}
-                    <div className="card mt-4">
-                        <div className="mb-3 flex items-center justify-between">
-                            <h3 className="font-semibold text-slate-700 text-sm">Recent Transactions</h3>
-                            <button
-                                onClick={() => navigate('/user/payments?tab=all')}
-                                className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
-                            >
-                                View All
-                                <ArrowRightIcon className="h-3.5 w-3.5" />
-                            </button>
-                        </div>
-                        {wallet.transactions.length === 0 ? (
-                            <p className="text-surface-muted text-sm text-center py-4">No transactions yet.</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {wallet.transactions.slice(0, 5).map((txn) => (
-                                    <div key={txn._id} className="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
-                                        <div>
-                                            <p className="text-xs font-medium text-slate-700 truncate max-w-[160px]">{txn.description}</p>
-                                            <p className="text-[11px] text-surface-muted">{formatIndianDate(txn.createdAt)}</p>
-                                        </div>
-                                        <span className={`text-sm font-bold ${txn.type === 'credit' || txn.type === 'refund' ? 'text-green-600' : 'text-red-500'}`}>
-                                            {txn.type === 'debit' ? '-' : '+'}₹{txn.amount}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
                 {/* Rescue Requests */}
-                <div className="lg:col-span-2 space-y-4">
+                <div className="lg:col-span-3 space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-bold text-slate-800">My Rescue Reports</h2>
                         <Link to="/user/submit-rescue" className="btn-accent btn-sm">
@@ -309,6 +244,100 @@ const UserDashboard = () => {
                     )}
                 </div>
             </div>
+
+            {/* Wallet Modal */}
+            <Transition appear show={walletModalOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-50" onClose={() => setWalletModalOpen(false)}>
+                    <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
+                        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                        <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+                            <Dialog.Panel className="w-full max-w-md rounded-[32px] bg-white p-6 shadow-2xl">
+                                <div className="flex items-center justify-between mb-6">
+                                    <Dialog.Title className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                        <WalletIcon className="w-6 h-6 text-primary-600" />
+                                        My Wallet
+                                    </Dialog.Title>
+                                    <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                                        <XMarkIcon className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-[24px] overflow-hidden relative p-6 mb-6">
+                                    <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full" />
+                                    <div className="absolute -right-4 top-8 w-20 h-20 bg-white/5 rounded-full" />
+                                    <div className="relative z-10">
+                                        <span className="text-primary-100 text-sm font-medium">Available Balance</span>
+                                        <p className="text-4xl font-bold mt-1 mb-2">₹{wallet.walletBalance.toFixed(2)}</p>
+                                        <p className="text-primary-200 text-[10px] leading-tight opacity-80">
+                                            ₹30 service fee per rescue. Refunded only if no work starts.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Top-up Wallet</label>
+                                        <div className="flex gap-2">
+                                            {[50, 100, 200].map((amt) => (
+                                                <button key={amt} onClick={() => handleMockTopup(amt)}
+                                                    disabled={mockPaying}
+                                                    className="flex-1 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all active:scale-95">
+                                                    +₹{amt}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <input
+                                            ref={topupRef}
+                                            type="number" min="10" placeholder="Custom amount"
+                                            value={topupAmt}
+                                            onChange={(e) => setTopupAmt(e.target.value)}
+                                            className="flex-1 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                                        />
+                                        <button onClick={handleTopup} disabled={paying} className="btn-primary px-6 py-2 rounded-xl font-bold text-sm">
+                                            {paying ? '...' : 'Pay'}
+                                        </button>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="font-bold text-slate-800 text-sm">Recent Transactions</h3>
+                                            <button
+                                                onClick={() => { setWalletModalOpen(false); navigate('/user/payments?tab=all'); }}
+                                                className="text-xs font-bold text-primary-600 hover:underline"
+                                            >
+                                                View All
+                                            </button>
+                                        </div>
+                                        {wallet.transactions.length === 0 ? (
+                                            <p className="text-slate-400 text-xs text-center py-4">No transactions yet.</p>
+                                        ) : (
+                                            <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+                                                {wallet.transactions.slice(0, 5).map((txn) => (
+                                                    <div key={txn._id} className="flex items-center justify-between">
+                                                        <div>
+                                                            <p className="text-xs font-bold text-slate-700 truncate max-w-[180px]">{txn.description}</p>
+                                                            <p className="text-[10px] text-slate-400">{formatIndianDate(txn.createdAt)}</p>
+                                                        </div>
+                                                        <span className={`text-xs font-bold ${txn.type === 'credit' || txn.type === 'refund' ? 'text-green-600' : 'text-red-500'}`}>
+                                                            {txn.type === 'debit' ? '-' : '+'}₹{txn.amount}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </Dialog.Panel>
+                        </Transition.Child>
+                    </div>
+                </Dialog>
+            </Transition>
         </div>
     );
 };
