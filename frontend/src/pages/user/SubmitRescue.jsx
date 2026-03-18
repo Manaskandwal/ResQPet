@@ -10,6 +10,7 @@ import {
     PhotoIcon,
     ArrowLeftIcon,
     TrashIcon,
+    ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import api from '../../api/axios';
 
@@ -57,7 +58,7 @@ const SubmitRescue = () => {
 
     useEffect(() => {
         if (!hasDetected.current) {
-            detectLocation(true);
+            detectLocation(false);
             hasDetected.current = true;
         }
     }, []);
@@ -172,9 +173,6 @@ const SubmitRescue = () => {
     return (
         <div className="space-y-6 animate-slide-up">
             <div className="flex items-center gap-3">
-                <button onClick={() => navigate(-1)} className="btn-ghost p-2">
-                    <ArrowLeftIcon className="h-5 w-5" />
-                </button>
                 <div>
                     <h1 className="page-title">Report an Animal</h1>
                     <p className="page-subtitle">Rs 30 small service fee. Refunded only if no treatment/transport work starts.</p>
@@ -185,35 +183,44 @@ const SubmitRescue = () => {
                 <div className="card space-y-4">
                     <div>
                         <h3 className="mb-3 font-semibold text-slate-800">Animal Details</h3>
-                        <label className="mb-2 block text-sm font-medium text-slate-700">Which animal is this?</label>
-                        <select
-                            className="input-field"
-                            value={form.animalType}
-                            onChange={(e) => setForm((current) => ({ ...current, animalType: e.target.value }))}
-                        >
-                            {animalOptions.map((option) => (
-                                <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                        </select>
+                        <label className="label">Which animal is this?</label>
+                        <div className="relative">
+                            <select
+                                className="input appearance-none bg-white pr-10 border border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500/20"
+                                value={form.animalType}
+                                onChange={(e) => setForm((current) => ({ ...current, animalType: e.target.value }))}
+                            >
+                                {animalOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500">
+                                <ChevronDownIcon className="h-5 w-5" />
+                            </div>
+                        </div>
+
                         {form.animalType === 'other' && (
                             <div className="mt-4 space-y-4 animate-fade-in">
                                 <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 text-sm text-amber-800">
                                     <p className="font-bold mb-1">We are sorry!</p>
                                     Currently, we only support Dogs and Cats for emergency rescue coordination. Please tell us which animal this is, and we will try to include it in our next phase.
                                 </div>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    placeholder="Which animal is this? (e.g. Cow, Bird, Monkey)"
-                                    value={form.animalTypeOther}
-                                    onChange={(e) => setForm((current) => ({ ...current, animalTypeOther: e.target.value }))}
-                                    required
-                                    autoFocus
-                                />
+                                <div>
+                                    <label className="label">Specify Animal Type</label>
+                                    <input
+                                        type="text"
+                                        className="input bg-white border border-slate-300 shadow-sm py-3 text-base focus:border-primary-500 focus:ring-primary-500/20"
+                                        placeholder="e.g. Cow, Bird, Monkey"
+                                        value={form.animalTypeOther}
+                                        onChange={(e) => setForm((current) => ({ ...current, animalTypeOther: e.target.value }))}
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
                                 <button
                                     type="submit"
                                     disabled={loading || !form.animalTypeOther.trim()}
-                                    className="btn-accent w-full py-4 text-lg font-bold shadow-lg"
+                                    className="btn-accent w-full py-3.5 text-base font-bold shadow-lg"
                                 >
                                     {loading ? 'Submitting...' : 'Submit Request for this Animal'}
                                 </button>
@@ -225,7 +232,7 @@ const SubmitRescue = () => {
                         <div className="animate-fade-in space-y-4">
                             <h3 className="mb-3 font-semibold text-slate-800">Describe the Situation</h3>
                             <textarea
-                                className="textarea h-28"
+                                className="textarea h-28 bg-white border border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500/20"
                                 placeholder="e.g. Injured dog on the road near XYZ market, unable to walk..."
                                 value={form.description}
                                 onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
@@ -262,7 +269,7 @@ const SubmitRescue = () => {
                             <p className="mt-1 text-[11px] text-surface-muted">Tap the map to pin the animal&apos;s exact location.</p>
                             <input
                                 type="text"
-                                className="input mt-2 text-xs"
+                                className="input mt-2 text-xs bg-white border border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500/20"
                                 placeholder="Optional: add a landmark or address description"
                                 value={form.address}
                                 onChange={(e) => setForm((current) => ({ ...current, address: e.target.value }))}

@@ -122,9 +122,6 @@ const RescueDetail = () => {
     return (
         <div className="space-y-5 animate-slide-up">
             <div className="flex items-center gap-3">
-                <button onClick={() => navigate(-1)} className="btn-ghost p-2">
-                    <ArrowLeftIcon className="h-5 w-5" />
-                </button>
                 <div className="flex-1">
                     <h1 className="page-title text-xl">Rescue Details</h1>
                     <p className="text-xs text-surface-muted">Report ID: {rescue._id}</p>

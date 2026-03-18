@@ -255,13 +255,6 @@ const AdminDashboard = () => {
         { label: 'Ambulances', value: analytics.totalAmbulances, Icon: TruckIcon, color: 'text-teal-600', bg: 'bg-teal-50' },
     ] : [];
 
-    const tabs = [
-        { id: 'overview', label: 'Overview' },
-        { id: 'approvals', label: `Approvals${pending.length > 0 ? ` (${pending.length})` : ''}` },
-        { id: 'users', label: 'Users' },
-        { id: 'rescues', label: 'Rescues' },
-    ];
-
     const orgRoles = ['ngo', 'hospital', 'ambulance'];
 
     return (
@@ -277,20 +270,6 @@ const AdminDashboard = () => {
             <div>
                 <h1 className="page-title">Admin Dashboard</h1>
                 <p className="page-subtitle">Platform management and oversight</p>
-            </div>
-
-            <div className="flex gap-1 p-1 bg-slate-100 rounded-btn w-fit flex-wrap">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setSearchParams({ tab: tab.id })}
-                        className={`px-4 py-2 rounded-btn text-sm font-medium transition-all ${
-                            activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
             </div>
 
             {activeTab === 'overview' && (

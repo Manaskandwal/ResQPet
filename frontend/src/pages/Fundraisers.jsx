@@ -104,11 +104,6 @@ const Fundraisers = () => {
 
     return (
         <div className="space-y-6">
-            <button onClick={() => window.history.back()} className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100">
-                <ArrowLeftIcon className="h-4 w-4" />
-                <span>Back</span>
-            </button>
-
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
                     <HeartIcon className="h-8 w-8 animate-pulse-soft text-rose-500" />

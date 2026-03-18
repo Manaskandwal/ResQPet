@@ -265,12 +265,12 @@ const UserDashboard = () => {
                                     </button>
                                 </div>
 
-                                <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-[24px] overflow-hidden relative p-6 mb-6">
+                                <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-[24px] overflow-hidden relative p-4 mb-4">
                                     <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full" />
                                     <div className="absolute -right-4 top-8 w-20 h-20 bg-white/5 rounded-full" />
                                     <div className="relative z-10">
-                                        <span className="text-primary-100 text-sm font-medium">Available Balance</span>
-                                        <p className="text-4xl font-bold mt-1 mb-2">₹{wallet.walletBalance.toFixed(2)}</p>
+                                        <span className="text-primary-100 text-xs font-medium">Available Balance</span>
+                                        <p className="text-3xl font-bold mt-1 mb-1">₹{wallet.walletBalance.toFixed(2)}</p>
                                         <p className="text-primary-200 text-[10px] leading-tight opacity-80">
                                             ₹30 service fee per rescue. Refunded only if no work starts.
                                         </p>
@@ -309,7 +309,7 @@ const UserDashboard = () => {
                                             <h3 className="font-bold text-slate-800 text-sm">Recent Transactions</h3>
                                             <button
                                                 onClick={() => { setWalletModalOpen(false); navigate('/user/payments?tab=all'); }}
-                                                className="text-xs font-bold text-primary-600 hover:underline"
+                                                className="btn-outline btn-sm px-3 py-1 text-xs"
                                             >
                                                 View All
                                             </button>
@@ -317,7 +317,7 @@ const UserDashboard = () => {
                                         {wallet.transactions.length === 0 ? (
                                             <p className="text-slate-400 text-xs text-center py-4">No transactions yet.</p>
                                         ) : (
-                                            <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+                                            <div className="space-y-3 pr-1">
                                                 {wallet.transactions.slice(0, 5).map((txn) => (
                                                     <div key={txn._id} className="flex items-center justify-between">
                                                         <div>

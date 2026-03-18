@@ -208,12 +208,6 @@ const NGODashboard = () => {
         );
     }
 
-    const tabs = [
-        { id: 'overview', label: 'Overview' },
-        { id: 'nearby', label: `Nearby Cases (${nearbyCases.length})` },
-        { id: 'my_cases', label: `My Cases (${myCases.length})` },
-    ];
-
     const scheduledCases = myCases.filter((c) => c.status === 'scheduled' || (c.followUps || []).some((follow) => follow.status === 'scheduled'));
     const completedCases = myCases.filter((c) => c.status === 'completed');
     const activeCases = myCases.filter((c) => !['completed', 'scheduled', 'cancelled', 'closed_unresolved'].includes(c.status));
@@ -311,14 +305,6 @@ const NGODashboard = () => {
             <div>
                 <h1 className="page-title">NGO Dashboard</h1>
                 <p className="page-subtitle">Manage operations and respond to rescue alerts.</p>
-            </div>
-
-            <div className="flex w-fit flex-wrap gap-1 rounded-btn bg-slate-100 p-1">
-                {tabs.map((tab) => (
-                    <button key={tab.id} onClick={() => setSearchParams({ tab: tab.id, ...(tab.id === 'my_cases' ? { list: activeList } : {}) })} className={`rounded-btn px-4 py-2 text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                        {tab.label}
-                    </button>
-                ))}
             </div>
 
             {activeTab === 'overview' && (

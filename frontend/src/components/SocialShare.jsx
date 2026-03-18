@@ -112,26 +112,32 @@ const SocialShare = ({ rescue }) => {
     ].filter(Boolean).join('\n'), [rescue, shareUrl]);
 
     const handlePlatformShare = async (platform) => {
-        if (platform === 'whatsapp') {
-            try {
-                const file = await createPosterFile(rescue);
-                if (navigator.share && navigator.canShare?.({ files: [file] })) {
-                    await navigator.share({
-                        title: 'ResQPet Rescue Story',
-                        text: shareText,
-                        files: [file],
-                        url: shareUrl,
-                    });
-                    return;
-                }
-            } catch (err) {
-                console.warn('Native share failed', err);
-            }
-        }
         const encodedText = encodeURIComponent(shareText);
-        if (platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank', 'noopener,noreferrer');
-        if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank', 'noopener,noreferrer');
-        if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'noopener,noreferrer');
+        const shareUrls = {
+            whatsapp: `https://api.whatsapp.com/send?text=${encodedText}`,
+            twitter: `https://twitter.com/intent/tweet?text=${encodedText}`,
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+        };
+
+        try {
+            const file = await createPosterFile(rescue);
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                await navigator.share({
+                    title: 'ResQPet Rescue Story',
+                    text: shareText,
+                    files: [file],
+                    url: shareUrl,
+                });
+                return;
+            }
+        } catch (err) {
+            console.warn('Native share failed or cancelled', err);
+        }
+
+        // Fallback to platform-specific link (text-only) if native share fails or isn't supported
+        if (shareUrls[platform]) {
+            window.open(shareUrls[platform], '_blank', 'noopener,noreferrer');
+        }
     };
 
     const handleNativeShare = async () => {
@@ -144,7 +150,6 @@ const SocialShare = ({ rescue }) => {
                     files: [file],
                     url: shareUrl,
                 });
-                toast.success('Story card shared.');
                 return;
             }
             await navigator.clipboard.writeText(shareText);
@@ -163,6 +168,7 @@ const SocialShare = ({ rescue }) => {
             link.download = file.name;
             link.click();
             URL.revokeObjectURL(url);
+            toast.success('Story card downloaded.');
         } catch (error) {
             toast.error('Unable to create story card.');
         }
@@ -178,7 +184,7 @@ const SocialShare = ({ rescue }) => {
                     </div>
                     <div>
                         <h4 className="text-lg font-bold text-slate-900">Share this rescue beautifully</h4>
-                        <p className="mt-1 text-sm text-slate-600">Native share now sends a generated story card image with before/after panels when the device supports file sharing.</p>
+                        <p className="mt-1 text-sm text-slate-600">Native share attaches a story card image with a preview of the case details and the rescue journey.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         {socialButtons.map((button) => (
@@ -186,7 +192,7 @@ const SocialShare = ({ rescue }) => {
                                 {button.icon}
                             </button>
                         ))}
-                        <button onClick={handleNativeShare} title="Share story card" className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5">
+                        <button onClick={handleNativeShare} title="Share story card" className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5">
                             <ShareIcon className="h-5 w-5" />
                         </button>
                         <button onClick={handleDownloadPoster} title="Download story card" className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5">
