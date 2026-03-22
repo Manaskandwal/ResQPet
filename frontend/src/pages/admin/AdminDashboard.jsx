@@ -5,6 +5,10 @@ import toast from 'react-hot-toast';
 import { SkeletonStatCard, SkeletonRow } from '../../components/Skeleton';
 import { StatusBadge } from '../../components/StatusComponents';
 import { formatIndianDateTime } from '../../utils/dateTime';
+import { 
+    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+    LineChart, Line, CartesianGrid 
+} from 'recharts';
 import {
     UsersIcon,
     ClipboardDocumentListIcon,
@@ -257,6 +261,7 @@ const AdminDashboard = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
     const [roleFilter, setRoleFilter] = useState('all');
+    const [rescueFilter, setRescueFilter] = useState('all');
 
     const [analytics, setAnalytics] = useState(null);
     const [pending, setPending] = useState([]);
@@ -419,9 +424,56 @@ const AdminDashboard = () => {
                                      </div>
                                 </div>
                                 
+                                {/* Analytics Charts */}
+                                {analytics?.chartData && (
+                                    <div className="space-y-6">
+                                        <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-8 hidden md:block">
+                                            <h3 className="font-headline text-xl font-bold mb-6 flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-[#76d6d5]"></span>
+                                                Daily Incidents <span className="text-[10px] text-[#e5e2e1]/40 font-black tracking-widest uppercase">(Last 30 Days)</span>
+                                            </h3>
+                                            <div className="h-64">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart data={analytics.chartData.dailyCases}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                                                        <XAxis dataKey="_id" stroke="#ffffff40" fontSize={10} tickMargin={10} axisLine={false} />
+                                                        <YAxis stroke="#ffffff40" fontSize={10} axisLine={false} tickLine={false} />
+                                                        <Tooltip 
+                                                            cursor={{fill: '#ffffff05'}}
+                                                            contentStyle={{backgroundColor: '#131313', border: '1px solid #ffffff10', borderRadius: '12px'}}
+                                                        />
+                                                        <Bar dataKey="count" fill="#76d6d5" radius={[4, 4, 0, 0]} />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+
+                                        <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-8 hidden md:block">
+                                            <h3 className="font-headline text-xl font-bold mb-6 flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-[#ffb77d]"></span>
+                                                Daily Donations <span className="text-[10px] text-[#e5e2e1]/40 font-black tracking-widest uppercase">(Last 30 Days INR)</span>
+                                            </h3>
+                                            <div className="h-64">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <LineChart data={analytics.chartData.dailyDonations}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                                                        <XAxis dataKey="_id" stroke="#ffffff40" fontSize={10} tickMargin={10} axisLine={false} />
+                                                        <YAxis stroke="#ffffff40" fontSize={10} axisLine={false} tickLine={false} />
+                                                        <Tooltip 
+                                                            contentStyle={{backgroundColor: '#131313', border: '1px solid #ffffff10', borderRadius: '12px'}}
+                                                        />
+                                                        <Line type="monotone" dataKey="amount" stroke="#ffb77d" strokeWidth={3} dot={{r: 4, fill: '#ffb77d', strokeWidth: 0}} />
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {/* Quick Recent Activity */}
                                 <div className="space-y-4">
                                     <h3 className="font-headline text-xl font-bold px-2">Recent Rescues</h3>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {rescues.slice(0, 4).map(r => (
                                             <div key={r._id} className="glass-card p-5 rounded-3xl border border-white/5 flex items-center justify-between group hover:bg-white/5 transition-all">
@@ -486,7 +538,7 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'approvals' && (
-                    <section className="space-y-6 w-full">
+                    <section className="space-y-6 w-full max-w-full">
                          <div className="flex items-center gap-3 px-2 mb-8">
                             <h2 className="font-headline text-2xl font-bold">Verification Requests</h2>
                             <span className="bg-[#ffb77d] text-[#131313] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{pending.length}</span>
@@ -500,7 +552,7 @@ const AdminDashboard = () => {
                                 </div>
                             ) : (
                                 pending.map(u => (
-                                    <div key={u._id} className="glass-card p-6 rounded-[2rem] border border-white/5 bg-[#1c1b1b] flex flex-col md:flex-row md:items-center gap-6 group hover:border-[#76d6d5]/30 transition-all">
+                                    <div key={u._id} className="glass-card p-6 rounded-[2rem] border border-white/5 bg-[#1c1b1b] w-full flex flex-col md:flex-row md:items-center gap-6 group hover:border-[#76d6d5]/30 transition-all">
                                         <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] text-2xl font-black">
                                             {u.name?.charAt(0).toUpperCase()}
                                         </div>
@@ -560,11 +612,11 @@ const AdminDashboard = () => {
                                     </div>
                                     <div className="flex items-center gap-4 mb-6">
                                         <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center font-black text-[#e5e2e1]">
-                                            {u.name?.charAt(0)}
+                                            {(u.name || u.orgName || '?').charAt(0).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
-                                            <h4 className="font-bold truncate pr-12">{u.orgName || u.name}</h4>
-                                            <p className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">{u.role}</p>
+                                            <h4 className="font-bold truncate pr-12">{u.orgName || u.name || 'Unknown User'}</h4>
+                                            <p className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">{u.role || 'user'}</p>
                                         </div>
                                     </div>
 
@@ -609,9 +661,27 @@ const AdminDashboard = () => {
 
                 {activeTab === 'rescues' && (
                     <section className="space-y-6">
-                        <div className="flex items-center justify-between px-2">
-                             <h2 className="font-headline text-2xl font-bold">Platform Rescues</h2>
-                             <span className="text-[10px] font-black text-[#76d6d5] uppercase tracking-[0.2em]">{rescues.length} Reports</span>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4">
+                            <div className="flex items-center gap-3">
+                                <h2 className="font-headline text-2xl font-bold">Platform Rescues</h2>
+                                <span className="text-[10px] font-black text-[#76d6d5] uppercase tracking-[0.2em] bg-[#76d6d5]/10 px-2 py-1 rounded border border-[#76d6d5]/20">{rescues.length} Reports</span>
+                            </div>
+                            
+                            <div className="flex bg-[#1c1b1b]/50 p-1.5 rounded-xl border border-white/5 backdrop-blur-xl overflow-x-auto custom-scrollbar">
+                                {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved'].map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setRescueFilter(f)}
+                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                                            rescueFilter === f 
+                                            ? 'bg-white text-black shadow-lg' 
+                                            : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
+                                        }`}
+                                    >
+                                        {f.replace('_', ' ')}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                         <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden">
                             <table className="w-full text-left">
@@ -624,7 +694,7 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {rescues.map(r => (
+                                    {rescues.filter(r => rescueFilter === 'all' || r.status === rescueFilter).map(r => (
                                         <tr key={r._id} className="hover:bg-white/5 transition-colors group">
                                             <td className="px-8 py-6">
                                                 <p className="font-bold text-[#e5e2e1]">{r.description}</p>
@@ -642,8 +712,8 @@ const AdminDashboard = () => {
                                     ))}
                                 </tbody>
                             </table>
-                            {rescues.length === 0 && (
-                                <div className="py-20 text-center text-[#e5e2e1]/30 uppercase tracking-[0.3em] font-black">No Rescue Data</div>
+                            {rescues.filter(r => rescueFilter === 'all' || r.status === rescueFilter).length === 0 && (
+                                <div className="py-20 text-center text-[#e5e2e1]/30 uppercase tracking-[0.3em] font-black">No matching rescues found</div>
                             )}
                         </div>
                     </section>

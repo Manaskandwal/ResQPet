@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const { generateToken } = require('../utils/generateToken');
 const { asyncHandler } = require('../middleware/errorHandler');
 
@@ -36,6 +37,20 @@ const register = asyncHandler(async (req, res) => {
     const token = generateToken(newUser);
 
     console.log(`[Auth] New user registered: ${newUser.email} as ${newUser.role}`);
+
+    // Notify admins of new partner registration requiring approval
+    if (['ngo', 'hospital', 'ambulance'].includes(role)) {
+        const admins = await User.find({ role: 'admin' });
+        const notifications = admins.map(admin => ({
+            recipient: admin._id,
+            title: 'New Partner Registration',
+            message: `${orgName || name} has registered as a ${role} and is awaiting your approval.`,
+            type: 'system'
+        }));
+        if (notifications.length > 0) {
+            await Notification.insertMany(notifications);
+        }
+    }
 
     res.status(201).json({
         success: true,

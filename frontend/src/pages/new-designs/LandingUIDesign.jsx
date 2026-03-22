@@ -70,29 +70,30 @@ export default function LandingUIDesign() {
           {/* Left: Text */}
           <div className="space-y-8">
             <div className="space-y-2">
-              <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.4em]">Animal Emergency Platform</span>
-              <h1 className="font-headline font-extrabold text-5xl md:text-7xl tracking-tighter leading-none">
-                Rescue.<br />
-                <span className="text-[#76d6d5]">Connect.</span><br />
-                Save.
+              <span className="text-[#ffb77d] text-[10px] font-black uppercase tracking-[0.4em]">The Luminous Guardian</span>
+              <h1 className="font-headline font-extrabold text-5xl md:text-6xl lg:text-7xl tracking-tighter leading-none">
+                The Ultimate Sanctuary.<br />
+                <span className="bg-gradient-to-r from-[#76d6d5] to-[#ffb77d] bg-clip-text text-transparent">For Every Pet</span><br />
+                &amp; Guardian.
               </h1>
             </div>
             <p className="text-[#e5e2e1]/50 text-lg leading-relaxed max-w-md">
-              ResQPet links citizens, NGOs, hospitals, and ambulances into one coordinated animal rescue network — so help arrives faster.
+              Discover a complete ecosystem for pet life: rapid emergency response with our trusted network, plus coming soon—seamless adoption, world-class health services, and a vibrant community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => navigate('/register')}
-                className="group flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[#76d6d5] text-[#131313] font-black uppercase tracking-widest text-sm hover:scale-[1.03] active:scale-[0.97] transition-all shadow-[0_0_30px_rgba(118,214,213,0.3)]"
+                onClick={() => navigate('/register?role=user')}
+                className="group flex flex-1 items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[#76d6d5] text-[#131313] font-black uppercase tracking-widest text-sm hover:scale-[1.03] active:scale-[0.97] transition-all shadow-[0_0_30px_rgba(118,214,213,0.3)]"
               >
-                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>emergency</span>
-                Report an Emergency
+                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>emergency_share</span>
+                Emergency Rescue
               </button>
               <button
-                onClick={() => navigate('/login')}
-                className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl border border-white/10 text-[#e5e2e1]/60 font-black uppercase tracking-widest text-sm hover:bg-white/5 hover:text-[#e5e2e1] hover:border-white/20 transition-all"
+                onClick={() => navigate('/fundraisers')}
+                className="flex flex-1 items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[#ffb77d]/10 border border-[#ffb77d]/20 text-[#ffb77d] font-black uppercase tracking-widest text-sm hover:bg-[#ffb77d]/20 hover:border-[#ffb77d]/40 transition-all"
               >
-                Sign In
+                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>volunteer_activism</span>
+                Donate to the Mission
               </button>
             </div>
 
@@ -104,7 +105,7 @@ export default function LandingUIDesign() {
               </div>
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-[#e5e2e1]/20">Response</p>
-                <p className="text-2xl font-headline font-black text-[#ffb77d]">24/7</p>
+                <p className="text-2xl font-headline font-black text-[#ffb77d]">Best Effort</p>
               </div>
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-[#e5e2e1]/20">Network</p>

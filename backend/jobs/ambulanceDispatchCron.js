@@ -1,6 +1,8 @@
 const cron = require('node-cron');
 const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
+const WalletTransaction = require('../models/WalletTransaction');
+const Notification = require('../models/Notification');
 const { getIo } = require('../config/socket');
 
 // Helper to calculate distance in meters (haversine formula simplified for testing or use GeoJSON)
@@ -46,6 +48,40 @@ const startAmbulanceDispatchCron = () => {
                     rescue.activeAmbulancePings = rescue.activeAmbulancePings.filter(ping => ping.pingedAt > twentyMinutesAgo);
                     isModified = true;
                     console.log(`[Cron] Expired ${expiredPings.length} pings for rescue ${rescue._id} (20 min passed)`);
+                }
+
+                // --- 1.5 Timeout / Refund Logic ---
+                const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+                if (rescue.pingRejectors.length >= 3 || rescue.createdAt <= oneHourAgo) {
+                    console.log(`[Cron] Rescue ${rescue._id} stalled (3+ rejects or 1hr passed). Cancelling and Refunding.`);
+                    
+                    // Refund the deposit
+                    const reporter = await User.findById(rescue.user);
+                    if (reporter) {
+                        reporter.walletBalance += rescue.depositAmount;
+                        await reporter.save();
+
+                        await WalletTransaction.create({
+                            user: reporter._id,
+                            amount: rescue.depositAmount,
+                            type: 'credit',
+                            description: `Refund for unfulfilled ambulance request (Case ID: ${rescue._id})`,
+                            balanceAfter: reporter.walletBalance,
+                        });
+
+                        await Notification.create({
+                            recipient: reporter._id,
+                            title: 'Ambulance Request Cancelled',
+                            message: `We couldn't find an available ambulance. A refund of ₹${rescue.depositAmount} has been credited to your wallet.`,
+                            type: 'wallet_refund',
+                            rescueRequest: rescue._id
+                        });
+                    }
+
+                    rescue.status = 'unresolved';
+                    rescue.adminNotes = 'Automatically unresolved: No ambulance responded.';
+                    await rescue.save();
+                    continue; // Skip the rest of the loop for this case
                 }
 
                 // 2. Decide if we need to ping a NEW ambulance

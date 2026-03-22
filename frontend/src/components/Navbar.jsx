@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -12,12 +12,22 @@ import {
 } from '@heroicons/react/24/outline';
 import AdminUserSwitcher from './AdminUserSwitcher';
 import { BellIcon } from '@heroicons/react/24/outline';
+import api from '../api/axios';
 
 const Navbar = ({ onMenuClick }) => {
     const { user, logout, isImpersonating, stopImpersonating } = useAuth();
     const navigate = useNavigate();
     const [showSwitcher, setShowSwitcher] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
+    useEffect(() => {
+        if (user) {
+            api.get('/notifications?unreadOnly=true')
+                .then(res => setUnreadCount(res.data.unreadCount || 0))
+                .catch(err => console.error(err));
+        }
+    }, [user]);
 
     const handleLogout = () => {
         logout();
@@ -99,11 +109,16 @@ const Navbar = ({ onMenuClick }) => {
                         )}
 
                         {/* Notification Bell */}
-                        <button className={`p-2 rounded-full transition-all relative ${
-                            isNewUI ? 'hover:bg-white/10 text-[#e5e2e1]/70' : 'hover:bg-surface-hover text-slate-600'
-                        }`}>
+                        <button 
+                            onClick={() => navigate('/notifications')}
+                            className={`p-2 rounded-full transition-all relative ${
+                                isNewUI ? 'hover:bg-white/10 text-[#e5e2e1]/70' : 'hover:bg-surface-hover text-slate-600'
+                            }`}
+                        >
                             <BellIcon className="w-5 h-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-[#131313]"></span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#131313] animate-pulse"></span>
+                            )}
                         </button>
 
                         {/* Admin account switcher button */}

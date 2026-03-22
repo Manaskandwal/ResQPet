@@ -19,6 +19,7 @@ const NGODashboard = lazy(() => import('./pages/ngo/NGODashboard'));
 const HospitalDashboard = lazy(() => import('./pages/hospital/HospitalDashboard'));
 const AmbulanceDashboard = lazy(() => import('./pages/ambulance/AmbulanceDashboard'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 
 // New Design Previews (landing only - other pages use isNewUI flag internally)
 const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign'));
@@ -64,6 +65,7 @@ export default function App() {
       <Route path="/login" element={withSuspense(<Login />)} />
       <Route path="/register" element={withSuspense(<Register />)} />
       <Route path="/dashboard" element={<DashboardRedirect />} />
+      <Route path="/notifications" element={<ProtectedRoute allowedRoles={['user', 'ngo', 'hospital', 'ambulance', 'admin']}>{withSuspense(<Layout><Notifications /></Layout>)}</ProtectedRoute>} />
       
       <Route element={<ProtectedRoute allowedRoles={['user']} />}>
         <Route element={<Layout />}>

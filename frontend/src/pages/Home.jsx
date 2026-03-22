@@ -1,12 +1,12 @@
-﻿import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 
 const steps = [
-    { icon: 'ðŸ“', title: 'Report', desc: 'Citizen spots an animal in distress and submits a rescue request with photo and location.' },
-    { icon: 'ðŸ¤', title: 'Respond', desc: 'Nearby NGOs are instantly notified and can accept the case within 5 minutes.' },
-    { icon: 'âš¡', title: 'Escalate', desc: 'If no NGO responds in 5 minutes, the system automatically alerts hospitals and ambulances.' },
-    { icon: 'âœ…', title: 'Resolve', desc: 'Ambulance picks up the animal, delivers to care, and the rescue is marked complete.' },
+    { icon: 'ðŸ“', title: 'Report', desc: 'Spot a stray or pet in distress and log a request with location.' },
+    { icon: 'ðŸ¤', title: 'Respond', desc: 'Nearby verified partners are notified and can accept if available.' },
+    { icon: 'âš¡', title: 'Escalate', desc: 'System alerts available partners who try their best to provide a response.' },
+    { icon: 'âœ…', title: 'Resolve', desc: 'Partner resolves the case. Our future roadmap connects you with vets!' },
 ];
 
 const futureCards = [
@@ -16,10 +16,10 @@ const futureCards = [
 ];
 
 const pilotStats = [
-    { value: '2', label: 'Pilot Districts' },
+    { value: '2', label: 'Initial Districts' },
     { value: '5+', label: 'NGO Partners' },
-    { value: '24/7', label: 'Monitoring' },
-    { value: 'âˆž', label: 'Scalability' },
+    { value: '1', label: 'Ecosystem' },
+    { value: 'âˆž', label: 'Care Options' },
 ];
 
 const Home = () => {
@@ -80,14 +80,14 @@ const Home = () => {
                     </div>
 
                     <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 leading-tight mb-5 animate-slide-up">
-                        Rescue.<br />
-                        <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Respond.</span><br />
-                        Rebuild.
+                        The Ultimate Sanctuary.<br />
+                        <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">For Every Pet</span><br />
+                        &amp; Guardian.
                     </h1>
 
                     <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed animate-slide-up">
-                        Community-powered animal emergency coordination.<br />
-                        <span className="text-primary-600 font-medium">Expanding into complete pet care.</span>
+                        Discover a complete ecosystem for pet life: seamless adoption, world-class health services, a vibrant community, and rapid emergency response.<br />
+                        <span className="text-primary-600 font-medium tracking-tight">One Hybrid Platform. Endless Care.</span>
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
@@ -107,9 +107,9 @@ const Home = () => {
                     {/* Trust row */}
                     <div className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm font-medium text-slate-500 animate-fade-in">
                         <span className="flex items-center gap-1.5"><span className="text-green-500">âœ“</span> Free to use</span>
-                        <span className="flex items-center gap-1.5"><span className="text-green-500">âœ“</span> No login to view</span>
-                        <span className="flex items-center gap-1.5"><span className="text-green-500">âœ“</span> Auto-escalation in 5 min</span>
-                        <span className="flex items-center gap-1.5"><span className="text-green-500">âœ“</span> Real-time coordination</span>
+                        <span className="flex items-center gap-1.5"><span className="text-green-500">âœ“</span> Hybrid Services Coming</span>
+                        <span className="flex items-center gap-1.5"><span className="text-green-500">âœ“</span> Best-effort emergency aid</span>
+                        <span className="flex items-center gap-1.5"><span className="text-green-500">âœ“</span> Verified Partner Network</span>
                     </div>
                 </div>
             </section>
@@ -120,9 +120,9 @@ const Home = () => {
                 <div className="max-w-6xl mx-auto px-5">
                     <div className="text-center mb-10 sm:mb-12">
                         <p className="text-sm font-semibold text-primary-600 uppercase tracking-widest">How It Works</p>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2">From report to rescue in minutes</h2>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2">Building a unified pet ecosystem</h2>
                         <p className="text-slate-600 mt-3 max-w-2xl mx-auto">
-                            A tightly coordinated flow that keeps every animal rescue time-bound and accountable.
+                            A community-driven flow linking citizens with NGOs, bringing comprehensive care to stray and domestic pets alike.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -211,4 +211,6 @@ const Home = () => {
 };
 
 export default Home;
+
+
 

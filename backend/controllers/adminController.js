@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const RescueRequest = require('../models/RescueRequest');
 const WalletTransaction = require('../models/WalletTransaction');
+const Donation = require('../models/Donation');
 
 /**
  * @route   GET /api/admin/analytics
@@ -33,8 +34,46 @@ const getAnalytics = async (req, res) => {
 
         // Recent activity (last 7 days)
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         const recentRequests = await RescueRequest.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
         const recentUsers = await User.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+
+        // Chart Data Aggregations
+        const [dailyCases, monthlyCases, dailyDonations, totalDonationsAgg] = await Promise.all([
+            // Daily cases (last 30 days)
+            RescueRequest.aggregate([
+                { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+                { $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    count: { $sum: 1 }
+                }},
+                { $sort: { _id: 1 } }
+            ]),
+            // Monthly cases (overall or last year)
+            RescueRequest.aggregate([
+                { $group: {
+                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                    count: { $sum: 1 }
+                }},
+                { $sort: { _id: 1 } }
+            ]),
+            // Daily donations (last 30 days) successful only
+            Donation.aggregate([
+                { $match: { createdAt: { $gte: thirtyDaysAgo }, status: 'successful' } },
+                { $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    amount: { $sum: "$amount" }
+                }},
+                { $sort: { _id: 1 } }
+            ]),
+            // Total overall successful donations
+            Donation.aggregate([
+                { $match: { status: 'successful' } },
+                { $group: { _id: null, total: { $sum: "$amount" } } }
+            ])
+        ]);
+
+        const totalDonations = totalDonationsAgg.length > 0 ? totalDonationsAgg[0].total : 0;
 
         console.log('[Admin Controller] Analytics fetched successfully');
         res.status(200).json({
@@ -50,6 +89,12 @@ const getAnalytics = async (req, res) => {
                 totalAmbulances,
                 recentRequests,
                 recentUsers,
+                totalDonations,
+                chartData: {
+                    dailyCases,
+                    monthlyCases,
+                    dailyDonations
+                }
             },
         });
     } catch (error) {
