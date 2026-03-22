@@ -107,6 +107,7 @@ app.use('/api/ambulance', ambulanceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/donation', donationRoutes);
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/public', require('./routes/publicRoutes'));
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {

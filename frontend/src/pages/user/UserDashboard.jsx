@@ -184,8 +184,8 @@ const UserDashboard = () => {
                             <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">
                                 Hello, <span className="text-[#76d6d5]">{user?.name?.split(' ')[0]}</span>
                             </h1>
-                            <p className="text-[#e5e2e1]/70 max-w-md text-lg">
-                                Your vigilance keeps our furry friends safe. Ready to make an impact today?
+                            <p className="text-[10px] text-[#e5e2e1]/30 font-black uppercase tracking-[0.2em] leading-relaxed">
+                                Your help saves lives. Ready to help an animal today?
                             </p>
                         </div>
                         {/* Wallet Summary Card */}
@@ -288,7 +288,7 @@ const UserDashboard = () => {
                                     </div>
                                     <div className="p-6 pt-2 space-y-4">
                                         <div className="flex items-center gap-2 text-xs text-[#e5e2e1]/50">
-                                            <span className="material-symbols-outlined text-sm">location_on</span>
+                                            <span className="material-symbols-outlined">location_on</span>
                                             <span className="truncate">{rescue.location.address || 'Unknown Location'}</span>
                                         </div>
                                         <div className="pt-4 border-t border-white/5">

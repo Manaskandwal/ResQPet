@@ -187,7 +187,7 @@ const Sidebar = ({ open, onClose }) => {
 
             <div className={`px-3 py-3 border-t ${isNewUI ? 'border-white/5' : 'border-surface-border'}`}>
                 <p className={`text-[10px] text-center ${isNewUI ? 'text-white/20' : 'text-surface-muted'}`}>
-                    PawSaarthi © {new Date().getFullYear()} · Phase 1
+                    VetsCue © {new Date().getFullYear()} · Core v1
                 </p>
             </div>
         </aside>

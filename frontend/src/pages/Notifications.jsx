@@ -16,7 +16,7 @@ export default function Notifications() {
         try {
             setLoading(true);
             const { data } = await api.get('/notifications');
-            setNotifications(data.notifications);
+            setNotifications(data.notifications || []);
         } catch (error) {
             toast.error('Failed to load notifications');
         } finally {
@@ -56,7 +56,7 @@ export default function Notifications() {
         }
     };
 
-    const getIconForType = (type) => {
+    const getIconForType = (type = '') => {
         if (type.includes('rescue')) return <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />;
         if (type.includes('wallet')) return <CreditCardIcon className="w-5 h-5 text-emerald-500" />;
         if (type.includes('approval')) return <CheckCircleIcon className="w-5 h-5 text-blue-500" />;
@@ -124,7 +124,9 @@ export default function Notifications() {
                         <p className={`text-sm ${isNewUI ? 'text-[#e5e2e1]/40' : 'text-slate-400'}`}>Your comms channel is clear.</p>
                     </div>
                 ) : (
-                    filtered.map(n => (
+                    filtered.map(n => {
+                        if (!n) return null;
+                        return (
                         <div key={n._id} className={`p-5 rounded-2xl border transition-all flex gap-4 ${
                             isNewUI 
                             ? `glass-card bg-[#1c1b1b] hover:bg-white/5 ${n.isRead ? 'border-white/5 opacity-75' : 'border-[#76d6d5]/30 shadow-[0_0_30px_rgba(118,214,213,0.05)]'}` 
@@ -156,7 +158,7 @@ export default function Notifications() {
                                 </button>
                             </div>
                         </div>
-                    ))
+                    )})
                 )}
             </div>
         </div>

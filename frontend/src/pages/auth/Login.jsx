@@ -16,6 +16,7 @@ const Login = () => {
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [showPass, setShowPass] = useState(false);
 
     useEffect(() => {
         if (user && !authLoading) {
@@ -84,9 +85,9 @@ const Login = () => {
     if (authLoading) return <div className="min-h-screen bg-[#131313] flex items-center justify-center"><PawLoader /></div>;
 
     return (
-        <div className="h-screen bg-[#131313] flex flex-col lg:flex-row overflow-hidden font-body relative">
+        <div className="min-h-screen bg-[#131313] flex flex-col lg:flex-row overflow-x-hidden font-body relative">
             {/* Left Column: Splash */}
-            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-[#0e0e0e] h-full">
+            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-[#0e0e0e] min-h-screen">
                 <div className="absolute inset-0 z-0">
                     <img src="/auth_splash.png" alt="Rescue Mission" className="w-full h-full object-cover opacity-60 mix-blend-luminosity grayscale hover:grayscale-0 transition-all duration-1000" />
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
@@ -111,14 +112,14 @@ const Login = () => {
             </div>
 
             {/* Right Column: Form */}
-            <div className="flex-1 relative flex items-center justify-center p-8 lg:p-12 h-full overflow-y-auto no-scrollbar">
+            <div className="flex-1 relative flex items-center justify-center p-8 lg:p-12 min-h-screen overflow-y-auto no-scrollbar">
                 {/* Back Button */}
                 <button 
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate('/')}
                     className="absolute top-8 left-8 p-3 rounded-full hover:bg-white/5 text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-all group border border-transparent hover:border-white/5 flex items-center gap-2"
                 >
                     <ArrowLeftIcon className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Go Back</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Back to Home</span>
                 </button>
 
                 <div className="w-full max-w-sm space-y-8 animate-fade-in">
@@ -145,6 +146,7 @@ const Login = () => {
                                     theme="filled_black"
                                     shape="circle"
                                     width="100%"
+                                    text="signin_with"
                                 />
                             </div>
                         </div>
@@ -159,13 +161,18 @@ const Login = () => {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1" htmlFor="email text">Email Address</label>
                                 <input id="email" name="email" type="email" required className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="e.g. guardian@resqpet.com" value={form.email} onChange={handleChange} />
                             </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center ml-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
-                                    <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:text-[#76d6d5]/80 pointer-events-none opacity-50">Forgot?</Link>
-                                </div>
-                                <input id="password" name="password" type="password" required className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="••••••••" value={form.password} onChange={handleChange} />
-                            </div>
+                             <div className="space-y-2">
+                                 <div className="flex justify-between items-center ml-1">
+                                     <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
+                                     <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:text-[#76d6d5]/80 pointer-events-none opacity-50">Forgot?</Link>
+                                 </div>
+                                 <div className="relative group">
+                                     <input id="password" name="password" type={showPass ? 'text' : 'password'} required className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10 pr-12" placeholder="••••••••" value={form.password} onChange={handleChange} />
+                                     <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-[#76d6d5] transition-colors p-1">
+                                         <span className="material-symbols-outlined text-xl">{showPass ? 'visibility_off' : 'visibility'}</span>
+                                     </button>
+                                 </div>
+                             </div>
 
                             <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(118,214,213,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                                 {loading ? <span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> : 'Log In Account'}

@@ -94,6 +94,8 @@ export default {
             },
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],
+                headline: ['Manrope', 'sans-serif'],
+                body: ['Inter', 'sans-serif'],
             },
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-out',

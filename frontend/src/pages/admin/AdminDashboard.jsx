@@ -347,7 +347,7 @@ const AdminDashboard = () => {
 
     if (isNewUI) {
         return (
-            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-12">
+            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-12 overflow-x-hidden">
                 {locationModal && (
                     <LocationModal
                         user={locationModal}
@@ -361,21 +361,26 @@ const AdminDashboard = () => {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div className="space-y-2">
                             <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">System Overview</span>
-                            <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">Admin <span className="text-[#76d6d5]">Control Center</span></h1>
+                            <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">Admin <span className="text-[#76d6d5]">Dashboard</span></h1>
                             <p className="text-[#e5e2e1]/50 max-w-md">Orchestrate the mission and managed verified network partners.</p>
                         </div>
-                        <div className="flex bg-[#1c1b1b]/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl">
-                            {['overview', 'approvals', 'users', 'rescues'].map((t) => (
+                        <div className="flex bg-[#1c1b1b]/50 p-1 rounded-2xl border border-white/5 backdrop-blur-xl overflow-x-auto no-scrollbar scroll-smooth flex-nowrap">
+                            {[
+                                { id: 'overview', label: 'Summary' },
+                                { id: 'approvals', label: 'Partners' },
+                                { id: 'users', label: 'Users' },
+                                { id: 'rescues', label: 'Cases' }
+                            ].map((t) => (
                                 <button
-                                    key={t}
-                                    onClick={() => setSearchParams({ tab: t })}
-                                    className={`px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-                                        activeTab === t 
+                                    key={t.id}
+                                    onClick={() => setSearchParams({ tab: t.id })}
+                                    className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${
+                                        activeTab === t.id 
                                         ? 'bg-[#76d6d5] text-[#131313] shadow-[0_0_20px_rgba(118,214,213,0.3)]' 
                                         : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
                                     }`}
                                 >
-                                    {t}
+                                    {t.label}
                                 </button>
                             ))}
                         </div>
@@ -391,7 +396,7 @@ const AdminDashboard = () => {
                                 [1, 2, 3, 4].map(i => <SkeletonStatCard key={i} />)
                             ) : (
                                 statCardsResponsive.slice(0, 4).map(({ label, value, Icon, color, accent }) => (
-                                    <div key={label} className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:bg-[#1c1b1b]/60 transition-all flex flex-col justify-between h-52">
+                                    <div key={label} className="glass-card rounded-[2rem] p-6 sm:p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-[#76d6d5]/30 transition-all flex flex-col justify-between h-52">
                                         <div className={`w-14 h-14 rounded-2xl ${accent} flex items-center justify-center ${color} group-hover:scale-110 transition-transform shadow-lg`}>
                                             <Icon className="w-7 h-7" />
                                         </div>
@@ -407,12 +412,15 @@ const AdminDashboard = () => {
                         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             {/* Verification Queue & Mini Management */}
                             <div className="lg:col-span-8 flex flex-col gap-8">
-                                <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b]/50 overflow-hidden">
-                                     <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                                        <h3 className="font-headline text-xl font-bold">Network Reach</h3>
-                                        <div className="flex gap-2">
-                                            <span className="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black rounded-full uppercase tracking-widest">Active System</span>
-                                        </div>
+                                <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden">
+                                     <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between">
+                                        <h3 className="font-headline font-bold text-xl uppercase tracking-tight">Recent Activity</h3>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">Live Updates</span>
+                                     </div>
+                                     <div className="overflow-x-auto no-scrollbar">
+                                        <table className="w-full text-left min-w-[800px]">
+                                            {/* Table content goes here */}
+                                        </table>
                                      </div>
                                      <div className="p-8 grid grid-cols-2 md:grid-cols-4 gap-8">
                                         {statCardsResponsive.slice(4).map(({ label, value, color }) => (
@@ -430,7 +438,7 @@ const AdminDashboard = () => {
                                         <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-8 hidden md:block">
                                             <h3 className="font-headline text-xl font-bold mb-6 flex items-center gap-2">
                                                 <span className="w-2 h-2 rounded-full bg-[#76d6d5]"></span>
-                                                Daily Incidents <span className="text-[10px] text-[#e5e2e1]/40 font-black tracking-widest uppercase">(Last 30 Days)</span>
+                                                Daily Rescues <span className="text-[10px] text-[#e5e2e1]/40 font-black tracking-widest uppercase">(Last 30 Days)</span>
                                             </h3>
                                             <div className="h-64">
                                                 <ResponsiveContainer width="100%" height="100%">
@@ -472,7 +480,7 @@ const AdminDashboard = () => {
                                 
                                 {/* Quick Recent Activity */}
                                 <div className="space-y-4">
-                                    <h3 className="font-headline text-xl font-bold px-2">Recent Rescues</h3>
+                                    <h3 className="font-headline text-xl font-bold px-2">Recently Reported</h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {rescues.slice(0, 4).map(r => (
@@ -496,15 +504,15 @@ const AdminDashboard = () => {
                                             <ShieldCheckIcon className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="font-headline font-bold text-lg leading-tight">Identity Verification</h3>
-                                            <p className="text-[10px] text-[#ffb77d] font-black uppercase tracking-widest">Awaiting Approval</p>
+                                            <h3 className="font-headline font-bold text-lg leading-tight">Partner Approval</h3>
+                                            <p className="text-[10px] text-[#ffb77d] font-black uppercase tracking-widest">Waiting for Review</p>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         {pending.length === 0 ? (
                                             <div className="text-center py-8 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
-                                                <span className="material-symbols-outlined text-[#76d6d5] text-4xl mb-2">verified</span>
-                                                <p className="text-xs font-bold text-[#e5e2e1]/30 uppercase tracking-widest">Queue Clear</p>
+                                                <span className="material-symbols-outlined text-[#76d6d5] text-4xl mb-2">done_all</span>
+                                                <p className="text-xs font-bold text-[#e5e2e1]/30 uppercase tracking-widest">No pending reviews</p>
                                             </div>
                                         ) : (
                                             pending.slice(0, 3).map(u => (
@@ -540,7 +548,7 @@ const AdminDashboard = () => {
                 {activeTab === 'approvals' && (
                     <section className="space-y-6 w-full max-w-full">
                          <div className="flex items-center gap-3 px-2 mb-8">
-                            <h2 className="font-headline text-2xl font-bold">Verification Requests</h2>
+                            <h2 className="font-headline text-2xl font-bold">New Partners Review</h2>
                             <span className="bg-[#ffb77d] text-[#131313] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{pending.length}</span>
                         </div>
                         <div className="space-y-4">
@@ -570,7 +578,7 @@ const AdminDashboard = () => {
                                                 disabled={acting[u._id]}
                                                 className="px-6 py-3 bg-[#76d6d5] text-[#131313] font-black text-xs uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all"
                                             >
-                                                {acting[u._id] ? '...' : 'Verify Partner'}
+                                                {acting[u._id] ? '...' : 'Approve Partner'}
                                             </button>
                                         </div>
                                     </div>
@@ -584,7 +592,7 @@ const AdminDashboard = () => {
                     <section className="space-y-8 w-full">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
                              <div className="flex items-center gap-4">
-                                <h2 className="font-headline text-2xl font-bold">Directory</h2>
+                                <h2 className="font-headline text-2xl font-bold">List of Users</h2>
                                 <span className="text-[#e5e2e1]/30 text-xs font-bold uppercase tracking-widest">{users.length} Total</span>
                              </div>
                              <div className="flex bg-[#1c1b1b]/50 p-1 rounded-xl border border-white/5 overflow-x-auto max-w-full">
@@ -684,7 +692,8 @@ const AdminDashboard = () => {
                             </div>
                         </div>
                         <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden">
-                            <table className="w-full text-left">
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left min-w-[700px]">
                                 <thead className="bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/40">
                                     <tr>
                                         <th className="px-8 py-4">Report</th>
@@ -712,6 +721,7 @@ const AdminDashboard = () => {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
                             {rescues.filter(r => rescueFilter === 'all' || r.status === rescueFilter).length === 0 && (
                                 <div className="py-20 text-center text-[#e5e2e1]/30 uppercase tracking-[0.3em] font-black">No matching rescues found</div>
                             )}

@@ -59,16 +59,16 @@ const Navbar = ({ onMenuClick }) => {
                     </button>
 
                     {/* Logo */}
-                    <div className="hidden lg:flex items-center">
+                    <Link to="/" className="flex items-center ml-2 lg:ml-0">
                         {isNewUI ? (
                             <div className="flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[#76d6d5] text-2xl">pets</span>
-                                <span className="text-xl font-black text-[#76d6d5] tracking-tighter font-headline leading-none">VetsCue</span>
+                                <p className="text-xl font-headline font-black text-[#76d6d5] tracking-tight">VetsCue</p>
                             </div>
                         ) : (
-                            <img src="/logo.svg" alt="PawSaarthi" className="h-8" />
+                            <img src="/logo.svg" alt="VetsCue" className="h-8" />
                         )}
-                    </div>
+                    </Link>
 
                     {/* Right side */}
                     <div className="flex items-center gap-3 ml-auto">
