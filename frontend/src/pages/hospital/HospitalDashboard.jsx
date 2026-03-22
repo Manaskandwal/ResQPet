@@ -7,6 +7,8 @@ import { SkeletonCard } from '../../components/Skeleton';
 import { formatIndianDateTime } from '../../utils/dateTime';
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
 
+const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
 const HospitalDashboard = () => {
     const { user } = useAuth();
     const [cases, setCases] = useState([]);
@@ -58,11 +60,72 @@ const HospitalDashboard = () => {
     };
 
     if (!user.isApproved) {
+        if (isNewUI) return (
+            <div className="resqpet-obsidian-theme flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+                <div className="w-20 h-20 rounded-[2rem] bg-[#ffb77d]/10 flex items-center justify-center text-4xl">⏳</div>
+                <div className="space-y-2">
+                    <h2 className="font-headline text-3xl font-extrabold text-[#e5e2e1]">Awaiting Approval</h2>
+                    <p className="text-[#e5e2e1]/40 max-w-sm">Your hospital account is under admin review. You'll be notified once approved.</p>
+                </div>
+            </div>
+        );
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
                 <div className="text-6xl mb-4">⏳</div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Awaiting Admin Approval</h2>
                 <p className="text-surface-muted max-w-md">Your hospital account is under review.</p>
+            </div>
+        );
+    }
+
+    if (isNewUI) {
+        return (
+            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8">
+                <section className="flex items-end justify-between gap-4">
+                    <div className="space-y-2">
+                        <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Hospital</span>
+                        <h1 className="font-headline text-4xl font-extrabold tracking-tight">Case <span className="text-[#76d6d5]">Broadcasts</span></h1>
+                        <p className="text-[#e5e2e1]/40">Escalated cases needing ambulance dispatch.</p>
+                    </div>
+                    <div className="glass-card rounded-2xl border border-white/5 bg-[#1c1b1b] px-6 py-4 text-center">
+                        <p className="text-3xl font-headline font-black text-[#76d6d5]">{cases.length}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 mt-1">Broadcasts</p>
+                    </div>
+                </section>
+
+                {loading ? (
+                    <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="h-40 rounded-[2rem] bg-white/5 animate-pulse" />)}</div>
+                ) : cases.length === 0 ? (
+                    <div className="glass-card rounded-[3rem] border border-dashed border-white/10 p-16 text-center space-y-4">
+                        <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-3xl mx-auto"><BuildingOffice2Icon className="w-8 h-8 text-[#76d6d5]" /></div>
+                        <p className="text-xs font-black uppercase tracking-widest text-white/20">No escalated cases nearby.</p>
+                        <button onClick={fetchData} className="rounded-2xl border border-white/10 px-6 py-2.5 text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">Refresh</button>
+                    </div>
+                ) : (
+                    <div className="space-y-5">
+                        {cases.map((c) => (
+                            <div key={c._id} className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0 flex-1 space-y-1">
+                                        <p className="font-bold text-[#e5e2e1] truncate">{c.description}</p>
+                                        <p className="text-xs text-[#e5e2e1]/30">
+                                            {c.user?.name} · {Number.isFinite(c.distance) ? `${c.distance.toFixed(1)} km away` : ''} · Escalated {formatIndianDateTime(c.escalatedAt)}
+                                        </p>
+                                    </div>
+                                    <StatusBadge status={c.status} />
+                                </div>
+                                {c.images?.[0] && <img src={c.images[0]} alt="rescue" className="w-full h-36 object-cover rounded-2xl opacity-70" />}
+                                <div className="flex gap-3">
+                                    <button onClick={() => handleAcceptCase(c._id)} disabled={!!acting[c._id]} className="flex-1 py-3 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                                        <BuildingOffice2Icon className="w-4 h-4" />{acting[c._id] === true ? 'Claiming...' : 'Accept & Dispatch'}
+                                    </button>
+                                    <button onClick={() => handleRejectCase(c._id)} disabled={!!acting[c._id]} className="px-5 py-3 rounded-2xl border border-white/10 text-[#e5e2e1]/40 text-xs font-black uppercase tracking-widest hover:border-red-400/30 hover:text-red-400 transition-all disabled:opacity-50">Reject</button>
+                                </div>
+                            </div>
+                        ))}
+                        <button onClick={fetchData} className="w-full py-3 rounded-2xl border border-white/5 text-[#e5e2e1]/20 text-xs font-black uppercase tracking-widest hover:text-[#76d6d5] transition-all">Refresh</button>
+                    </div>
+                )}
             </div>
         );
     }

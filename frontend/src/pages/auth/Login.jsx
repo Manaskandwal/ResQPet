@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
+const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
 const Login = () => {
     const { login, user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
@@ -63,6 +65,51 @@ const Login = () => {
             setLoading(false);
         }
     };
+
+    if (isNewUI) {
+        return (
+            <div className="min-h-screen bg-[#131313] flex items-center justify-center p-4">
+                {/* Ambient glow */}
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#76d6d5]/10 rounded-full blur-[128px]" />
+                </div>
+                <div className="relative w-full max-w-md">
+                    <div className="text-center mb-10 space-y-3">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-[1.5rem] bg-[#76d6d5]/10 border border-[#76d6d5]/20 mx-auto">
+                            <span className="text-3xl">🐾</span>
+                        </div>
+                        <h1 className="font-headline text-3xl font-extrabold text-[#e5e2e1] tracking-tight">Welcome Back</h1>
+                        <p className="text-[#e5e2e1]/40 text-sm">Sign in to your ResQPet account</p>
+                    </div>
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-8">
+                        {errorMsg && (
+                            <div className="mb-6 p-4 rounded-2xl border border-red-400/20 bg-red-400/5 flex items-start gap-3">
+                                <span className="text-red-400">⚠️</span>
+                                <p className="text-sm text-red-400">{errorMsg}</p>
+                            </div>
+                        )}
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="email">Email Address</label>
+                                <input id="email" name="email" type="email" autoComplete="email" required className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="name@example.com" value={form.email} onChange={handleChange} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
+                                <input id="password" name="password" type="password" autoComplete="current-password" required className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="••••••••" value={form.password} onChange={handleChange} />
+                            </div>
+                            <button type="submit" disabled={loading} className="w-full py-4 mt-2 rounded-2xl bg-[#76d6d5] text-[#131313] text-sm font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                                {loading ? <><span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> Signing in...</> : 'Sign In'}
+                            </button>
+                        </form>
+                        <p className="text-center text-sm text-[#e5e2e1]/30 mt-8">
+                            New to ResQPet?{' '}<Link to="/register" className="text-[#76d6d5] font-bold hover:text-[#76d6d5]/80 transition-colors">Create an account</Link>
+                        </p>
+                    </div>
+                    <p className="text-center text-xs text-[#e5e2e1]/20 mt-6">© 2024 ResQPet • Made for Animals 🐾</p>
+                </div>
+            </div>
+        );
+    }
 
     return authLoading ? (
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center p-4">

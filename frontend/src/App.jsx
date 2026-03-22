@@ -20,13 +20,8 @@ const HospitalDashboard = lazy(() => import('./pages/hospital/HospitalDashboard'
 const AmbulanceDashboard = lazy(() => import('./pages/ambulance/AmbulanceDashboard'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 
-// New Design Previews
+// New Design Previews (landing only - other pages use isNewUI flag internally)
 const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign'));
-const AdminUIDesign = lazy(() => import('./pages/new-designs/AdminUIDesign'));
-const CitizenUIDesign = lazy(() => import('./pages/new-designs/CitizenUIDesign'));
-const NgoUIDesign = lazy(() => import('./pages/new-designs/NgoUIDesign'));
-const AmbulanceUIDesign = lazy(() => import('./pages/new-designs/AmbulanceUIDesign'));
-const HospitalUIDesign = lazy(() => import('./pages/new-designs/HospitalUIDesign'));
 
 const RouteFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -72,7 +67,7 @@ export default function App() {
       
       <Route element={<ProtectedRoute allowedRoles={['user']} />}>
         <Route element={<Layout />}>
-          <Route path="/user/dashboard" element={isNewUI ? withSuspense(<CitizenUIDesign />) : withSuspense(<UserDashboard />)} />
+          <Route path="/user/dashboard" element={withSuspense(<UserDashboard />)} />
           <Route path="/user/submit-rescue" element={withSuspense(<SubmitRescue />)} />
           <Route path="/user/rescue/:id" element={withSuspense(<RescueDetail />)} />
           <Route path="/user/payments" element={withSuspense(<PaymentHistory />)} />
@@ -84,25 +79,25 @@ export default function App() {
 
       <Route element={<ProtectedRoute allowedRoles={['ngo']} />}>
         <Route element={<Layout />}>
-          <Route path="/ngo/dashboard" element={isNewUI ? withSuspense(<NgoUIDesign />) : withSuspense(<NGODashboard />)} />
+          <Route path="/ngo/dashboard" element={withSuspense(<NGODashboard />)} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['hospital']} />}>
         <Route element={<Layout />}>
-          <Route path="/hospital/dashboard" element={isNewUI ? withSuspense(<HospitalUIDesign />) : withSuspense(<HospitalDashboard />)} />
+          <Route path="/hospital/dashboard" element={withSuspense(<HospitalDashboard />)} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['ambulance']} />}>
         <Route element={<Layout />}>
-          <Route path="/ambulance/dashboard" element={isNewUI ? withSuspense(<AmbulanceUIDesign />) : withSuspense(<AmbulanceDashboard />)} />
+          <Route path="/ambulance/dashboard" element={withSuspense(<AmbulanceDashboard />)} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route element={<Layout />}>
-          <Route path="/admin/dashboard" element={isNewUI ? withSuspense(<AdminUIDesign />) : withSuspense(<AdminDashboard />)} />
+          <Route path="/admin/dashboard" element={withSuspense(<AdminDashboard />)} />
         </Route>
       </Route>
 

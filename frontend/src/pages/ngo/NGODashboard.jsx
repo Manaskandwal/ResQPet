@@ -23,7 +23,6 @@ const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = '
     const [date, setDate] = useState(toDateInputValue(initialDate));
     const [time, setTime] = useState(toTimeInputValue(initialDate));
     const [notes, setNotes] = useState('');
-
     useEffect(() => {
         if (!open) return;
         const base = rescue?.scheduleDate ? new Date(rescue.scheduleDate) : new Date(Date.now() + 30 * 60 * 1000);
@@ -31,9 +30,7 @@ const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = '
         setTime(toTimeInputValue(base));
         setNotes('');
     }, [open, rescue]);
-
     if (!open || !rescue) return null;
-
     const handleSubmit = () => {
         const selectedDate = new Date(`${date}T${time}:00`);
         if (Number.isNaN(selectedDate.getTime()) || selectedDate.getTime() <= Date.now()) {
@@ -42,29 +39,42 @@ const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = '
         }
         onConfirm(selectedDate.toISOString(), notes);
     };
-
+    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+    if (isNewUI) return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-[2rem] border border-white/5 bg-[#1c1b1b] shadow-2xl">
+                <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+                    <div>
+                        <h3 className="font-headline font-bold text-[#e5e2e1]">{title}</h3>
+                        <p className="mt-1 truncate text-xs text-[#e5e2e1]/40">{rescue.description}</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-xl p-2 hover:bg-white/5 text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-all"><XMarkIcon className="h-5 w-5" /></button>
+                </div>
+                <div className="space-y-4 p-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Date</label><input type="date" className="w-full rounded-xl bg-white/5 border border-white/5 p-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" value={date} min={toDateInputValue(new Date())} onChange={(e) => setDate(e.target.value)} /></div>
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Time</label><input type="time" className="w-full rounded-xl bg-white/5 border border-white/5 p-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 transition-all" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+                    </div>
+                    <textarea className="w-full rounded-xl bg-white/5 border border-white/5 p-4 text-sm text-[#e5e2e1] h-24 outline-none focus:border-[#76d6d5]/30 transition-all" placeholder="Optional note for this visit" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                </div>
+                <div className="flex gap-3 border-t border-white/5 px-6 py-5">
+                    <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:bg-white/5 transition-all">Cancel</button>
+                    <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 rounded-xl bg-[#76d6d5] text-[#131313] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">{submitting ? 'Saving...' : 'Confirm'}</button>
+                </div>
+            </div>
+        </div>
+    );
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
             <div className="w-full max-w-md rounded-card border border-surface-border bg-white shadow-card-hover">
                 <div className="flex items-center justify-between border-b border-surface-border px-5 py-4">
-                    <div>
-                        <h3 className="font-bold text-slate-800">{title}</h3>
-                        <p className="mt-1 truncate text-xs text-surface-muted">{rescue.description}</p>
-                    </div>
-                    <button onClick={onClose} className="rounded p-1.5 hover:bg-surface-hover">
-                        <XMarkIcon className="h-5 w-5 text-slate-500" />
-                    </button>
+                    <div><h3 className="font-bold text-slate-800">{title}</h3><p className="mt-1 truncate text-xs text-surface-muted">{rescue.description}</p></div>
+                    <button onClick={onClose} className="rounded p-1.5 hover:bg-surface-hover"><XMarkIcon className="h-5 w-5 text-slate-500" /></button>
                 </div>
                 <div className="space-y-4 p-5">
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="form-group">
-                            <label className="label">Date</label>
-                            <input type="date" className="input" value={date} min={toDateInputValue(new Date())} onChange={(e) => setDate(e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="label">Time</label>
-                            <input type="time" className="input" value={time} onChange={(e) => setTime(e.target.value)} />
-                        </div>
+                        <div className="form-group"><label className="label">Date</label><input type="date" className="input" value={date} min={toDateInputValue(new Date())} onChange={(e) => setDate(e.target.value)} /></div>
+                        <div className="form-group"><label className="label">Time</label><input type="time" className="input" value={time} onChange={(e) => setTime(e.target.value)} /></div>
                     </div>
                     <textarea className="textarea h-24" placeholder="Optional note for this visit" value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
@@ -122,83 +132,74 @@ const NGODashboard = () => {
         }
     }, [gpsCoords]);
 
-    useEffect(() => {
-        if (user.isApproved) fetchAll();
-    }, [fetchAll, user.isApproved]);
+    useEffect(() => { if (user.isApproved) fetchAll(); }, [fetchAll, user.isApproved]);
 
     const withActing = async (id, state, action) => {
         setActing((prev) => ({ ...prev, [id]: state }));
-        try {
-            await action();
-        } finally {
-            setActing((prev) => ({ ...prev, [id]: null }));
-        }
+        try { await action(); } finally { setActing((prev) => ({ ...prev, [id]: null })); }
     };
 
     const handleAccept = async (id, type = 'immediate', scheduleDate = null) => {
         await withActing(id, 'accepting', async () => {
             await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate });
-            toast.success(type === 'schedule' ? 'Case scheduled successfully.' : 'Case accepted successfully.');
+            toast.success(type === 'schedule' ? 'Case scheduled.' : 'Case accepted.');
             setScheduleCase(null);
             fetchAll();
-        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to accept case.'));
+        }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
-
     const handleUpdateStatus = async (id, status, files = []) => {
         await withActing(id, 'updating', async () => {
-            const formData = new FormData();
-            formData.append('status', status);
-            formData.append('message', mediaComments[id] || `NGO updated the case to ${status}.`);
-            files.forEach((file) => formData.append('media', file));
-            await api.put(`/rescue/${id}/ngo-status`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            const fd = new FormData();
+            fd.append('status', status);
+            fd.append('message', mediaComments[id] || `NGO updated to ${status}.`);
+            files.forEach((f) => fd.append('media', f));
+            await api.put(`/rescue/${id}/ngo-status`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
             setMediaComments((prev) => ({ ...prev, [id]: '' }));
             toast.success(`Status updated to ${status}.`);
             fetchAll();
-        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to update status.'));
+        }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
-
     const handleReject = async (id) => {
-        await withActing(id, 'rejecting', async () => {
-            await api.put(`/rescue/${id}/reject-ngo`);
-            toast.success('Case passed to other responders.');
-            fetchAll();
-        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to reject case.'));
+        await withActing(id, 'rejecting', async () => { await api.put(`/rescue/${id}/reject-ngo`); toast.success('Case passed on.'); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
-
     const handleTreatOnSpot = async (id) => {
-        await withActing(id, 'resolving', async () => {
-            await api.put(`/rescue/${id}/resolve-ngo`);
-            toast.success('On-spot treatment recorded.');
-            fetchAll();
-        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to treat on spot.'));
+        await withActing(id, 'resolving', async () => { await api.put(`/rescue/${id}/resolve-ngo`); toast.success('On-spot treatment recorded.'); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
-
     const handleComplete = async (id) => {
-        await withActing(id, 'completing', async () => {
-            await api.put(`/rescue/${id}/complete-ngo`);
-            toast.success('Case marked completed.');
-            fetchAll();
-        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to complete case.'));
+        await withActing(id, 'completing', async () => { await api.put(`/rescue/${id}/complete-ngo`); toast.success('Case completed.'); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
-
     const handleEscalate = async (id) => {
-        await withActing(id, 'escalating', async () => {
-            await api.put(`/rescue/${id}/escalate-ngo`);
-            toast.success('Case escalated to hospitals.');
-            fetchAll();
-        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to escalate case.'));
+        await withActing(id, 'escalating', async () => { await api.put(`/rescue/${id}/escalate-ngo`); toast.success('Case escalated.'); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
+    };
+    const handleFollowUp = async (id, scheduleDate, notes) => {
+        await withActing(id, 'followup', async () => { await api.post(`/rescue/${id}/followup`, { scheduleDate, notes }); toast.success('Follow-up scheduled.'); setFollowUpCase(null); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
 
-    const handleFollowUp = async (id, scheduleDate, notes) => {
-        await withActing(id, 'followup', async () => {
-            await api.post(`/rescue/${id}/followup`, { scheduleDate, notes });
-            toast.success('Follow-up scheduled.');
-            setFollowUpCase(null);
-            fetchAll();
-        }).catch((error) => toast.error(error.response?.data?.message || 'Failed to schedule follow-up.'));
-    };
+    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
     if (!user.isApproved) {
+        if (isNewUI) {
+            return (
+                <div className="resqpet-obsidian-theme min-h-[70vh] flex flex-col items-center justify-center p-8 text-center space-y-8 animate-fade-in">
+                    <div className="relative">
+                        <div className="w-24 h-24 rounded-[2rem] bg-[#ffb77d]/10 flex items-center justify-center text-[#ffb77d] border border-[#ffb77d]/20 shadow-[0_0_50px_rgba(255,183,125,0.1)]">
+                            <span className="material-symbols-outlined text-5xl animate-pulse">pending_actions</span>
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[#131313] border border-white/5 flex items-center justify-center text-[#ffb77d]">
+                            <span className="material-symbols-outlined text-sm">lock</span>
+                        </div>
+                    </div>
+                    <div className="space-y-4 max-w-md">
+                        <span className="text-[#ffb77d] text-[10px] font-black uppercase tracking-[0.3em]">Verification Protocol Active</span>
+                        <h2 className="font-headline text-3xl font-extrabold tracking-tight text-[#e5e2e1]">Awaiting <span className="text-[#76d6d5]">Admin Authorization</span></h2>
+                        <p className="text-[#e5e2e1]/40 text-sm leading-relaxed">Your organization credentials are being verified by the central command. You will receive dispatch clearance once the review is complete.</p>
+                    </div>
+                    <button onClick={() => window.location.reload()} className="px-8 py-4 rounded-2xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
+                        Check Status Sync
+                    </button>
+                </div>
+            );
+        }
         return (
             <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
                 <div className="mb-4 text-6xl">⌛</div>
@@ -212,6 +213,444 @@ const NGODashboard = () => {
     const completedCases = myCases.filter((c) => c.status === 'completed');
     const activeCases = myCases.filter((c) => !['completed', 'scheduled', 'cancelled', 'closed_unresolved'].includes(c.status));
     const visibleCases = activeList === 'scheduled_list' ? scheduledCases : activeList === 'completed_list' ? completedCases : activeCases;
+
+    if (isNewUI) {
+        return (
+            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-12 pb-20">
+                <ScheduleModal 
+                    rescue={scheduleCase} 
+                    open={!!scheduleCase} 
+                    onClose={() => setScheduleCase(null)} 
+                    onConfirm={(isoDate) => handleAccept(scheduleCase._id, 'schedule', isoDate)} 
+                    submitting={scheduleCase ? acting[scheduleCase._id] === 'accepting' : false} 
+                />
+                <ScheduleModal 
+                    rescue={followUpCase} 
+                    open={!!followUpCase} 
+                    onClose={() => setFollowUpCase(null)} 
+                    onConfirm={(isoDate, notes) => handleFollowUp(followUpCase._id, isoDate, notes)} 
+                    submitting={followUpCase ? acting[followUpCase._id] === 'followup' : false} 
+                    title="Setup Follow-up Logic" 
+                />
+
+                {/* Dashboard Title Section */}
+                <section>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="space-y-2">
+                            <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Mission Control</span>
+                            <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">NGO <span className="text-[#76d6d5]">Operations</span></h1>
+                            <p className="text-[#e5e2e1]/50 max-w-md">Respond to emergencies and coordinate rescue missions across your designated sector.</p>
+                        </div>
+                        <div className="flex bg-[#1c1b1b]/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl shrink-0">
+                            {[
+                                { id: 'overview', label: 'Overview' },
+                                { id: 'nearby', label: 'Nearby Cases' },
+                                { id: 'my_cases', label: 'My Cases' }
+                            ].map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => setSearchParams({ tab: t.id })}
+                                    className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        activeTab === t.id 
+                                        ? 'bg-[#76d6d5] text-[#131313] shadow-[0_0_20px_rgba(118,214,213,0.3)]' 
+                                        : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
+                                    }`}
+                                >
+                                    {t.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {activeTab === 'overview' && (
+                    <div className="space-y-12 animate-fade-in">
+                        {/* Summary Stats Grid */}
+                        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {loading ? (
+                                [1, 2, 3, 4].map(i => <SkeletonStatCard key={i} />)
+                            ) : analytics && (
+                                <>
+                                    <div className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-[#ffb77d]/30 transition-all flex flex-col justify-between h-52">
+                                        <div className="w-14 h-14 rounded-2xl bg-[#ffb77d]/10 flex items-center justify-center text-[#ffb77d] group-hover:scale-110 transition-transform">
+                                            <ClockIcon className="w-7 h-7" />
+                                        </div>
+                                        <div>
+                                            <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.nearby_pending}</p>
+                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">Nearby Pending</p>
+                                        </div>
+                                    </div>
+                                    <div className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-blue-400/30 transition-all flex flex-col justify-between h-52">
+                                        <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                                            <ClipboardDocumentListIcon className="w-7 h-7" />
+                                        </div>
+                                        <div>
+                                            <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.accepted_count}</p>
+                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">Mission Load</p>
+                                        </div>
+                                    </div>
+                                    <div className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-[#76d6d5]/30 transition-all flex flex-col justify-between h-52">
+                                        <div className="w-14 h-14 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
+                                            <CheckCircleIcon className="w-7 h-7" />
+                                        </div>
+                                        <div>
+                                            <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.completed_count}</p>
+                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">Saved Units</p>
+                                        </div>
+                                    </div>
+                                    <div className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-indigo-400/30 transition-all flex flex-col justify-between h-52">
+                                        <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                            <ChartBarIcon className="w-7 h-7" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.acceptance_rate}%</p>
+                                            </div>
+                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">Tactical Efficiency</p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </section>
+
+                        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                             {/* Central Alerts Feed */}
+                             <div className="lg:col-span-8 space-y-8">
+                                <div className="flex items-center justify-between px-2">
+                                    <h3 className="font-headline text-xl font-bold">Incoming Sector Alerts</h3>
+                                    <button onClick={() => setSearchParams({ tab: 'nearby' })} className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:underline">Full Feed</button>
+                                </div>
+                                <div className="space-y-4">
+                                    {nearbyCases.slice(0, 3).map(c => (
+                                        <div key={c._id} className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b]/50 p-6 flex flex-col md:flex-row gap-6 hover:border-[#76d6d5]/20 transition-all">
+                                            <div className="w-full md:w-32 aspect-[4/3] rounded-2xl overflow-hidden bg-white/5 shrink-0 relative">
+                                                {c.images?.[0] ? (
+                                                    <img src={c.images[0]} alt="Subject" className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-500" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-white/5">
+                                                        <span className="material-symbols-outlined text-4xl">image</span>
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                                <div className="absolute bottom-2 left-2 text-[8px] font-black uppercase tracking-widest text-[#76d6d5]">
+                                                    {c.distance !== null && c.distance !== undefined ? `${c.distance.toFixed(1)}km` : 'SCTR Unknown'}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                                <div>
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/20">ID: {c._id.slice(-6).toUpperCase()}</span>
+                                                        <StatusBadge status={c.status} />
+                                                    </div>
+                                                    <h4 className="font-bold text-lg mb-1 truncate">{c.description}</h4>
+                                                    <p className="text-[10px] font-black text-[#e5e2e1]/40 uppercase tracking-widest flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-xs">location_on</span>
+                                                        {c.location.address || 'Geo-Locked Area'}
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-2 pt-4">
+                                                    <button onClick={() => handleAccept(c._id, 'immediate')} className="flex-1 py-3 bg-[#76d6d5] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all">Dispatch Now</button>
+                                                    <button onClick={() => setScheduleCase(c)} className="px-4 py-3 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                                                        <ClockIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {nearbyCases.length === 0 && (
+                                        <div className="p-12 glass-card rounded-[2.5rem] border border-dashed border-white/5 text-center space-y-4">
+                                            <span className="material-symbols-outlined text-4xl text-[#76d6d5]/20">satellite_alt</span>
+                                            <p className="text-xs font-black uppercase tracking-widest text-white/20">Sector Clear - No Active Distress Signals</p>
+                                        </div>
+                                    )}
+                                </div>
+                             </div>
+
+                             {/* Sector Stats & Map Quickview */}
+                             <div className="lg:col-span-4 space-y-8">
+                                <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-8 space-y-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
+                                            <span className="material-symbols-outlined text-2xl">radar</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-headline font-bold text-lg leading-tight uppercase tracking-tight">System Status</h3>
+                                            <p className="text-[10px] text-[#76d6d5] font-black uppercase tracking-widest">Global Link Secure</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-end px-2">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Mission Capacity</span>
+                                                <span className="text-sm font-bold text-[#76d6d5]">Active</span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-gradient-to-r from-[#76d6d5] to-blue-500 w-3/4 animate-pulse-slow" />
+                                            </div>
+                                        </div>
+                                        <div className="p-4 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/10 space-y-2">
+                                            <p className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">Active Volunteers</p>
+                                            <p className="text-2xl font-headline font-black text-[#e5e2e1]">128 UNITS</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-6 text-center space-y-4">
+                                    <button onClick={fetchAll} className="w-full py-4 rounded-2xl border border-white/5 hover:bg-white/5 transition-all text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/30">Refresh Satellite Link</button>
+                                </div>
+                             </div>
+                        </section>
+                    </div>
+                )}
+
+                {activeTab === 'nearby' && (
+                    <section className="space-y-8 animate-fade-in w-full">
+                        {!locationSet && (
+                             <div className="p-6 rounded-[2rem] bg-[#fd8b00]/10 border border-[#fd8b00]/20 flex items-center gap-4 text-[#fd8b00]">
+                                <span className="material-symbols-outlined text-3xl">location_off</span>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-black uppercase tracking-widest">Sector HQ Off-Grid</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">Admin authorization required to calibrate base coordinates.</p>
+                                </div>
+                             </div>
+                        )}
+
+                        <div className="flex items-center justify-between px-2">
+                             <div className="flex items-center gap-3">
+                                <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">Active Transmissions</h2>
+                                <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">{nearbyCases.length}</span>
+                             </div>
+                             <div className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
+                                <div className="w-2 h-2 rounded-full bg-[#76d6d5] animate-ping" />
+                                Real-time Sector Scan
+                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6">
+                            {nearbyCases.length === 0 ? (
+                                <div className="py-32 glass-card rounded-[3rem] text-center border border-dashed border-white/5 space-y-6">
+                                     <div className="mx-auto w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-white/10 uppercase tracking-widest text-[10px] font-black">Scanning</div>
+                                     <h3 className="text-[#e5e2e1]/40 uppercase tracking-[0.3em] font-black">All Sectors Clear</h3>
+                                </div>
+                            ) : nearbyCases.map(c => (
+                                <div key={c._id} className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden group hover:border-[#76d6d5]/30 transition-all">
+                                    <div className="flex flex-col md:flex-row">
+                                        <div className="w-full md:w-64 aspect-square bg-[#131313] relative overflow-hidden group">
+                                             {c.images?.[0] ? (
+                                                <img src={c.images[0]} alt="Reporting" className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700" />
+                                             ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-white/5">
+                                                    <span className="material-symbols-outlined text-4xl">broken_image</span>
+                                                </div>
+                                             )}
+                                             <div className="absolute top-4 left-4">
+                                                <StatusBadge status={c.status} />
+                                             </div>
+                                             <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[8px] font-black text-[#76d6d5] uppercase tracking-widest border border-white/10">
+                                                {c.distance !== null && c.distance !== undefined ? `${c.distance.toFixed(1)}km Reach` : 'Unknown SCTR'}
+                                             </div>
+                                        </div>
+                                        <div className="flex-1 p-8 flex flex-col justify-between">
+                                            <div className="space-y-4">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Distress Signal ID #{c._id.slice(-6).toUpperCase()}</p>
+                                                    <h3 className="font-headline text-2xl font-bold text-[#e5e2e1] leading-tight">{c.description}</h3>
+                                                </div>
+                                                <div className="flex flex-col gap-3">
+                                                    <div className="flex items-center gap-3 text-sm text-white/40">
+                                                        <span className="material-symbols-outlined text-lg text-[#76d6d5]">location_on</span>
+                                                        <span className="font-medium truncate">{c.location.address || 'Geo-Location Locked'}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 text-sm text-white/40">
+                                                        <span className="material-symbols-outlined text-lg text-[#ffb77d]">person</span>
+                                                        <span className="font-medium">{c.user?.name || 'Anonymous Civilian'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-4 pt-8 mt-8 border-t border-white/5">
+                                                <button onClick={() => handleAccept(c._id, 'immediate')} className="flex-1 min-w-[180px] h-14 bg-[#76d6d5] text-[#131313] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[#76d6d5]/10">Immediate Dispatch</button>
+                                                <button onClick={() => setScheduleCase(c)} className="w-14 h-14 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center hover:bg-white/10 transition-all active:scale-90">
+                                                    <ClockIcon className="w-5 h-5" />
+                                                </button>
+                                                <button onClick={() => handleReject(c._id)} className="w-14 h-14 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center hover:bg-red-500/20 text-red-400 group transition-all active:scale-90">
+                                                    <XMarkIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'my_cases' && (
+                    <section className="space-y-10 animate-fade-in w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="glass-card p-6 rounded-[2rem] border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between h-40">
+                                <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest px-2">Active Field Assets</h4>
+                                <p className="text-5xl font-headline font-black text-[#e5e2e1] px-2">{activeCases.length}</p>
+                            </div>
+                            <div className="glass-card p-6 rounded-[2rem] border border-amber-500/20 bg-amber-500/5 flex flex-col justify-between h-40">
+                                <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest px-2">Scheduled Ops</h4>
+                                <p className="text-5xl font-headline font-black text-[#e5e2e1] px-2">{scheduledCases.length}</p>
+                            </div>
+                            <div className="glass-card p-6 rounded-[2rem] border border-[#76d6d5]/20 bg-[#76d6d5]/5 flex flex-col justify-between h-40">
+                                <h4 className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest px-2">Successful Rescues</h4>
+                                <p className="text-5xl font-headline font-black text-[#e5e2e1] px-2">{completedCases.length}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                             <div className="flex bg-[#1c1b1b]/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl w-fit">
+                                {[
+                                    { id: 'active', label: 'Active Deployments', count: activeCases.length },
+                                    { id: 'scheduled_list', label: 'Queued Actions', count: scheduledCases.length },
+                                    { id: 'completed_list', label: 'Archive', count: completedCases.length },
+                                ].map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => setSearchParams({ tab: 'my_cases', list: t.id })}
+                                        className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${
+                                            activeList === t.id 
+                                            ? 'bg-white/10 text-[#76d6d5]' 
+                                            : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
+                                        }`}
+                                    >
+                                        {t.label}
+                                        <span className={`px-2 py-0.5 rounded-full text-[9px] ${activeList === t.id ? 'bg-[#76d6d5] text-[#131313]' : 'bg-white/5 text-white/30'}`}>{t.count}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="space-y-6">
+                                {loading ? (
+                                    [1, 2].map(i => <SkeletonCard key={i} />)
+                                ) : visibleCases.length === 0 ? (
+                                    <div className="py-32 glass-card rounded-[3rem] text-center border border-dashed border-white/5 space-y-4">
+                                         <span className="material-symbols-outlined text-5xl text-white/10">inventory_2</span>
+                                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Empty Transaction Queue</p>
+                                    </div>
+                                ) : visibleCases.map(c => (
+                                    <div key={c._id} className="glass-card rounded-[3rem] border border-white/5 bg-[#1c1b1b] p-8 space-y-8 group hover:border-[#76d6d5]/30 transition-all">
+                                         <div className="flex items-start justify-between">
+                                            <div className="space-y-2">
+                                                 <div className="flex items-center gap-3">
+                                                     <StatusBadge status={c.status} />
+                                                     <span className="text-[9px] font-black uppercase tracking-widest text-white/20">SCTR-ID: {c._id.slice(-6).toUpperCase()}</span>
+                                                 </div>
+                                                 <h3 className="font-headline text-2xl font-bold leading-tight max-w-2xl">{c.description}</h3>
+                                                 <div className="flex items-center gap-6 pt-2">
+                                                     <div className="flex items-center gap-2 text-xs font-bold text-white/40">
+                                                         <span className="material-symbols-outlined text-sm text-[#76d6d5]">calendar_today</span>
+                                                         {formatIndianDateTime(c.acceptedAt || c.updatedAt)}
+                                                     </div>
+                                                     {c.scheduleDate && (
+                                                        <div className="flex items-center gap-2 text-xs font-bold text-[#76d6d5]">
+                                                            <span className="material-symbols-outlined text-sm">alarm</span>
+                                                            {formatIndianDateTime(c.scheduleDate)}
+                                                        </div>
+                                                     )}
+                                                 </div>
+                                            </div>
+                                            <div className="flex -space-x-3">
+                                                 <div className="w-12 h-12 rounded-2xl bg-white/5 border-2 border-[#1c1b1b] flex items-center justify-center font-bold text-xs uppercase tracking-widest text-[#76d6d5]">{c.user?.name?.charAt(0) || 'A'}</div>
+                                            </div>
+                                         </div>
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                             <div className="p-6 rounded-[2rem] bg-white/5 border border-white/5 space-y-4">
+                                                  <div className="flex items-center gap-3 mb-2">
+                                                      <div className="w-8 h-8 rounded-lg bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
+                                                          <MapPinIcon className="w-4 h-4" />
+                                                      </div>
+                                                      <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Intelligence Target</span>
+                                                  </div>
+                                                  <p className="text-sm font-bold leading-relaxed">{c.location.address || 'Address withheld by civilian'}</p>
+                                             </div>
+                                             <div className="p-6 rounded-[2rem] bg-white/5 border border-white/5 space-y-4">
+                                                  <div className="flex items-center gap-3 mb-2">
+                                                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                                          <PhoneIcon className="w-4 h-4" />
+                                                      </div>
+                                                      <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Contact Channel</span>
+                                                  </div>
+                                                  <div className="flex items-center justify-between">
+                                                      <p className="text-sm font-bold">{c.user?.name || 'Anonymous User'}</p>
+                                                      {c.user?.phone && (
+                                                          <a href={`tel:${c.user.phone}`} className="px-4 py-2 rounded-xl bg-[#76d6d5] text-[#131313] text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all">Call Signal</a>
+                                                      )}
+                                                  </div>
+                                             </div>
+                                         </div>
+
+                                         {!['completed', 'cancelled', 'closed_unresolved'].includes(c.status) && (
+                                             <div className="pt-8 border-t border-white/5 space-y-8">
+                                                 <div className="flex flex-wrap gap-3">
+                                                     {c.status === 'accepted' && <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="px-6 py-4 bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Engage Deployment</button>}
+                                                     {c.status === 'scheduled' && <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="px-6 py-4 bg-amber-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Initiate Schedule</button>}
+                                                     {c.status === 'on_the_way' && <button onClick={() => handleUpdateStatus(c._id, 'reached')} className="px-6 py-4 bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Sector Reached</button>}
+                                                     {c.status === 'reached' && <button onClick={() => handleUpdateStatus(c._id, 'treating')} className="px-6 py-4 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Start Care Protocol</button>}
+                                                     {c.status === 'treating' && (
+                                                        <>
+                                                            <button onClick={() => handleTreatOnSpot(c._id)} className="px-6 py-4 bg-teal-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Immediate Resolution</button>
+                                                            <button onClick={() => handleEscalate(c._id)} className="px-6 py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Escalate: Critical</button>
+                                                        </>
+                                                     )}
+                                                     {c.status === 'resolved_on_spot' && (
+                                                        <>
+                                                            <button onClick={() => handleComplete(c._id)} className="px-6 py-4 bg-[#76d6d5] text-[#131313] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Decommission Mission</button>
+                                                            <button onClick={() => setFollowUpCase(c)} className="px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Schedule Follow-up</button>
+                                                        </>
+                                                     )}
+                                                 </div>
+
+                                                 <div className="glass-card rounded-[2.5rem] bg-[#131313] border border-white/5 p-8 space-y-6">
+                                                     <div className="flex items-center gap-3 mb-2">
+                                                         <div className="w-10 h-10 rounded-xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
+                                                             <ArrowUpTrayIcon className="w-6 h-6" />
+                                                         </div>
+                                                         <h4 className="text-xl font-headline font-bold uppercase tracking-tight">Mission Log Analytics</h4>
+                                                     </div>
+                                                     <textarea 
+                                                         className="w-full h-24 bg-white/5 border border-white/5 rounded-2xl p-6 font-bold text-sm text-[#e5e2e1] focus:ring-2 focus:ring-[#76d6d5]/20 outline-none transition-all"
+                                                         placeholder="Append tactical observation or field notes..."
+                                                         value={mediaComments[c._id] || ''} 
+                                                         onChange={(e) => setMediaComments((prev) => ({ ...prev, [c._id]: e.target.value }))}
+                                                     />
+                                                     <div className="flex items-center gap-4">
+                                                         <input
+                                                             type="file" id={`media-upload-${c._id}`} multiple accept="image/*,video/*" className="hidden"
+                                                             onChange={(e) => {
+                                                                 const files = Array.from(e.target.files || []);
+                                                                 if (files.length > 0) handleUpdateStatus(c._id, c.status, files);
+                                                                 e.target.value = '';
+                                                             }}
+                                                         />
+                                                         <label htmlFor={`media-upload-${c._id}`} className="px-8 h-14 bg-[#76d6d5] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center shadow-lg hover:scale-105 transition-all cursor-pointer">Append Intel Media</label>
+                                                         <button onClick={() => handleUpdateStatus(c._id, c.status)} className="px-8 h-14 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">Save Notes Only</button>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {/* FAB */}
+                <button 
+                    onClick={() => setSearchParams({ tab: 'nearby' })}
+                    className="fixed right-8 bottom-8 w-16 h-16 bg-gradient-to-br from-[#fd8b00] to-[#ffb77d] text-[#131313] rounded-[1.5rem] flex items-center justify-center shadow-[0_20px_40px_-10px_rgba(253,139,0,0.4)] z-40 active:scale-90 transition-all group"
+                >
+                    <span className="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">emergency_share</span>
+                </button>
+            </div>
+        );
+    }
 
     const renderCaseCard = (c) => (
         <div key={c._id} className="card border-l-4 border-l-primary-500">

@@ -20,6 +20,8 @@ import { useAuth } from '../../context/AuthContext';
 import SocialShare from '../../components/SocialShare';
 import { formatIndianDateTime, formatIndianTime } from '../../utils/dateTime';
 
+const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
 const getTreatmentStory = (rescue) => {
     const logs = Array.isArray(rescue?.statusLogs) ? rescue.statusLogs : [];
     const beforeImage = rescue?.images?.[0] || null;
@@ -91,7 +93,10 @@ const RescueDetail = () => {
         return () => clearInterval(pollInterval);
     }, [id, rescue]);
 
-    if (loading) return <div className="space-y-4">{[1, 2, 3].map((i) => <SkeletonCard key={i} />)}</div>;
+    if (loading) {
+        if (isNewUI) return <div className="resqpet-obsidian-theme space-y-4">{[1,2,3].map(i => <div key={i} className="h-40 rounded-[2rem] bg-white/5 animate-pulse" />)}</div>;
+        return <div className="space-y-4">{[1, 2, 3].map((i) => <SkeletonCard key={i} />)}</div>;
+    }
     if (!rescue) return null;
 
     const handleMakeFundraiser = async () => {
@@ -119,7 +124,194 @@ const RescueDetail = () => {
     const showTreatmentResults = ['completed', 'resolved_on_spot'].includes(rescue.status) || rescue.outcome === 'on_spot_treated';
     const treatmentStory = getTreatmentStory(rescue);
 
+    // Shared modals (same for both UI modes)
+    const modals = (
+        <>
+            <Transition appear show={fundraiserModalOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-50" onClose={() => setFundraiserModalOpen(false)}>
+                    <Transition.Child as={Fragment} enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0">
+                        <div className={`fixed inset-0 ${isNewUI ? 'bg-black/70 backdrop-blur-sm' : 'bg-black/40 backdrop-blur-sm'}`} />
+                    </Transition.Child>
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                        <Transition.Child as={Fragment} enter="ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+                            <Dialog.Panel className={isNewUI ? 'w-full max-w-md rounded-[2rem] bg-[#1c1b1b] border border-white/5 p-6 shadow-2xl' : 'w-full max-w-md rounded-card bg-white p-6 shadow-card-hover'}>
+                                <div className="mb-4 flex items-center justify-between">
+                                    <Dialog.Title className={`flex items-center gap-2 text-lg font-bold ${isNewUI ? 'text-[#e5e2e1]' : 'text-slate-800'}`}>
+                                        <HeartIcon className={`h-6 w-6 ${isNewUI ? 'text-[#76d6d5]' : 'text-rose-500'}`} /> Start Fundraiser
+                                    </Dialog.Title>
+                                    <button onClick={() => setFundraiserModalOpen(false)} className={`p-1 ${isNewUI ? 'text-white/30 hover:text-white' : 'btn-ghost text-slate-400'}`}><XMarkIcon className="h-6 w-6" /></button>
+                                </div>
+                                <p className={`mb-4 text-sm ${isNewUI ? 'text-[#e5e2e1]/50' : 'text-slate-600'}`}>If you cannot cover private hospital or ambulance costs, turn this rescue into a public fundraiser so support can be collected around the case.</p>
+                                <div className="mb-5">
+                                    <label className={`mb-2 block text-sm font-semibold ${isNewUI ? 'text-[#e5e2e1]/60' : 'text-slate-700'}`}>Estimated Cost (Rs)</label>
+                                    <div className="relative">
+                                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><CurrencyRupeeIcon className={`h-5 w-5 ${isNewUI ? 'text-[#76d6d5]' : 'text-surface-muted'}`} /></div>
+                                        <input type="number" min="1" value={estimatedCost} onChange={(e) => setEstimatedCost(e.target.value)} className={`w-full pl-10 pr-4 py-3 rounded-2xl text-sm ${isNewUI ? 'bg-white/5 border border-white/5 text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30' : 'input-field bg-slate-50'}`} placeholder="e.g. 5000" autoFocus />
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setFundraiserModalOpen(false)} className={`flex-1 py-3 rounded-2xl ${isNewUI ? 'border border-white/10 text-[#e5e2e1]/40 hover:text-[#e5e2e1] text-xs font-black uppercase' : 'btn-outline'}`}>Cancel</button>
+                                    <button onClick={handleMakeFundraiser} disabled={makingFundraiser || !estimatedCost} className={`flex-1 py-3 rounded-2xl ${isNewUI ? 'bg-[#76d6d5] text-[#131313] text-xs font-black uppercase disabled:opacity-50' : 'btn bg-rose-500 font-semibold text-white hover:bg-rose-600'}`}>{makingFundraiser ? 'Processing...' : 'Make Public'}</button>
+                                </div>
+                            </Dialog.Panel>
+                        </Transition.Child>
+                    </div>
+                </Dialog>
+            </Transition>
+
+            <Transition appear show={logsOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-50" onClose={() => setLogsOpen(false)}>
+                    <Transition.Child as={Fragment} enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0">
+                        <div className={`fixed inset-0 ${isNewUI ? 'bg-black/70 backdrop-blur-sm' : 'bg-black/40 backdrop-blur-sm'}`} />
+                    </Transition.Child>
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                        <Transition.Child as={Fragment} enter="ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+                            <Dialog.Panel className={isNewUI ? 'w-full max-w-2xl rounded-[2rem] bg-[#1c1b1b] border border-white/5 p-6 shadow-2xl' : 'w-full max-w-2xl rounded-card bg-white p-6 shadow-card-hover'}>
+                                <div className="mb-4 flex items-center justify-between">
+                                    <Dialog.Title className={`text-lg font-bold ${isNewUI ? 'text-[#e5e2e1]' : 'text-slate-800'}`}>Detailed Status Log</Dialog.Title>
+                                    <button onClick={() => setLogsOpen(false)} className={`p-1 ${isNewUI ? 'text-white/30 hover:text-white' : 'btn-ghost text-slate-400'}`}><XMarkIcon className="h-6 w-6" /></button>
+                                </div>
+                                <div className="max-h-[70vh] space-y-3 overflow-y-auto">
+                                    {(rescue.statusLogs || []).length === 0 ? (
+                                        <p className={`text-sm ${isNewUI ? 'text-white/30' : 'text-slate-500'}`}>No detailed logs yet.</p>
+                                    ) : rescue.statusLogs.slice().reverse().map((log, index) => (
+                                        <div key={`${log.timestamp}-${index}`} className={`rounded-2xl p-4 ${isNewUI ? 'bg-white/5 border border-white/5' : 'border border-slate-100 bg-slate-50'}`}>
+                                            <div className="flex items-center justify-between gap-3">
+                                                <p className={`text-xs font-bold uppercase tracking-[0.16em] ${isNewUI ? 'text-[#76d6d5]' : 'text-slate-500'}`}>{log.status.replaceAll('_', ' ')}</p>
+                                                <p className={`text-[11px] ${isNewUI ? 'text-white/20' : 'text-slate-400'}`}>{formatIndianDateTime(log.timestamp)}</p>
+                                            </div>
+                                            <p className={`mt-2 text-sm ${isNewUI ? 'text-[#e5e2e1]/60' : 'text-slate-700'}`}>{log.message}</p>
+                                            {log.images?.length > 0 && <div className="mt-3 flex gap-2 overflow-x-auto">{log.images.map((img, imgIndex) => <img key={imgIndex} src={img} alt="status log" className="h-20 w-24 rounded-xl object-cover" />)}</div>}
+                                            {log.video && <video src={log.video} controls className="mt-3 w-full rounded-xl" />}
+                                        </div>
+                                    ))}
+                                </div>
+                            </Dialog.Panel>
+                        </Transition.Child>
+                    </div>
+                </Dialog>
+            </Transition>
+        </>
+    );
+
+    if (isNewUI) {
+        return (
+            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-6 animate-slide-up">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-1">
+                        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
+                            <ArrowLeftIcon className="w-3 h-3" /> Back
+                        </button>
+                        <h1 className="font-headline text-2xl font-extrabold">Rescue <span className="text-[#76d6d5]">Details</span></h1>
+                        <p className="text-[10px] text-white/20">ID: {rescue._id}</p>
+                    </div>
+                    <StatusBadge status={rescue.status} />
+                </div>
+
+                {/* Progress */}
+                <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-[#e5e2e1]">Rescue Progress</h3>
+                        {canMakeFundraiser && (
+                            <button onClick={() => setFundraiserModalOpen(true)} className="rounded-full border border-[#76d6d5]/20 bg-[#76d6d5]/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:scale-105 transition-all">
+                                Need Funds? Start Fundraiser
+                            </button>
+                        )}
+                    </div>
+                    <StatusTimeline rescue={rescue} />
+                    {rescue.isFundraiser && (
+                        <div className="rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-4 space-y-2">
+                            <div className="flex items-center gap-2 font-bold text-[#76d6d5] text-sm"><HeartIcon className="h-5 w-5" /> Public Fundraiser Active</div>
+                            <div className="flex justify-between text-xs"><span className="text-[#e5e2e1]/50">Generated Funds:</span><span className="text-[#76d6d5] font-bold">Rs {rescue.amountRaised} / Rs {rescue.estimatedCost}</span></div>
+                            <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden"><div className="h-1.5 rounded-full bg-[#76d6d5] transition-all" style={{ width: `${Math.min((rescue.amountRaised / rescue.estimatedCost) * 100, 100)}%` }} /></div>
+                        </div>
+                    )}
+                    {rescue.depositRefunded && <div className="rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-3 text-xs text-[#76d6d5]">Rs 30 service fee has been refunded because the rescue could not proceed.</div>}
+                </div>
+
+                {/* Description */}
+                <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-4">
+                    <h3 className="font-bold text-[#e5e2e1]">Description</h3>
+                    <p className="text-sm text-[#e5e2e1]/60">{rescue.description}</p>
+                    <div className="border-t border-white/5" />
+                    <p className="text-xs text-white/30">Animal: <span className="text-[#e5e2e1]/60 capitalize">{rescue.animalType === 'other' ? rescue.animalTypeOther : rescue.animalType}</span></p>
+                    <p className="text-xs text-white/20">{rescue.location.address || `${rescue.location.lat.toFixed(5)}, ${rescue.location.lng.toFixed(5)}`}</p>
+                    <p className="text-xs text-white/20">Reported: {formatIndianDateTime(rescue.createdAt)}</p>
+                    <button type="button" onClick={() => setLogsOpen(true)} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
+                        <ClipboardDocumentListIcon className="h-4 w-4" />View Detailed Status Log
+                    </button>
+                    <SocialShare rescue={rescue} />
+                </div>
+
+                {/* Treatment Results */}
+                {showTreatmentResults && (
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-5">
+                        <div className="flex items-center gap-2">
+                            <SparklesIcon className="h-5 w-5 text-[#76d6d5]" />
+                            <div>
+                                <h3 className="font-bold text-[#e5e2e1]">Before and After Treatment Results</h3>
+                                <p className="text-xs text-white/30">{treatmentStory.summary}</p>
+                                {rescue.outcome === 'on_spot_treated' && <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">Completed through on-spot treatment</p>}
+                            </div>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="rounded-[1.5rem] border border-red-500/10 bg-red-500/5 p-4 space-y-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-red-400">Before</p>
+                                {treatmentStory.beforeImage ? <img src={treatmentStory.beforeImage} alt="Before" className="h-48 w-full rounded-2xl object-cover" /> : <div className="flex h-48 items-center justify-center rounded-2xl bg-white/5 text-sm text-white/20">No before image.</div>}
+                            </div>
+                            <div className="rounded-[1.5rem] border border-[#76d6d5]/10 bg-[#76d6d5]/5 p-4 space-y-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">After</p>
+                                {treatmentStory.afterImage ? <img src={treatmentStory.afterImage} alt="After" className="h-48 w-full rounded-2xl object-cover" /> : <div className="flex h-48 items-center justify-center rounded-2xl bg-white/5 text-center text-sm text-white/20">No after-treatment media yet.</div>}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Media */}
+                {(rescue.images?.length > 0 || rescue.video) && (
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-4">
+                        <h3 className="font-bold text-[#e5e2e1]">Media</h3>
+                        {rescue.images?.length > 0 && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{rescue.images.map((url, i) => <img key={i} src={url} alt={`media-${i}`} className="h-28 w-full rounded-2xl object-cover opacity-70" />)}</div>}
+                        {rescue.video && <video src={rescue.video} controls className="w-full rounded-2xl" />}
+                    </div>
+                )}
+
+                {/* NGO */}
+                {rescue.assignedNGO && (
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-3">
+                        <h3 className="font-bold text-[#e5e2e1]">Assigned NGO</h3>
+                        <p className="text-[#e5e2e1]/60">{rescue.assignedNGO.orgName || rescue.assignedNGO.name}</p>
+                        {rescue.assignedNGO.phone && <a href={`tel:${rescue.assignedNGO.phone}`} className="flex items-center gap-2 text-sm text-[#76d6d5]"><PhoneIcon className="h-4 w-4" />{rescue.assignedNGO.phone}</a>}
+                    </div>
+                )}
+
+                {/* Ambulance */}
+                {rescue.assignedAmbulance && (
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-3">
+                        <h3 className="font-bold text-[#e5e2e1]">Ambulance Dispatch</h3>
+                        <p className="text-[#e5e2e1]/60">{rescue.assignedAmbulance.name}</p>
+                        <p className="text-xs text-white/30">{rescue.assignedAmbulance.vehicleNumber}</p>
+                        {rescue.assignedAmbulance.phone && <a href={`tel:${rescue.assignedAmbulance.phone}`} className="flex items-center gap-2 text-sm text-[#76d6d5]"><PhoneIcon className="h-4 w-4" />{rescue.assignedAmbulance.phone}</a>}
+                        {liveLocation && (
+                            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4 space-y-3">
+                                <div className="flex items-center gap-2"><span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" /><span className="relative inline-flex h-3 w-3 rounded-full bg-blue-500" /></span><span className="text-xs font-black uppercase tracking-widest text-blue-400">Live Location</span></div>
+                                <p className="text-[11px] text-blue-400/60">Updated at {formatIndianTime(liveLocation.timestamp)}</p>
+                                <a href={`https://www.google.com/maps?q=${liveLocation.lat},${liveLocation.lng}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-2xl bg-blue-600 py-3 text-white text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all">
+                                    <MapPinIcon className="h-4 w-4" /> Track on Map
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {modals}
+            </div>
+        );
+    }
+
     return (
+
         <div className="space-y-5 animate-slide-up">
             <div className="flex items-center gap-3">
                 <div className="flex-1">

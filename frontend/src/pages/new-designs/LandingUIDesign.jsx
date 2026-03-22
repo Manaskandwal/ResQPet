@@ -1,145 +1,277 @@
-import React from 'react';
+import { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LandingUIDesign() {
-  return (
-    <div className="resqpet-obsidian-theme min-h-screen bg-[#131313] text-[#e5e2e1]">
-      
-{/* Top Navigation Shell */}
-<header className="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl shadow-[0_0_24px_rgba(118,214,213,0.06)]">
-<div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
-<div className="flex items-center gap-2">
-<span className="material-symbols-outlined text-[#76d6d5] text-2xl">pets</span>
-<span className="text-2xl font-extrabold text-[#76d6d5] tracking-tighter font-headline">ResQPet</span>
-</div>
-<button className="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full text-xs font-bold font-label uppercase tracking-wider active:scale-95 transition-transform">
-                Emergency
-            </button>
-</div>
-</header>
-{/* Hero Section */}
-<section className="relative h-[795px] w-full flex items-end pb-12 overflow-hidden">
-<div className="absolute inset-0 z-0">
-<img className="w-full h-full object-cover" data-alt="Portrait of a majestic rescued dog looking hopeful" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbAatU7NbycwcY767PnPYiqiBCY1CopwSjCDPihJ4NhBwx3KLYbSp4NbgvjPo8flNUBTZcbXN6vwGDZ-Bp4wJtpdAoP6-0vw2wbu8arZNDC2Q55sCJzu_ATFzVIneK02VnrKjdmgyZNf5p5tlfBGI3fnMsjMfHz3ixPxMrD-pRJYQNpFyqkdCD0Q5QkvJMbRZwmAcJRZduopydl3b9SpNdpSajKSiunQ9wWWHtWU42O9rGh8VkH3uu9XIaKYtramJNFOe7dNDDOUDZ"/>
-<div className="absolute inset-0 hero-gradient"></div>
-</div>
-<div className="relative z-10 px-6 w-full max-w-xl mx-auto">
-<div className="glass-card p-8 rounded-3xl mb-8">
-<span className="text-primary font-label font-bold tracking-[0.2em] text-[10px] uppercase mb-3 block">Protecting Lives</span>
-<h1 className="font-headline font-extrabold text-4xl leading-tight mb-4 tracking-tight text-on-surface">
-                    Empowering Every Rescue
-                </h1>
-<p className="text-on-surface-variant text-sm leading-relaxed mb-8">
-                    Bridging the gap between compassionate citizens and the frontline heroes: NGOs, ambulances, and specialized pet hospitals.
-                </p>
-<div className="flex flex-col gap-3">
-<button className="action-gradient text-on-primary-container py-4 rounded-full font-bold font-headline flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-<span className="material-symbols-outlined" style={{"fontVariationSettings":"'FILL' 1"}}>emergency_share</span>
-                        EMERGENCY RESCUE
-                    </button>
-<button className="border border-outline-variant/30 text-secondary bg-surface/40 backdrop-blur-md py-4 rounded-full font-bold font-headline flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-<span className="material-symbols-outlined">volunteer_activism</span>
-                        DONATE NOW
-                    </button>
-</div>
-</div>
-</div>
-</section>
-{/* Quick Navigation (Bento Grid) */}
-<section className="px-6 py-12 bg-surface">
-<h2 className="font-headline font-bold text-2xl mb-8 text-on-surface-variant">Access Portals</h2>
-<div className="grid grid-cols-2 gap-4">
-<div className="col-span-2 glass-card rounded-2xl p-6 relative overflow-hidden group">
-<div className="relative z-10">
-<span className="material-symbols-outlined text-primary text-3xl mb-4">person</span>
-<h3 className="font-headline font-bold text-xl mb-1">Citizens</h3>
-<p className="text-xs text-on-surface-variant">Report cases &amp; find pet care</p>
-</div>
-<span className="material-symbols-outlined absolute -right-4 -bottom-4 text-8xl text-primary/5 group-hover:text-primary/10 transition-colors">person</span>
-</div>
-<div className="bg-surface-container-low rounded-2xl p-5 border border-outline-variant/10">
-<span className="material-symbols-outlined text-secondary text-2xl mb-3">group</span>
-<h3 className="font-headline font-bold text-sm">NGOs</h3>
-<p className="text-[10px] text-on-surface-variant mt-1">Manage rescues &amp; foster networks</p>
-</div>
-<div className="bg-surface-container-low rounded-2xl p-5 border border-outline-variant/10">
-<span className="material-symbols-outlined text-tertiary text-2xl mb-3">emergency_share</span>
-<h3 className="font-headline font-bold text-sm">Ambulances</h3>
-<p className="text-[10px] text-on-surface-variant mt-1">Real-time dispatch &amp; GPS tracking</p>
-</div>
-</div>
-</section>
-{/* Impact Section */}
-<section className="px-6 py-16 bg-surface-container-low relative overflow-hidden">
-<div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px]"></div>
-<div className="relative z-10">
-<div className="mb-12">
-<h2 className="font-headline font-black text-4xl text-on-surface tracking-tighter">Impact</h2>
-<div className="h-1 w-12 bg-primary mt-2"></div>
-</div>
-<div className="space-y-6">
-{/* Stat 1 */}
-<div className="flex items-center justify-between border-b border-outline-variant/10 pb-6">
-<div>
-<div className="text-4xl font-headline font-black text-primary">5,000+</div>
-<div className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Animals Saved</div>
-</div>
-<span className="material-symbols-outlined text-on-surface-variant/20 text-5xl">pets</span>
-</div>
-{/* Stat 2 */}
-<div className="flex items-center justify-between border-b border-outline-variant/10 pb-6">
-<div>
-<div className="text-4xl font-headline font-black text-secondary">200+</div>
-<div className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Active NGOs</div>
-</div>
-<span className="material-symbols-outlined text-on-surface-variant/20 text-5xl">home_health</span>
-</div>
-{/* Stat 3 */}
-<div className="flex items-center justify-between border-b border-outline-variant/10 pb-6">
-<div>
-<div className="text-4xl font-headline font-black text-tertiary">50+</div>
-<div className="text-xs font-label uppercase tracking-widest text-on-surface-variant">Dedicated Ambulances</div>
-</div>
-<span className="material-symbols-outlined text-on-surface-variant/20 text-5xl">ambulance</span>
-</div>
-</div>
-</div>
-</section>
-{/* Footer Shell */}
-<footer className="bg-[#131313] w-full px-8 py-12 flex flex-col items-center gap-8 mt-20 border-t border-[#E5E2E1]/5">
-<div className="flex items-center gap-2">
-<span className="material-symbols-outlined text-[#76d6d5]">pets</span>
-<span className="font-['Manrope'] font-black text-[#76d6d5] text-xl">ResQPet</span>
-</div>
-<div className="flex flex-wrap justify-center gap-6">
-<a className="font-['Inter'] text-xs uppercase tracking-widest text-[#E5E2E1]/40 hover:text-[#ffb77d] transition-colors" href="#">Emergency Protocol</a>
-<a className="font-['Inter'] text-xs uppercase tracking-widest text-[#E5E2E1]/40 hover:text-[#ffb77d] transition-colors" href="#">Donate Now</a>
-<a className="font-['Inter'] text-xs uppercase tracking-widest text-[#E5E2E1]/40 hover:text-[#ffb77d] transition-colors" href="#">NGO Portal</a>
-<a className="font-['Inter'] text-xs uppercase tracking-widest text-[#E5E2E1]/40 hover:text-[#ffb77d] transition-colors" href="#">Privacy</a>
-</div>
-<p className="text-[10px] text-[#E5E2E1]/30 text-center font-label tracking-widest">
-            © 2024 ResQPet. The Luminous Guardian.
-        </p>
-</footer>
-{/* Bottom Navigation (Mobile Primary Shell) */}
-<nav className="md:hidden fixed bottom-6 left-6 right-6 z-50 glass-card rounded-full px-8 py-4 flex justify-between items-center shadow-2xl border-white/5">
-<div className="flex flex-col items-center gap-1 text-[#76d6d5]">
-<span className="material-symbols-outlined" style={{"fontVariationSettings":"'FILL' 1"}}>insights</span>
-<span className="text-[9px] font-bold uppercase tracking-tighter">Impact</span>
-</div>
-<div className="flex flex-col items-center gap-1 text-[#E5E2E1]/60">
-<span className="material-symbols-outlined">person</span>
-<span className="text-[9px] font-bold uppercase tracking-tighter">Citizens</span>
-</div>
-<div className="flex flex-col items-center gap-1 text-[#E5E2E1]/60">
-<span className="material-symbols-outlined">group</span>
-<span className="text-[9px] font-bold uppercase tracking-tighter">NGOs</span>
-</div>
-<div className="flex flex-col items-center gap-1 text-[#E5E2E1]/60">
-<span className="material-symbols-outlined">emergency_share</span>
-<span className="text-[9px] font-bold uppercase tracking-tighter">Ambulances</span>
-</div>
-</nav>
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
+  // If user is already logged in, redirect to their dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      const routes = {
+        user: '/user/dashboard', ngo: '/ngo/dashboard',
+        hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
+      };
+      navigate(routes[user.role] || '/user/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  const portals = [
+    { icon: 'person', label: 'Citizen Portal', desc: 'Report emergencies, track rescues, and manage your wallet.', color: 'text-[#76d6d5]', border: 'hover:border-[#76d6d5]/30', bg: 'hover:bg-[#76d6d5]/5' },
+    { icon: 'group', label: 'NGO Portal', desc: 'Accept rescue cases and coordinate field missions.', color: 'text-[#ffb77d]', border: 'hover:border-[#ffb77d]/30', bg: 'hover:bg-[#ffb77d]/5' },
+    { icon: 'local_hospital', label: 'Hospital Portal', desc: 'Manage escalated cases and dispatch ambulances.', color: 'text-indigo-400', border: 'hover:border-indigo-400/30', bg: 'hover:bg-indigo-400/5' },
+    { icon: 'local_shipping', label: 'Ambulance Portal', desc: 'Accept dispatches and update rescue status in real-time.', color: 'text-rose-400', border: 'hover:border-rose-400/30', bg: 'hover:bg-rose-400/5' },
+  ];
+
+  const services = [
+    { icon: 'emergency', label: 'Emergency Rescue', desc: 'Submit a geo-tagged rescue case in seconds. NGOs and responders are notified instantly.', color: 'text-red-400', accent: 'bg-red-400/10' },
+    { icon: 'volunteer_activism', label: 'Fundraising', desc: 'Turn a rescue case into a public fundraiser to cover hospital and ambulance costs.', color: 'text-[#ffb77d]', accent: 'bg-[#ffb77d]/10' },
+    { icon: 'share', label: 'Community Impact', desc: 'Share rescue updates, see completions, and celebrate every life saved on the Impact Feed.', color: 'text-[#76d6d5]', accent: 'bg-[#76d6d5]/10' },
+    { icon: 'local_hospital', label: 'Hospital Network', desc: 'Escalate critical cases to nearby hospitals with a single click. Full ambulance dispatch chain.', color: 'text-indigo-400', accent: 'bg-indigo-400/10' },
+  ];
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#131313] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-[#76d6d5]/30 border-t-[#76d6d5] rounded-full animate-spin" />
     </div>
   );
-} // Generated UI component
+
+  return (
+    <div className="resqpet-obsidian-theme min-h-screen bg-[#131313] text-[#e5e2e1] font-body overflow-x-hidden">
+
+      {/* ── Top Navigation ── */}
+      <header className="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#76d6d5] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+            <span className="text-2xl font-extrabold text-[#76d6d5] tracking-tighter font-headline">ResQPet</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link to="/login" className="text-[#e5e2e1]/60 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 hover:text-[#e5e2e1] transition-all">
+              Login
+            </Link>
+            <Link to="/register" className="bg-[#76d6d5] text-[#131313] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(118,214,213,0.3)]">
+              Register
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* ── Hero Section ── */}
+      <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
+        {/* Ambient glows */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#76d6d5]/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#ffb77d]/5 rounded-full blur-[120px]" />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left: Text */}
+          <div className="space-y-8">
+            <div className="space-y-2">
+              <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.4em]">Animal Emergency Platform</span>
+              <h1 className="font-headline font-extrabold text-5xl md:text-7xl tracking-tighter leading-none">
+                Rescue.<br />
+                <span className="text-[#76d6d5]">Connect.</span><br />
+                Save.
+              </h1>
+            </div>
+            <p className="text-[#e5e2e1]/50 text-lg leading-relaxed max-w-md">
+              ResQPet links citizens, NGOs, hospitals, and ambulances into one coordinated animal rescue network — so help arrives faster.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => navigate('/register')}
+                className="group flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[#76d6d5] text-[#131313] font-black uppercase tracking-widest text-sm hover:scale-[1.03] active:scale-[0.97] transition-all shadow-[0_0_30px_rgba(118,214,213,0.3)]"
+              >
+                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>emergency</span>
+                Report an Emergency
+              </button>
+              <button
+                onClick={() => navigate('/login')}
+                className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl border border-white/10 text-[#e5e2e1]/60 font-black uppercase tracking-widest text-sm hover:bg-white/5 hover:text-[#e5e2e1] hover:border-white/20 transition-all"
+              >
+                Sign In
+              </button>
+            </div>
+
+            {/* Inline quick stats — no dummy values, just factual labels */}
+            <div className="flex gap-8 pt-4 border-t border-white/5">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-[#e5e2e1]/20">Platform</p>
+                <p className="text-2xl font-headline font-black text-[#76d6d5]">Open</p>
+              </div>
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-[#e5e2e1]/20">Response</p>
+                <p className="text-2xl font-headline font-black text-[#ffb77d]">24/7</p>
+              </div>
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-[#e5e2e1]/20">Network</p>
+                <p className="text-2xl font-headline font-black text-[#e5e2e1]">Growing</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: visual card */}
+          <div className="relative hidden lg:block">
+            <div className="glass-card rounded-[3rem] border border-white/5 bg-[#1c1b1b] p-8 space-y-6">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#76d6d5] opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-[#76d6d5]" />
+                </span>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">Live Rescue Network</p>
+              </div>
+              {[
+                { icon: 'emergency', label: 'Emergency Reported', sub: 'Citizen submitted a case', color: 'text-red-400', accent: 'bg-red-400/10' },
+                { icon: 'volunteer_activism', label: 'NGO Responding', sub: 'Case accepted — en route', color: 'text-[#76d6d5]', accent: 'bg-[#76d6d5]/10' },
+                { icon: 'local_hospital', label: 'Hospital Ready', sub: 'Bed reserved for animal', color: 'text-indigo-400', accent: 'bg-indigo-400/10' },
+                { icon: 'local_shipping', label: 'Ambulance Dispatched', sub: 'Tracking live on map', color: 'text-[#ffb77d]', accent: 'bg-[#ffb77d]/10' },
+              ].map((s, i) => (
+                <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-all">
+                  <div className={`w-10 h-10 rounded-xl ${s.accent} flex items-center justify-center ${s.color} shrink-0`}>
+                    <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#e5e2e1]">{s.label}</p>
+                    <p className="text-[10px] text-[#e5e2e1]/30">{s.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Integrated Services ── */}
+      <section className="px-6 py-24 bg-[#1c1b1b]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16 text-center space-y-3">
+            <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.4em]">What We Do</span>
+            <h2 className="font-headline font-bold text-4xl text-[#e5e2e1] tracking-tight">Integrated Services</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {services.map((s, i) => (
+              <div key={i} className="glass-card rounded-[2rem] border border-white/5 bg-[#131313]/60 p-8 space-y-5 group cursor-default hover:-translate-y-2 hover:border-white/10 transition-all duration-500">
+                <div className={`w-14 h-14 rounded-2xl ${s.accent} flex items-center justify-center ${s.color} group-hover:scale-110 transition-transform duration-300`}>
+                  <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-headline font-bold text-lg text-[#e5e2e1]">{s.label}</h3>
+                  <p className="text-sm text-[#e5e2e1]/40 leading-relaxed">{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Access Portals ── */}
+      <section className="px-6 py-24 bg-[#131313]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16 space-y-3">
+            <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.4em]">Roles</span>
+            <h2 className="font-headline font-bold text-4xl text-[#e5e2e1] tracking-tight">Access Portals</h2>
+            <p className="text-[#e5e2e1]/40 max-w-lg">Every role has a dedicated experience. Choose yours and join the network.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {portals.map((p, i) => (
+              <div
+                key={i}
+                onClick={() => navigate('/login')}
+                className={`glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-7 space-y-4 cursor-pointer group hover:-translate-y-2 ${p.border} ${p.bg} transition-all duration-500`}
+              >
+                <div className={`w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center ${p.color} group-hover:scale-110 transition-transform duration-300`}>
+                  <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>{p.icon}</span>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-headline font-bold text-base text-[#e5e2e1]">{p.label}</h3>
+                  <p className="text-xs text-[#e5e2e1]/40 leading-relaxed">{p.desc}</p>
+                </div>
+                <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${p.color} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                  Get Started <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ── */}
+      <section className="px-6 py-24 bg-[#1c1b1b]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16 text-center space-y-3">
+            <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.4em]">The Flow</span>
+            <h2 className="font-headline font-bold text-4xl text-[#e5e2e1] tracking-tight">How It Works</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[
+              { step: '01', icon: 'smartphone', label: 'Report', desc: 'Citizen spots animal in distress and submits geo-tagged report via the app.' },
+              { step: '02', icon: 'group', label: 'NGO Dispatched', desc: 'Nearest verified NGO receives an alert and accepts the rescue mission.' },
+              { step: '03', icon: 'local_hospital', label: 'Escalate if Needed', desc: 'Serious cases are escalated to partner hospitals with ambulance dispatch.' },
+              { step: '04', icon: 'check_circle', label: 'Rescue Complete', desc: 'Status updates in real-time. Impact posted on the community feed.' },
+            ].map((s, i) => (
+              <div key={i} className="space-y-4 group hover:-translate-y-1 transition-transform duration-300 cursor-default">
+                <div className="flex items-center gap-4">
+                  <span className="font-headline text-4xl font-black text-[#76d6d5]/20">{s.step}</span>
+                  <div className="w-12 h-12 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                  </div>
+                </div>
+                <h3 className="font-headline font-bold text-lg text-[#e5e2e1]">{s.label}</h3>
+                <p className="text-sm text-[#e5e2e1]/40 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA Banner ── */}
+      <section className="px-6 py-20 bg-[#131313]">
+        <div className="max-w-4xl mx-auto glass-card rounded-[3rem] border border-[#76d6d5]/20 bg-[#1c1b1b] p-16 text-center space-y-8">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[3rem]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-[#76d6d5]/10 blur-[60px]" />
+          </div>
+          <div className="relative space-y-4">
+            <h2 className="font-headline text-4xl font-extrabold tracking-tight">Every Second <span className="text-[#76d6d5]">Counts.</span></h2>
+            <p className="text-[#e5e2e1]/50 max-w-md mx-auto">Join ResQPet today. Be the reason an animal makes it home safely.</p>
+          </div>
+          <div className="relative flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <button
+              onClick={() => navigate('/register')}
+              className="px-10 py-4 rounded-2xl bg-[#76d6d5] text-[#131313] font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(118,214,213,0.3)]"
+            >
+              Join the Network
+            </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="px-10 py-4 rounded-2xl border border-white/10 text-[#e5e2e1]/60 font-black uppercase tracking-widest text-sm hover:bg-white/5 hover:text-[#e5e2e1] transition-all"
+            >
+              Already a Member? Sign In
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="bg-[#0e0e0e] px-8 py-12 border-t border-white/5">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#76d6d5]" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+            <span className="font-headline font-black text-[#76d6d5] text-xl tracking-tight">ResQPet</span>
+          </div>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
+            <button onClick={() => navigate('/login')} className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors">Emergency</button>
+            <button onClick={() => navigate('/login')} className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors">Fundraisers</button>
+            <button onClick={() => navigate('/login')} className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors">Impact Feed</button>
+            <button onClick={() => navigate('/register')} className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors">Register</button>
+          </div>
+          <p className="text-[10px] text-[#e5e2e1]/20 font-black uppercase tracking-widest text-center">
+            © 2024 ResQPet · Made for Animals 🐾
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}

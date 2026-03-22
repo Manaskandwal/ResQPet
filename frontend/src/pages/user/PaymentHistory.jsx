@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 const PaymentHistory = () => {
     const navigate = useNavigate();
     const { updateUser } = useAuth();
+    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
     const [searchParams, setSearchParams] = useSearchParams();
     const [editingAmount, setEditingAmount] = useState(false);
     const [monthlyAmount, setMonthlyAmount] = useState('50');
@@ -75,6 +76,141 @@ const PaymentHistory = () => {
             amountLabel: `${item.type === 'debit' ? '-' : '+'}Rs ${item.amount}`,
         })),
     ].sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt));
+
+    if (isNewUI) {
+        return (
+            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8">
+                {/* Header */}
+                <section className="space-y-2">
+                    <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Payments</span>
+                    <h1 className="font-headline text-4xl font-extrabold tracking-tight">Payment <span className="text-[#76d6d5]">History</span></h1>
+                    <p className="text-[#e5e2e1]/50">{data.paymentModeMessage}</p>
+                </section>
+
+                {/* Wallet Balance */}
+                <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-8 flex items-center justify-between">
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]/60">Wallet Balance</span>
+                        <p className="text-4xl font-headline font-black text-[#e5e2e1]">₹{Number(data.walletBalance || 0).toFixed(2)}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-4xl text-[#76d6d5]/20">account_balance_wallet</span>
+                </div>
+
+                <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+                    {/* Transactions panel */}
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-6">
+                        <div className="flex gap-2 rounded-2xl bg-white/5 p-1">
+                            {[['subscription','Subscription'],['wallet','Wallet'],['all','All']].map(([id, label]) => (
+                                <button key={id} onClick={() => setSearchParams({ tab: id })} className={`flex-1 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all ${activeTab === id ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>{label}</button>
+                            ))}
+                        </div>
+
+                        {loading ? <p className="text-sm text-white/20">Loading...</p> : activeTab === 'subscription' ? (
+                            <div className="space-y-3">
+                                {data.subscriptionPayments.length === 0 ? <div className="rounded-2xl bg-white/5 p-6 text-sm text-white/20 text-center">No recurring records yet.</div> : data.subscriptionPayments.map((p) => (
+                                    <div key={p._id} className="rounded-2xl bg-white/5 border border-white/5 p-4 space-y-3">
+                                        <div className="flex justify-between">
+                                            <p className="font-bold text-[#e5e2e1]">₹{p.amount} recurring contribution</p>
+                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${p.status === 'active' ? 'bg-[#76d6d5]/10 text-[#76d6d5]' : p.status === 'cancelled' ? 'bg-red-500/10 text-red-400' : 'bg-white/5 text-white/40'}`}>{p.status}</span>
+                                        </div>
+                                        <div className="grid gap-2 text-xs text-white/40 md:grid-cols-2">
+                                            <p>Started: {p.subscriptionStartedAt ? formatIndianDateTime(p.subscriptionStartedAt) : 'Not set'}</p>
+                                            <p>Recorded: {formatIndianDateTime(p.createdAt)}</p>
+                                            <p>Next: {p.nextPaymentDate ? formatIndianDateTime(p.nextPaymentDate) : 'Not scheduled'}</p>
+                                            <p>Source: {p.paymentSource === 'wallet_test' ? 'Wallet test mode' : p.paymentSource}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : activeTab === 'wallet' ? (
+                            <div className="space-y-3">
+                                {data.walletTransactions.length === 0 ? <div className="rounded-2xl bg-white/5 p-6 text-sm text-white/20 text-center">No transactions yet.</div> : data.walletTransactions.map((txn) => (
+                                    <div key={txn._id} className="flex items-center justify-between rounded-2xl bg-white/5 border border-white/5 p-4">
+                                        <div>
+                                            <p className="font-bold text-[#e5e2e1]">{txn.description}</p>
+                                            <p className="text-xs text-white/30 mt-1">{formatIndianDateTime(txn.createdAt)}</p>
+                                            <p className="text-xs text-white/20">Balance after: ₹{txn.balanceAfter}</p>
+                                        </div>
+                                        <span className={`text-sm font-black ${txn.type === 'debit' ? 'text-red-400' : 'text-[#76d6d5]'}`}>{txn.type === 'debit' ? '-' : '+'}₹{txn.amount}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {allTransactions.map((item) => (
+                                    <div key={`${item.kind}-${item._id}`} className="rounded-2xl bg-white/5 border border-white/5 p-4 space-y-2">
+                                        <div className="flex justify-between">
+                                            <p className="font-bold text-[#e5e2e1]">{item.title}</p>
+                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${item.kind === 'wallet' ? 'bg-white/5 text-white/40' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>{item.kind}</span>
+                                        </div>
+                                        <p className="text-xs text-white/30">{formatIndianDateTime(item.occurredAt)}</p>
+                                        <p className="text-sm font-bold text-[#e5e2e1]/70">{item.amountLabel}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Subscription control */}
+                    <div className="space-y-6">
+                        <div className="glass-card rounded-[2rem] border border-[#76d6d5]/10 bg-[#1c1b1b] p-6 space-y-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[#76d6d5]">favorite</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]/60">Monthly Support</span>
+                                    <p className="font-headline font-bold text-xl text-[#e5e2e1]">{subscription?.isSubscribed ? `₹${subscription.amount}/month` : 'Not active'}</p>
+                                </div>
+                            </div>
+                            <div className="space-y-1 text-xs text-white/40">
+                                <p>Status: <span className="text-[#e5e2e1]/70 font-bold capitalize">{subscription?.status || 'inactive'}</span></p>
+                                <p>Started: {subscription?.startedAt ? formatIndianDateTime(subscription.startedAt) : 'Not started'}</p>
+                                <p>Last: {subscription?.lastDeductedAt ? formatIndianDateTime(subscription.lastDeductedAt) : 'Not yet charged'}</p>
+                                <p>Next: {subscription?.nextPaymentDate ? formatIndianDateTime(subscription.nextPaymentDate) : 'Not scheduled'}</p>
+                            </div>
+                        </div>
+
+                        <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-5">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/40">Subscription Controls</p>
+                                <p className="text-xs text-white/30">Choose the monthly amount, then start, pause, resume, or cancel.</p>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 block mb-2">Monthly amount</label>
+                                {editingAmount ? (
+                                    <div className="flex gap-2">
+                                        <input type="number" min="10" value={monthlyAmount} onChange={(e) => setMonthlyAmount(e.target.value)} className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-3 text-[#e5e2e1] text-sm outline-none focus:border-[#76d6d5]/30" />
+                                        <button onClick={() => handleAction('put', '/user/subscription/amount', { amount: Number(monthlyAmount) }, 'Amount updated.').then(() => setEditingAmount(false))} disabled={acting} className="px-4 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase">
+                                            <CheckIcon className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-between items-center rounded-2xl bg-white/5 border border-white/5 px-4 py-3">
+                                        <span className="font-bold text-[#e5e2e1]">₹{monthlyAmount}</span>
+                                        <button onClick={() => setEditingAmount(true)} className="text-white/30 hover:text-[#76d6d5] transition-colors">
+                                            <PencilSquareIcon className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="space-y-3">
+                                {!subscription?.isSubscribed ? (
+                                    <button onClick={() => handleAction('post', '/user/subscribe-emergency', { amount: Number(monthlyAmount) }, 'Monthly support started.')} disabled={acting} className="w-full py-3 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">Start Monthly Support</button>
+                                ) : (
+                                    <>
+                                        {isActiveMember && <button onClick={() => handleAction('post', '/user/subscription/pause', {}, 'Subscription paused.')} disabled={acting} className="w-full py-3 rounded-2xl bg-[#ffb77d]/10 border border-[#ffb77d]/20 text-[#ffb77d] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50"><PauseCircleIcon className="h-4 w-4 inline mr-2" />Pause for One Month</button>}
+                                        {isPausedMember && <button onClick={() => handleAction('post', '/user/subscription/resume', {}, 'Resumed.')} disabled={acting} className="w-full py-3 rounded-2xl bg-[#76d6d5]/10 border border-[#76d6d5]/20 text-[#76d6d5] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50"><PlayCircleIcon className="h-4 w-4 inline mr-2" />Resume Support</button>}
+                                        <button onClick={() => handleAction('post', '/user/subscription/cancel', {}, 'Cancelled.')} disabled={acting} className="w-full py-3 rounded-2xl bg-red-500/10 border border-red-400/20 text-red-400 text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50"><StopCircleIcon className="h-4 w-4 inline mr-2" />Cancel Subscription</button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

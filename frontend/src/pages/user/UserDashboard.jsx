@@ -34,7 +34,28 @@ const UserDashboard = () => {
     const [paying, setPaying] = useState(false);
     const [mockPaying, setMockPaying] = useState(false);
     const [walletModalOpen, setWalletModalOpen] = useState(false);
+    const [currentZone, setCurrentZone] = useState('Locating...');
     const topupRef = useRef(null);
+
+    // Fetch real live location and reverse geocode to get area name
+    useEffect(() => {
+        if (!navigator.geolocation) { setCurrentZone('Location unavailable'); return; }
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                try {
+                    const { latitude, longitude } = pos.coords;
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+                    const data = await res.json();
+                    const addr = data.address;
+                    // Pick the most specific locality name available
+                    const zone = addr.neighbourhood || addr.suburb || addr.quarter || addr.village || addr.town || addr.city || addr.county || 'Your Area';
+                    setCurrentZone(zone);
+                } catch { setCurrentZone('Your Area'); }
+            },
+            () => setCurrentZone('Location unavailable'),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 }
+        );
+    }, []);
 
     const fetchData = useCallback(async () => {
         try {
@@ -138,15 +159,237 @@ const UserDashboard = () => {
         { label: 'Completed', value: rescues.filter(r => r.status === 'completed').length, Icon: CheckCircleIcon, color: 'text-green-600', bg: 'bg-green-50' },
     ];
 
+    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
     if (loading) {
         return (
-            <div className="space-y-6">
+            <div className={`space-y-6 ${isNewUI ? 'resqpet-obsidian-theme' : ''}`}>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[1, 2, 3].map(i => <SkeletonStatCard key={i} />)}
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {[1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
                 </div>
+            </div>
+        );
+    }
+
+    if (isNewUI) {
+        return (
+            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-12">
+                {/* Header Section */}
+                <section>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="space-y-2">
+                            <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">
+                                Hello, <span className="text-[#76d6d5]">{user?.name?.split(' ')[0]}</span>
+                            </h1>
+                            <p className="text-[#e5e2e1]/70 max-w-md text-lg">
+                                Your vigilance keeps our furry friends safe. Ready to make an impact today?
+                            </p>
+                        </div>
+                        {/* Wallet Summary Card */}
+                        <div 
+                            onClick={() => setWalletModalOpen(true)}
+                            className="glass-card rounded-[2rem] p-6 flex items-center gap-4 min-w-[280px] border border-white/5 bg-[#1c1b1b]/50 cursor-pointer hover:bg-[#1c1b1b] transition-all group"
+                        >
+                            <div className="w-12 h-12 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
+                                <WalletIcon className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold font-headline transition-all">₹{wallet.walletBalance.toFixed(2)}</div>
+                                <div className="text-[10px] text-[#76d6d5] font-black uppercase tracking-widest">Available Balance</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Main Hero: Report CTA & Stats */}
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+                    <div className="lg:col-span-8 relative rounded-[2.5rem] overflow-hidden group min-h-[400px] border border-white/5 bg-[#1c1b1b]">
+                        <div className="absolute inset-0 opacity-20 grayscale bg-[url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')] bg-cover bg-center">
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#131313] via-[#131313]/40 to-transparent"></div>
+                        </div>
+                        <div className="relative h-full p-8 md:p-12 flex flex-col justify-center max-w-xl">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76d6d5]/10 text-[#76d6d5] text-xs font-bold uppercase tracking-widest mb-6 w-fit">
+                                <span className="w-2 h-2 rounded-full bg-[#76d6d5] animate-pulse"></span>
+                                Citizen Guardian
+                            </div>
+                            <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4 leading-tight">Spot an animal in distress?</h2>
+                            <p className="text-[#e5e2e1]/70 mb-8 text-lg">Pin the location and upload a photo. Our rapid response team is on standby 24/7.</p>
+                            <button 
+                                onClick={() => navigate('/user/submit-rescue')}
+                                className="w-fit flex items-center gap-3 px-8 py-4 bg-gradient-to-br from-[#76d6d5] to-[#008080] text-[#131313] font-bold rounded-full hover:scale-105 transition-all shadow-xl active:scale-95"
+                            >
+                                <span className="material-symbols-outlined">campaign</span>
+                                Report an Animal
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-4 flex flex-col gap-6">
+                        {stats.map(({ label, value, Icon, color }) => (
+                            <div key={label} className="glass-card rounded-[2rem] p-6 border border-white/5 bg-[#1c1b1b]/30 flex items-center gap-5 group hover:bg-[#1c1b1b]/50 transition-all">
+                                <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
+                                    <Icon className="w-7 h-7" />
+                                </div>
+                                <div>
+                                    <p className="text-3xl font-headline font-black text-[#e5e2e1]">{value}</p>
+                                    <p className="text-xs font-bold text-[#e5e2e1]/40 uppercase tracking-widest">{label}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Recent Reports Section */}
+                <section className="space-y-8">
+                    <div className="flex items-center justify-between">
+                        <h2 className="font-headline text-2xl font-bold tracking-tight text-[#e5e2e1]">Your Recent Reports</h2>
+                        <Link to="/user/reports" className="text-sm font-bold text-[#76d6d5] hover:underline flex items-center gap-2 group">
+                            View All <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                    </div>
+
+                    {rescues.length === 0 ? (
+                        <div className="glass-card rounded-[2.5rem] border-2 border-dashed border-white/10 p-12 text-center flex flex-col items-center">
+                            <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-primary/30 mb-4">
+                                <PlusCircleIcon className="w-10 h-10" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">No rescue reports yet</h3>
+                            <p className="text-[#e5e2e1]/40 mb-8 max-w-sm">Every report matters. Start by submitting your first animal rescue report today.</p>
+                            <Link to="/user/submit-rescue" className="px-8 py-3 bg-white/5 border border-white/10 rounded-full font-bold hover:bg-white/10 transition-all">
+                                Get Started
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {rescues.slice(0, 3).map((rescue) => (
+                                <Link 
+                                    key={rescue._id} 
+                                    to={`/user/rescue/${rescue._id}`}
+                                    className="glass-card rounded-[2.5rem] overflow-hidden group border border-white/5 bg-[#1c1b1b] flex flex-col hover:-translate-y-2 transition-all duration-300"
+                                >
+                                    <div className="h-56 relative overflow-hidden">
+                                        <img 
+                                            src={rescue.images?.[0] || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80'} 
+                                            alt="rescue" 
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70" 
+                                        />
+                                        <div className="absolute top-4 right-4">
+                                            <StatusBadge status={rescue.status} />
+                                        </div>
+                                        <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-[#1c1b1b] to-transparent">
+                                            <p className="text-xs text-[#76d6d5] font-black uppercase tracking-widest mb-1">
+                                                {formatIndianDate(rescue.createdAt)}
+                                            </p>
+                                            <h4 className="font-headline font-bold text-lg truncate text-[#e5e2e1]">{rescue.description}</h4>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 pt-2 space-y-4">
+                                        <div className="flex items-center gap-2 text-xs text-[#e5e2e1]/50">
+                                            <span className="material-symbols-outlined text-sm">location_on</span>
+                                            <span className="truncate">{rescue.location.address || 'Unknown Location'}</span>
+                                        </div>
+                                        <div className="pt-4 border-t border-white/5">
+                                            <StatusTimeline rescue={rescue} />
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                {/* Wallet Modal Override */}
+                <Transition appear show={walletModalOpen} as={Fragment}>
+                    <Dialog as="div" className="relative z-50 resqpet-obsidian-theme" onClose={() => setWalletModalOpen(false)}>
+                        <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
+                            <div className="fixed inset-0 bg-[#131313]/90 backdrop-blur-xl" />
+                        </Transition.Child>
+
+                        <div className="fixed inset-0 flex items-center justify-center p-4">
+                            <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+                                <Dialog.Panel className="w-full max-w-lg rounded-[3rem] bg-[#1c1b1b] p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)]">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <Dialog.Title className="text-2xl font-headline font-extrabold text-[#e5e2e1] flex items-center gap-3">
+                                            <WalletIcon className="w-8 h-8 text-[#76d6d5]" />
+                                            Unified Wallet
+                                        </Dialog.Title>
+                                        <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-[#e5e2e1]/40">
+                                            <XMarkIcon className="w-6 h-6" />
+                                        </button>
+                                    </div>
+
+                                    <div className="glass-card bg-gradient-to-br from-[#76d6d5]/20 to-[#008080]/20 rounded-[2.5rem] border border-[#76d6d5]/30 p-8 mb-8 relative overflow-hidden group">
+                                        <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#76d6d5]/10 rounded-full blur-3xl" />
+                                        <div className="relative z-10 text-center py-4">
+                                            <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Available Balance</span>
+                                            <p className="text-5xl font-headline font-black mt-2 mb-2 text-[#e5e2e1]">₹{wallet.walletBalance.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-black text-[#e5e2e1]/40 uppercase tracking-widest mb-3 px-2">Quick Top-up</label>
+                                            <div className="flex gap-2">
+                                                {[50, 100, 200, 500].map((amt) => (
+                                                    <button key={amt} onClick={() => handleMockTopup(amt)}
+                                                        disabled={mockPaying}
+                                                        className="flex-1 py-3 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-xs font-bold hover:bg-[#76d6d5]/10 hover:border-[#76d6d5]/30 transition-all active:scale-95 disabled:opacity-50">
+                                                        +₹{amt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    ref={topupRef}
+                                                    type="number" min="10" placeholder="Custom"
+                                                    value={topupAmt}
+                                                    onChange={(e) => setTopupAmt(e.target.value)}
+                                                    className="w-full h-14 px-6 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-sm focus:outline-none focus:ring-2 focus:ring-[#76d6d5]/20 focus:border-[#76d6d5]/50 transition-all font-bold placeholder:text-[#e5e2e1]/20"
+                                                />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#e5e2e1]/20">INR</span>
+                                            </div>
+                                            <button onClick={handleTopup} disabled={paying} className="h-14 px-10 bg-[#e5e2e1] text-[#131313] rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-[#e5e2e1]/5 disabled:opacity-50">
+                                                {paying ? '...' : 'Top Up'}
+                                            </button>
+                                        </div>
+
+                                        <div className="pt-6 border-t border-white/5">
+                                            <h3 className="font-bold text-[#e5e2e1]/40 text-xs uppercase tracking-widest mb-4 px-2">Transactions</h3>
+                                            <div className="space-y-4 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                                                {wallet.transactions.length === 0 ? (
+                                                    <p className="text-[#e5e2e1]/20 text-xs text-center py-4">No history available</p>
+                                                ) : (
+                                                    wallet.transactions.slice(0, 10).map((txn) => (
+                                                        <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] ${txn.type === 'debit' ? 'bg-red-500/10 text-red-400' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>
+                                                                    <span className="material-symbols-outlined text-sm">{txn.type === 'debit' ? 'arrow_downward' : 'arrow_upward'}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-bold text-[#e5e2e1] truncate max-w-[200px]">{txn.description}</p>
+                                                                    <p className="text-[10px] text-[#e5e2e1]/40">{formatIndianDate(txn.createdAt)}</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className={`text-sm font-black ${txn.type === 'credit' || txn.type === 'refund' ? 'text-[#76d6d5]' : 'text-red-400'}`}>
+                                                                {txn.type === 'debit' ? '-' : '+'}₹{txn.amount}
+                                                            </span>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </Dialog>
+                </Transition>
             </div>
         );
     }

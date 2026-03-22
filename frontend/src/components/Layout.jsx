@@ -12,12 +12,10 @@ const Layout = () => {
     const location = useLocation();
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
-    if (isNewUI && location.pathname.endsWith('/dashboard')) {
-        return <Outlet />;
-    }
+    // Integrated shell for both old and new designs
 
     return (
-        <div className="min-h-screen flex bg-slate-50">
+        <div className={`min-h-screen flex transition-colors duration-300 ${isNewUI ? 'bg-[#131313]' : 'bg-slate-50'}`}>
             {/* Sidebar — desktop always visible, mobile overlay */}
             <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

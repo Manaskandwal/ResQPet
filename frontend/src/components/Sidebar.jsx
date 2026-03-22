@@ -70,6 +70,7 @@ const roleIcons = {
 
 const Sidebar = ({ open, onClose }) => {
     const { user } = useAuth();
+    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
     const links = navConfig[user?.role] || [];
     const RoleIcon = roleIcons[user?.role] || HomeIcon;
     const showComingSoon = phaseTwoRoles.has(user?.role);
@@ -81,53 +82,87 @@ const Sidebar = ({ open, onClose }) => {
     return (
         <aside
             className={`
-                fixed top-0 left-0 h-full w-60 bg-white border-r border-surface-border z-30
+                fixed top-0 left-0 h-full w-60 z-30
                 flex flex-col transition-transform duration-300 overflow-x-hidden
+                ${isNewUI ? 'bg-[#131313] border-r border-white/5' : 'bg-white border-r border-surface-border'}
                 ${open ? 'translate-x-0' : '-translate-x-full'}
                 lg:translate-x-0
             `}
         >
-            <div className="flex items-center justify-between px-4 py-4 border-b border-surface-border">
-                <img src="/logo.svg" alt="PawSaarthi" className="h-8" />
-                <button onClick={onClose} className="lg:hidden p-1.5 rounded hover:bg-surface-hover">
-                    <XMarkIcon className="w-4 h-4 text-slate-500" />
+            <div className={`flex items-center justify-between px-4 py-4 border-b ${isNewUI ? 'border-white/5' : 'border-surface-border'}`}>
+                {isNewUI ? (
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#76d6d5] text-xl">pets</span>
+                        <span className="text-lg font-extrabold text-[#76d6d5] tracking-tighter font-headline">ResQPet</span>
+                    </div>
+                ) : (
+                    <img src="/logo.svg" alt="PawSaarthi" className="h-8" />
+                )}
+                <button onClick={onClose} className={`lg:hidden p-1.5 rounded transition ${isNewUI ? 'hover:bg-white/5 text-white/40' : 'hover:bg-surface-hover text-slate-500'}`}>
+                    <XMarkIcon className="w-4 h-4" />
                 </button>
             </div>
 
-            <div className="px-3 py-2.5 mx-3 mt-3 rounded-btn bg-primary-50 border border-primary-100 flex items-center gap-2">
-                <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <RoleIcon className="w-3.5 h-3.5 text-primary-600" />
+            <div className={`px-3 py-2.5 mx-3 mt-3 rounded-btn border flex items-center gap-2 transition-all ${
+                isNewUI 
+                ? 'bg-white/5 border-white/10' 
+                : 'bg-primary-50 border-primary-100'
+            }`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    isNewUI ? 'bg-[#76d6d5]/10' : 'bg-primary-100'
+                }`}>
+                    <RoleIcon className={`w-3.5 h-3.5 ${isNewUI ? 'text-[#76d6d5]' : 'text-primary-600'}`} />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-xs font-semibold text-primary-700 truncate leading-tight">{user?.name}</p>
-                    <p className="text-[10px] text-primary-500 leading-tight">{roleLabels[user?.role]}</p>
+                    <p className={`text-xs font-semibold truncate leading-tight ${isNewUI ? 'text-[#e5e2e1]' : 'text-primary-700'}`}>{user?.name}</p>
+                    <p className={`text-[10px] leading-tight ${isNewUI ? 'text-[#e5e2e1]/50' : 'text-primary-500'}`}>{roleLabels[user?.role]}</p>
                 </div>
             </div>
 
-            <nav className="flex-1 px-2 mt-3 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
-                <p className="text-[10px] uppercase tracking-widest text-surface-muted font-semibold px-2 mb-1">
+            <nav className="flex-1 px-2 mt-3 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                <p className={`text-[11px] uppercase tracking-widest font-bold px-5 mb-1 ${isNewUI ? 'text-[#76d6d5]/50' : 'text-surface-muted'}`}>
                     Menu
                 </p>
-                {links.map(({ to, label, Icon }) => (
+                {links.map(({ to, label, Icon }) => {
+                    const toPath = to.split('?')[0];
+                    const toQuery = to.includes('?') ? to.split('?')[1] : null;
+                    return (
                     <NavLink
                         key={`${to}-${label}`}
                         to={to}
                         onClick={onClose}
-                        className={({ isActive }) => (isActive ? 'nav-link-active' : 'nav-link')}
-                        end
+                        className={({ isActive }) => {
+                            const base = "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap overflow-hidden";
+                            // For links with query params, check both path and query
+                            const currentSearch = typeof window !== 'undefined' ? window.location.search : '';
+                            const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+                            const active = toQuery
+                                ? currentPath === toPath && currentSearch.includes(toQuery.split('=')[1])
+                                : isActive;
+                            if (isNewUI) {
+                                return active 
+                                    ? `${base} bg-[#76d6d5]/15 text-[#76d6d5] shadow-[0_0_20px_rgba(118,214,213,0.1)]` 
+                                    : `${base} text-[#e5e2e1]/60 hover:bg-white/5 hover:text-[#e5e2e1]`;
+                            }
+                            return active ? 'nav-link-active flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold' : 'nav-link flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold';
+                        }}
                     >
-                        <Icon className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{label}</span>
+                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        <span className="truncate tracking-tight">{label}</span>
                     </NavLink>
-                ))}
+                    );
+                })}
+
 
                 {showComingSoon && (
                     <div className="mt-3">
                         <div className="flex items-center gap-2 px-2 mb-1">
-                            <p className="text-[10px] uppercase tracking-widest text-surface-muted font-semibold">
+                            <p className={`text-[11px] uppercase tracking-widest font-bold ${isNewUI ? 'text-[#76d6d5]/50' : 'text-surface-muted'}`}>
                                 Coming Soon
                             </p>
-                            <span className="px-1.5 py-0.5 bg-violet-50 border border-violet-200 rounded-full text-[9px] text-violet-600 font-bold uppercase">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                isNewUI ? 'bg-[#76d6d5]/10 text-[#76d6d5]/80 border border-[#76d6d5]/20' : 'bg-violet-50 border border-violet-200 text-violet-600'
+                            }`}>
                                 Phase 2
                             </span>
                         </div>
@@ -135,9 +170,11 @@ const Sidebar = ({ open, onClose }) => {
                             <button
                                 key={label}
                                 onClick={() => handleComingSoon(label)}
-                                className="nav-link w-full text-left opacity-50 group"
+                                className={`w-full text-left opacity-60 group flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all ${
+                                    isNewUI ? 'text-[#e5e2e1]/60 hover:bg-white/5 hover:text-[#e5e2e1]' : 'nav-link'
+                                }`}
                             >
-                                <span className="text-[11px] leading-none flex-shrink-0 font-semibold uppercase tracking-wide text-slate-400">
+                                <span className={`text-[10px] leading-none flex-shrink-0 font-bold uppercase tracking-wider ${isNewUI ? 'text-[#76d6d5]/40' : 'text-slate-400'}`}>
                                     {tag}
                                 </span>
                                 <span className="truncate text-slate-400">{label}</span>
@@ -148,8 +185,8 @@ const Sidebar = ({ open, onClose }) => {
                 )}
             </nav>
 
-            <div className="px-3 py-3 border-t border-surface-border">
-                <p className="text-[10px] text-surface-muted text-center">
+            <div className={`px-3 py-3 border-t ${isNewUI ? 'border-white/5' : 'border-surface-border'}`}>
+                <p className={`text-[10px] text-center ${isNewUI ? 'text-white/20' : 'text-surface-muted'}`}>
                     PawSaarthi © {new Date().getFullYear()} · Phase 1
                 </p>
             </div>
