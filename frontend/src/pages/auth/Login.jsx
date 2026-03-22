@@ -96,7 +96,7 @@ const Login = () => {
                 <div className="relative z-10 p-16 space-y-6 max-w-2xl">
                     <div className="flex items-center gap-3 animate-slide-in">
                         <span className="material-symbols-outlined text-[#76d6d5] text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-                        <span className="text-4xl font-black text-[#76d6d5] font-headline tracking-tighter uppercase leading-none">VetsCue</span>
+                        <span className="text-4xl font-black text-[#76d6d5] font-headline tracking-tighter leading-none">VetsCue</span>
                     </div>
                     <div className="space-y-2 animate-slide-up">
                         <h2 className="text-6xl font-black font-headline text-white leading-tight tracking-tighter">The Ultimate <br /><span className="text-[#76d6d5]">Guardians</span> of Life.</h2>

@@ -93,7 +93,7 @@ const Sidebar = ({ open, onClose }) => {
                 {isNewUI ? (
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[#76d6d5] text-xl">pets</span>
-                        <span className="text-lg font-black text-[#76d6d5] tracking-tighter font-headline uppercase leading-none">VetsCue</span>
+                        <span className="text-lg font-black text-[#76d6d5] tracking-tighter font-headline leading-none">VetsCue</span>
                     </div>
                 ) : (
                     <img src="/logo.svg" alt="PawSaarthi" className="h-8" />

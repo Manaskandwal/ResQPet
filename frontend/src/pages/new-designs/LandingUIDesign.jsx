@@ -45,7 +45,7 @@ export default function LandingUIDesign() {
         <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#76d6d5] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-            <span className="text-2xl font-black text-[#76d6d5] tracking-tighter font-headline uppercase leading-none">VetsCue</span>
+            <span className="text-2xl font-black text-[#76d6d5] tracking-tighter font-headline leading-none">VetsCue</span>
           </div>
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-[#e5e2e1]/60 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 hover:text-[#e5e2e1] transition-all">
@@ -260,7 +260,7 @@ export default function LandingUIDesign() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#76d6d5]" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-            <span className="font-headline font-black text-[#76d6d5] text-xl tracking-tight uppercase leading-none">VetsCue</span>
+            <span className="font-headline font-black text-[#76d6d5] text-xl tracking-tight leading-none">VetsCue</span>
           </div>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
             <button onClick={() => navigate('/login')} className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors">Emergency</button>

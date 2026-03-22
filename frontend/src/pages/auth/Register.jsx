@@ -104,7 +104,7 @@ const Register = () => {
                 <div className="relative z-10 p-16 space-y-6 max-w-2xl">
                     <div className="flex items-center gap-3 animate-slide-in">
                         <span className="material-symbols-outlined text-[#ffb77d] text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-                        <span className="text-4xl font-black text-[#ffb77d] font-headline tracking-tighter uppercase">VetsCue</span>
+                        <span className="text-4xl font-black text-[#ffb77d] font-headline tracking-tighter">VetsCue</span>
                     </div>
                     <div className="space-y-2 animate-slide-up">
                         <h2 className="text-6xl font-black font-headline text-white leading-tight tracking-tighter">Join the <br /><span className="text-[#ffb77d]">Ecosystem</span> of Care.</h2>
