@@ -121,38 +121,44 @@ export const StatusTimeline = ({ status, rescue }) => {
     const { steps, currentIdx } = getTimelineConfig(rescue || status);
 
     return (
-        <div className="mt-4">
-            <div className="flex items-center gap-0">
+        <div className="mt-4 w-full overflow-hidden">
+            <div className="flex items-start gap-0 overflow-x-auto pb-6 pt-2 no-scrollbar scroll-smooth flex-nowrap px-1">
                 {steps.map((step, idx) => {
                     const done = idx <= currentIdx;
                     const current = idx === currentIdx;
 
                     return (
-                        <div key={step.key} className="flex items-center flex-1 last:flex-none">
+                        <div key={step.key} className="flex items-center min-w-[85px] shrink-0">
                             <div className="flex flex-col items-center">
                                 <div
                                     className={`
-                                        w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold
-                                        transition-all duration-300 flex-shrink-0
+                                        w-10 h-10 rounded-2xl flex items-center justify-center text-[10px] font-black
+                                        transition-all duration-300 flex-shrink-0 border
                                         ${done
                                             ? current
-                                                ? 'bg-primary-600 text-white shadow-lg shadow-primary-200 scale-110'
-                                                : 'bg-primary-100 text-primary-700'
-                                            : 'bg-slate-100 text-slate-400'}
+                                                ? 'bg-[#76d6d4] border-[#76d6d4] text-[#131313] shadow-[0_0_20px_rgba(118,214,213,0.3)] scale-110'
+                                                : 'bg-[#76d6d4]/10 border-[#76d6d4]/20 text-[#76d6d4]'
+                                            : 'bg-white/5 border-white/5 text-white/20'}
                                     `}
                                 >
                                     {step.icon}
                                 </div>
-                                <p className={`text-[9px] mt-1 font-medium text-center max-w-[52px] leading-tight ${done ? 'text-primary-700' : 'text-slate-400'}`}>
+                                <p className={`text-[8px] mt-2 font-black uppercase tracking-widest text-center max-w-[70px] leading-tight transition-colors ${done ? 'text-[#e5e2e1]' : 'text-white/20'}`}>
                                     {step.label}
                                 </p>
                             </div>
                             {idx < steps.length - 1 && (
-                                <div className={`h-0.5 flex-1 mx-1 rounded-full transition-all duration-500 ${idx < currentIdx ? 'bg-primary-400' : 'bg-slate-200'}`} />
+                                <div className={`h-[1px] w-8 mx-1 rounded-full transition-all duration-500 mt-5 shrink-0 ${idx < currentIdx ? 'bg-[#76d6d4]/40' : 'bg-white/5'}`} />
                             )}
                         </div>
                     );
                 })}
+            </div>
+            {/* Scroll hint for mobile */}
+            <div className="md:hidden flex justify-center mt-[-10px] pb-4">
+                 <div className="w-8 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#76d6d4]/20 rounded-full" style={{ width: `${((currentIdx + 1) / steps.length) * 100}%` }} />
+                 </div>
             </div>
         </div>
     );

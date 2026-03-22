@@ -63,7 +63,11 @@ export default function App() {
       <Route path="/login" element={withSuspense(<Login />)} />
       <Route path="/register" element={withSuspense(<Register />)} />
       <Route path="/dashboard" element={<DashboardRedirect />} />
-      <Route path="/notifications" element={<ProtectedRoute allowedRoles={['user', 'ngo', 'hospital', 'ambulance', 'admin']}>{withSuspense(<Layout><Notifications /></Layout>)}</ProtectedRoute>} />
+      <Route element={<ProtectedRoute allowedRoles={['user', 'ngo', 'hospital', 'ambulance', 'admin']} />}>
+        <Route element={<Layout />}>
+          <Route path="/notifications" element={withSuspense(<Notifications />)} />
+        </Route>
+      </Route>
       
       <Route element={<ProtectedRoute allowedRoles={['user']} />}>
         <Route element={<Layout />}>
@@ -98,6 +102,7 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
         <Route element={<Layout />}>
           <Route path="/admin/dashboard" element={withSuspense(<AdminDashboard />)} />
+          <Route path="/admin/notifications" element={withSuspense(<Notifications />)} />
         </Route>
       </Route>
 

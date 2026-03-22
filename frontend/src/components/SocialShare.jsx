@@ -175,48 +175,68 @@ const SocialShare = ({ rescue }) => {
     };
 
     return (
-        <div className="mt-5 overflow-hidden rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 shadow-sm">
-            <div className="grid gap-5 p-5 md:grid-cols-[1.2fr_0.8fr] md:items-center">
-                <div className="space-y-3">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700 shadow-sm">
+        <div className="mt-8 overflow-hidden rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] shadow-2xl w-full">
+            <div className="flex flex-col lg:grid lg:grid-cols-[1.2fr_0.8fr] gap-8 p-6 md:p-10 lg:items-center">
+                <div className="space-y-6">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#76d6d4]">
                         <ShareIcon className="h-4 w-4" />
                         Spread the Word
                     </div>
                     <div>
-                        <h4 className="text-lg font-bold text-slate-900">Share this rescue beautifully</h4>
-                        <p className="mt-1 text-sm text-slate-600">Native share attaches a story card image with a preview of the case details and the rescue journey.</p>
+                        <h4 className="text-2xl font-headline font-bold text-[#e5e2e1]">Share the journey</h4>
+                        <p className="mt-2 text-sm text-[#e5e2e1]/50 leading-relaxed max-w-sm">Native sharing attaches a beautiful story card image with automatically included case details.</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    
+                    <div className="flex flex-wrap items-center gap-3">
                         {socialButtons.map((button) => (
-                            <button key={button.id} onClick={() => handlePlatformShare(button.id)} title={button.label} className={`flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5 ${button.bg}`}>
+                            <button 
+                                key={button.id} 
+                                onClick={() => handlePlatformShare(button.id)} 
+                                title={button.label} 
+                                className={`flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-xl transition-all hover:-translate-y-1 active:scale-95 ${button.bg}`}
+                            >
                                 {button.icon}
                             </button>
                         ))}
-                        <button onClick={handleNativeShare} title="Share story card" className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5">
+                        <button 
+                            onClick={handleNativeShare} 
+                            title="Native Share" 
+                            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#76d6d4] text-[#131313] shadow-xl transition-all hover:-translate-y-1 active:scale-95"
+                        >
                             <ShareIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={handleDownloadPoster} title="Download story card" className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5">
+                        <button 
+                            onClick={handleDownloadPoster} 
+                            title="Download Poster" 
+                            className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-[#e5e2e1] shadow-xl transition-all hover:-translate-y-1 active:scale-95"
+                        >
                             <ArrowDownTrayIcon className="h-5 w-5" />
-                        </button>
-                        <button onClick={() => navigator.clipboard.writeText(shareText).then(() => toast.success('Share text copied.'))} title="Copy text" className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:-translate-y-0.5">
-                            <DocumentDuplicateIcon className="h-5 w-5" />
                         </button>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[24px] border border-white/70 bg-slate-900 p-4 text-white shadow-xl">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(45,212,191,0.45),_transparent_42%),radial-gradient(circle_at_bottom_left,_rgba(34,197,94,0.35),_transparent_34%)]" />
-                    <div className="relative">
-                        <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-100/90">
-                            <span>VetsCue Story</span>
-                            <span>{rescue.outcome === 'on_spot_treated' ? 'On-spot recovery' : 'Recovery in progress'}</span>
+                <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#131313] p-6 text-white shadow-2xl group w-full max-w-[320px] mx-auto lg:max-w-none">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#76d6d4]/10 via-transparent to-transparent opacity-50" />
+                    <div className="relative z-10 space-y-4">
+                        <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-[0.3em] text-[#76d6d4]/70">
+                            <span>VetsCue Official Story</span>
+                            <span>{rescue.status.replaceAll('_', ' ')}</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            {rescue.images?.[0] ? <img src={rescue.images[0]} alt="before" className="h-36 w-full rounded-[18px] object-cover" /> : <div className="flex h-36 items-center justify-center rounded-[18px] bg-white/10 text-xs">Before</div>}
-                            {[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0]) ? <img src={[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0])} alt="after" className="h-36 w-full rounded-[18px] object-cover" /> : <div className="flex h-36 items-center justify-center rounded-[18px] bg-white/10 text-xs">After</div>}
+                        <div className="grid grid-cols-2 gap-3 aspect-square max-h-[160px] md:max-h-[180px] w-full">
+                            <div className="h-full w-full rounded-2xl overflow-hidden bg-white/5 border border-white/5">
+                                {rescue.images?.[0] ? <img src={rescue.images[0]} alt="before" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[10px] text-white/20">Before</div>}
+                            </div>
+                            <div className="h-full w-full rounded-2xl overflow-hidden bg-white/5 border border-white/5">
+                                {[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0]) ? 
+                                    <img src={[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0])} alt="after" className="h-full w-full object-cover" /> : 
+                                    <div className="flex h-full items-center justify-center text-[10px] text-white/20">After</div>
+                                }
+                            </div>
                         </div>
-                        <p className="mt-3 line-clamp-2 text-sm font-semibold">{rescue.description}</p>
-                        <p className="mt-1 text-xs text-slate-300">{rescue.location?.address || 'Shared via VetsCue'}</p>
+                        <div className="space-y-1">
+                            <p className="line-clamp-1 text-sm font-bold text-[#e5e2e1]">{rescue.description}</p>
+                            <p className="line-clamp-1 text-[10px] text-white/20 uppercase tracking-widest">{rescue.location?.address || 'Verified Rescue'}</p>
+                        </div>
                     </div>
                 </div>
             </div>

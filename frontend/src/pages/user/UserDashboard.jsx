@@ -291,8 +291,31 @@ const UserDashboard = () => {
                                             <span className="material-symbols-outlined">location_on</span>
                                             <span className="truncate">{rescue.location.address || 'Unknown Location'}</span>
                                         </div>
-                                        <div className="pt-4 border-t border-white/5">
-                                            <StatusTimeline rescue={rescue} />
+                                         <div className="pt-4 border-t border-white/5 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-widest leading-none mb-1">Current Milestone</span>
+                                                    <span className="text-sm font-bold text-[#76d6d5]">
+                                                        {rescue.status === 'hospital_broadcasted' || rescue.status === 'ambulance_pinged' ? 'Help in Progress' : rescue.status.replace(/_/g, ' ').toUpperCase()}
+                                                    </span>
+                                                </div>
+                                                <button 
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/user/rescue/${rescue._id}`); }}
+                                                    className="p-2 rounded-xl bg-white/5 border border-white/5 text-[#e5e2e1]/40 hover:text-[#76d6d5] transition-all"
+                                                >
+                                                    <ArrowRightIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="group/timeline relative cursor-help">
+                                                <div className="flex items-center gap-1 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                                                    <div className="h-full bg-[#76d6d5] shadow-[0_0_10px_rgba(118,214,213,0.5)] transition-all duration-500" style={{ width: rescue.status === 'completed' ? '100%' : '40%' }} />
+                                                </div>
+                                                {/* Tooltip hint */}
+                                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#131313] border border-white/10 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-[#76d6d5] opacity-0 group-hover/timeline:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                                    Click for Full Progress
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>

@@ -13,6 +13,7 @@ import {
     ShieldCheckIcon,
     XMarkIcon,
     LockClosedIcon,
+    BellIcon,
 } from '@heroicons/react/24/outline';
 
 const navConfig = {
@@ -41,6 +42,7 @@ const navConfig = {
         { to: '/admin/dashboard?tab=approvals', label: 'Approvals', Icon: ShieldCheckIcon },
         { to: '/admin/dashboard?tab=users', label: 'Users', Icon: UsersIcon },
         { to: '/admin/dashboard?tab=rescues', label: 'Rescues', Icon: ClipboardDocumentListIcon },
+        { to: '/admin/notifications', label: 'Alerts', Icon: BellIcon },
     ],
 };
 

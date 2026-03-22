@@ -364,12 +364,12 @@ const AdminDashboard = () => {
                             <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">Admin <span className="text-[#76d6d5]">Dashboard</span></h1>
                             <p className="text-[#e5e2e1]/50 max-w-md">Orchestrate the mission and managed verified network partners.</p>
                         </div>
-                        <div className="flex bg-[#1c1b1b]/50 p-1 rounded-2xl border border-white/5 backdrop-blur-xl overflow-x-auto no-scrollbar scroll-smooth flex-nowrap">
+                        <div className="lg:hidden flex bg-[#1c1b1b]/50 p-1 rounded-2xl border border-white/5 backdrop-blur-xl overflow-x-auto no-scrollbar scroll-smooth flex-nowrap">
                             {[
-                                { id: 'overview', label: 'Summary' },
-                                { id: 'approvals', label: 'Partners' },
+                                { id: 'overview', label: 'Home' },
+                                { id: 'approvals', label: 'Approvals' },
                                 { id: 'users', label: 'Users' },
-                                { id: 'rescues', label: 'Cases' }
+                                { id: 'rescues', label: 'Rescues' }
                             ].map((t) => (
                                 <button
                                     key={t.id}
@@ -595,18 +595,21 @@ const AdminDashboard = () => {
                                 <h2 className="font-headline text-2xl font-bold">List of Users</h2>
                                 <span className="text-[#e5e2e1]/30 text-xs font-bold uppercase tracking-widest">{users.length} Total</span>
                              </div>
-                             <div className="flex bg-[#1c1b1b]/50 p-1 rounded-xl border border-white/5 overflow-x-auto max-w-full">
-                                {['all', 'user', 'ngo', 'hospital', 'ambulance'].map((r) => (
-                                    <button
-                                        key={r}
-                                        onClick={() => setRoleFilter(r)}
-                                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                                            roleFilter === r ? 'bg-white/10 text-[#76d6d5]' : 'text-[#e5e2e1]/30 hover:text-[#e5e2e1]'
-                                        }`}
-                                    >
-                                        {r === 'user' ? 'Citizen' : r}
-                                    </button>
-                                ))}
+                             <div className="relative min-w-[160px]">
+                                <select
+                                    value={roleFilter}
+                                    onChange={(e) => setRoleFilter(e.target.value)}
+                                    className="w-full bg-[#1c1b1b] border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#76d6d5] outline-none focus:ring-2 focus:ring-[#76d6d5]/20 transition-all appearance-none cursor-pointer"
+                                >
+                                    {['all', 'user', 'ngo', 'hospital', 'ambulance'].map((r) => (
+                                        <option key={r} value={r} className="bg-[#1c1b1b]">
+                                            {r === 'all' ? 'All Roles' : (r === 'user' ? 'Citizen' : r.toUpperCase()) }
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#76d6d5]">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
                              </div>
                         </div>
 
@@ -669,13 +672,14 @@ const AdminDashboard = () => {
 
                 {activeTab === 'rescues' && (
                     <section className="space-y-6">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4">
                             <div className="flex items-center gap-3">
                                 <h2 className="font-headline text-2xl font-bold">Platform Rescues</h2>
-                                <span className="text-[10px] font-black text-[#76d6d5] uppercase tracking-[0.2em] bg-[#76d6d5]/10 px-2 py-1 rounded border border-[#76d6d5]/20">{rescues.length} Reports</span>
+                                <span className="text-[10px] font-black text-[#76d6d4] uppercase tracking-[0.2em] bg-[#76d6d4]/10 px-2 py-1 rounded border border-[#76d6d4]/20">{rescues.length} Reports</span>
                             </div>
                             
-                            <div className="flex bg-[#1c1b1b]/50 p-1.5 rounded-xl border border-white/5 backdrop-blur-xl overflow-x-auto custom-scrollbar">
+                            {/* Desktop Tabs */}
+                            <div className="hidden md:flex bg-[#1c1b1b]/50 p-1.5 rounded-xl border border-white/5 backdrop-blur-xl overflow-x-auto custom-scrollbar">
                                 {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved'].map(f => (
                                     <button
                                         key={f}
@@ -689,6 +693,24 @@ const AdminDashboard = () => {
                                         {f.replace('_', ' ')}
                                     </button>
                                 ))}
+                            </div>
+
+                            {/* Mobile Dropdown */}
+                            <div className="md:hidden relative min-w-[160px]">
+                                <select
+                                    value={rescueFilter}
+                                    onChange={(e) => setRescueFilter(e.target.value)}
+                                    className="w-full bg-[#1c1b1b] border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#76d6d4] outline-none focus:ring-2 focus:ring-[#76d6d4]/20 transition-all appearance-none cursor-pointer"
+                                >
+                                    {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved'].map((f) => (
+                                        <option key={f} value={f} className="bg-[#1c1b1b]">
+                                            {f === 'all' ? 'All Rescues' : f.replace('_', ' ').toUpperCase()}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#76d6d4]">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
                             </div>
                         </div>
                         <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden">

@@ -108,34 +108,36 @@ const Fundraisers = () => {
     if (isNewUI) {
         return (
             <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8">
-                {/* Header */}
+                {/* Header & Tabs */}
                 <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-2">
                         <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Community</span>
                         <h1 className="font-headline text-4xl font-extrabold tracking-tight">Fund<span className="text-[#76d6d5]">raisers</span></h1>
                         <p className="text-[#e5e2e1]/50">Your contribution saves lives every single day.</p>
                     </div>
-                    {!user?.monthlySubscription?.isSubscribed ? (
-                        <button onClick={() => setSupportModalOpen(true)} className="flex items-center gap-2 rounded-full bg-gradient-to-br from-[#76d6d5] to-[#008080] text-[#131313] px-6 py-3 text-xs font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
-                            <HeartIcon className="h-4 w-4" /> Monthly Support
-                        </button>
-                    ) : (
-                        <div className="flex items-center gap-2 rounded-full border border-[#76d6d5]/20 bg-[#76d6d5]/10 px-4 py-2 text-xs font-black text-[#76d6d5] uppercase tracking-widest">
-                            <span className="h-2 w-2 animate-pulse rounded-full bg-[#76d6d5]" /> Active Subscriber
+                    
+                    <div className="flex flex-col md:items-end gap-4">
+                        <div className="flex gap-1 rounded-2xl bg-white/5 p-1 w-full md:w-fit">
+                            <button onClick={() => setActiveTab('cases')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>Active Cases</button>
+                            <button onClick={() => setActiveTab('ngos')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ngos' ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>NGO-wise</button>
                         </div>
-                    )}
+                        
+                        {!user?.monthlySubscription?.isSubscribed ? (
+                            <button onClick={() => setSupportModalOpen(true)} className="flex items-center gap-2 rounded-full bg-gradient-to-br from-[#76d6d5] to-[#008080] text-[#131313] px-6 py-3 text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
+                                <HeartIcon className="h-4 w-4" /> Monthly Support
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-2 rounded-full border border-[#76d6d5]/20 bg-[#76d6d5]/10 px-4 py-2 text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">
+                                <span className="h-2 w-2 animate-pulse rounded-full bg-[#76d6d5]" /> Active Subscriber
+                            </div>
+                        )}
+                    </div>
                 </section>
 
                 {/* Mode notice */}
                 <div className="glass-card rounded-2xl border border-white/5 bg-[#1c1b1b] px-6 py-4">
-                    <p className="text-xs text-white/30">Current testing flow uses wallet balance for recurring emergency contributions.</p>
-                    {paymentHistoryMessage && <p className="mt-2 text-xs text-[#76d6d5]">{paymentHistoryMessage}</p>}
-                </div>
-
-                {/* Tabs */}
-                <div className="flex gap-1 rounded-2xl bg-white/5 p-1">
-                    <button onClick={() => setActiveTab('cases')} className={`flex-1 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>Active Cases</button>
-                    <button onClick={() => setActiveTab('ngos')} className={`flex-1 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'ngos' ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>NGO-wise Support</button>
+                    <p className="text-xs text-white/30 font-medium">Current testing flow uses wallet balance for recurring emergency contributions.</p>
+                    {paymentHistoryMessage && <p className="mt-2 text-xs text-[#76d6d5] font-bold">{paymentHistoryMessage}</p>}
                 </div>
 
                 {/* Content */}

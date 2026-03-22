@@ -79,28 +79,32 @@ const Impact = () => {
                         </div>
                     ) : feed.map((item) => (
                         <div key={item._id} className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden">
-                            <div className="grid gap-8 p-8 lg:grid-cols-[1.1fr_0.9fr]">
+                            <div className="grid gap-8 p-6 md:p-10 grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]">
                                 <div className="space-y-6">
                                     <div className="space-y-2">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">{item.status.replaceAll('_', ' ')}</span>
                                         <h2 className="font-headline text-2xl font-bold text-[#e5e2e1] leading-tight">{item.description}</h2>
                                         <p className="text-xs text-[#e5e2e1]/40">Completed {item.completedAt ? formatIndianDateTime(item.completedAt) : formatIndianDateTime(item.createdAt)}</p>
                                     </div>
-                                    <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                         <div className="rounded-[1.5rem] border border-red-500/10 bg-red-500/5 p-4 space-y-3">
                                             <p className="text-[10px] font-black uppercase tracking-widest text-red-400">Before</p>
-                                            {item.beforeImage ? <img src={item.beforeImage} alt="Before" className="h-48 w-full rounded-2xl object-cover" /> : <div className="flex h-48 items-center justify-center rounded-2xl bg-white/5 text-sm text-white/20">No image uploaded.</div>}
+                                            <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white/5">
+                                                {item.beforeImage ? <img src={item.beforeImage} alt="Before" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-sm text-white/20">No image uploaded.</div>}
+                                            </div>
                                         </div>
                                         <div className="rounded-[1.5rem] border border-[#76d6d5]/10 bg-[#76d6d5]/5 p-4 space-y-3">
                                             <p className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">After</p>
-                                            {item.afterImage ? <img src={item.afterImage} alt="After" className="h-48 w-full rounded-2xl object-cover" /> : <div className="flex h-48 items-center justify-center rounded-2xl bg-white/5 text-center text-sm text-white/20">No after-treatment media yet.</div>}
+                                            <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white/5">
+                                                {item.afterImage ? <img src={item.afterImage} alt="After" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-center text-sm text-white/20">No media yet.</div>}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col rounded-[2rem] bg-white/5 border border-white/5 p-6 space-y-6">
-                                    <p className="text-sm text-[#e5e2e1]/60 leading-relaxed">{item.afterSummary}</p>
-                                    <div className="flex items-center gap-3">
+                                <div className="flex flex-col rounded-[2rem] bg-white/5 border border-white/5 p-5 md:p-8 space-y-6 min-w-0">
+                                    <p className="text-sm text-[#e5e2e1]/60 leading-relaxed italic">"{item.afterSummary}"</p>
+                                    <div className="flex flex-wrap items-center gap-3">
                                         <button onClick={() => handleLike(item._id)} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all ${item.liked ? 'bg-red-500/20 text-red-400 border border-red-400/20' : 'bg-white/5 border border-white/5 text-[#e5e2e1]/50 hover:text-red-400'}`}>
                                             {item.liked ? <HeartSolidIcon className="h-4 w-4" /> : <HeartIcon className="h-4 w-4" />}
                                             {item.likesCount}
@@ -108,22 +112,42 @@ const Impact = () => {
                                         <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/5 px-4 py-2 text-sm font-bold text-[#e5e2e1]/50">
                                             <ChatBubbleLeftRightIcon className="h-4 w-4" />{item.commentsCount}
                                         </div>
-                                        <span className="text-xs font-black uppercase tracking-widest text-[#76d6d5]/50 ml-auto">{item.helperName}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] md:ml-auto">{item.helperName}</span>
                                     </div>
-                                    <div className="space-y-3 flex-1 overflow-y-auto max-h-48 custom-scrollbar">
-                                        {(item.comments || []).map((comment, idx) => (
-                                            <div key={`${comment.createdAt}-${idx}`} className="rounded-2xl bg-white/5 border border-white/5 p-4">
-                                                <div className="flex items-center justify-between gap-3 mb-1">
-                                                    <p className="text-xs font-bold text-[#76d6d5]">{comment.name || 'Supporter'}</p>
-                                                    <p className="text-[10px] text-white/20">{formatIndianDateTime(comment.createdAt)}</p>
+                                    
+                                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {(item.comments || []).length === 0 ? (
+                                            <p className="text-center py-4 text-[10px] font-black uppercase tracking-widest text-white/10">No messages yet</p>
+                                        ) : (
+                                            item.comments.map((comment, idx) => (
+                                                <div key={`${comment.createdAt}-${idx}`} className="rounded-2xl bg-white/5 p-4 border border-white/5">
+                                                    <div className="flex items-center justify-between gap-3 mb-2">
+                                                        <p className="text-[10px] font-bold text-[#76d6d5] uppercase tracking-wider">{comment.name || 'Guardian'}</p>
+                                                        <p className="text-[9px] text-white/20 font-medium">{formatIndianDateTime(comment.createdAt)}</p>
+                                                    </div>
+                                                    <p className="text-xs text-[#e5e2e1]/70 leading-relaxed">{comment.message}</p>
                                                 </div>
-                                                <p className="text-xs text-[#e5e2e1]/60">{comment.message}</p>
-                                            </div>
-                                        ))}
+                                            ))
+                                        )}
                                     </div>
-                                    <div className="flex gap-2">
-                                        <input type="text" value={commentDrafts[item._id] || ''} onChange={(e) => setCommentDrafts((cur) => ({ ...cur, [item._id]: e.target.value }))} className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all placeholder:text-white/20" placeholder="Write a supportive comment" />
-                                        <button onClick={() => handleComment(item._id)} className="rounded-2xl bg-[#76d6d5] text-[#131313] px-5 py-3 text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">Post</button>
+                                    
+                                    <div className="pt-4 border-t border-white/5">
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="text" 
+                                                value={commentDrafts[item._id] || ''} 
+                                                onChange={(e) => setCommentDrafts((cur) => ({ ...cur, [item._id]: e.target.value }))} 
+                                                onKeyPress={(e) => e.key === 'Enter' && handleComment(item._id)}
+                                                className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all placeholder:text-white/10" 
+                                                placeholder="Write a supportive comment..." 
+                                            />
+                                            <button 
+                                                onClick={() => handleComment(item._id)} 
+                                                className="rounded-2xl bg-[#76d6d5] text-[#131313] px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg active:scale-95"
+                                            >
+                                                Post
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

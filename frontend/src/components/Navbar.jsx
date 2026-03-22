@@ -110,7 +110,7 @@ const Navbar = ({ onMenuClick }) => {
 
                         {/* Notification Bell */}
                         <button 
-                            onClick={() => navigate('/notifications')}
+                            onClick={() => navigate(user?.isAdmin ? '/admin/notifications' : '/notifications')}
                             className={`p-2 rounded-full transition-all relative ${
                                 isNewUI ? 'hover:bg-white/10 text-[#e5e2e1]/70' : 'hover:bg-surface-hover text-slate-600'
                             }`}

@@ -501,25 +501,52 @@ const NGODashboard = () => {
                         </div>
 
                         <div className="space-y-6">
-                             <div className="flex bg-[#1c1b1b]/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl w-fit">
-                                {[
-                                    { id: 'active', label: 'Current Rescues', count: activeCases.length },
-                                    { id: 'scheduled_list', label: 'Planned Tasks', count: scheduledCases.length },
-                                    { id: 'completed_list', label: 'Archive', count: completedCases.length },
-                                ].map((t) => (
-                                    <button
-                                        key={t.id}
-                                        onClick={() => setSearchParams({ tab: 'my_cases', list: t.id })}
-                                        className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${
-                                            activeList === t.id 
-                                            ? 'bg-white/10 text-[#76d6d5]' 
-                                            : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
-                                        }`}
-                                    >
-                                        {t.label}
-                                        <span className={`px-2 py-0.5 rounded-full text-[9px] ${activeList === t.id ? 'bg-[#76d6d5] text-[#131313]' : 'bg-white/5 text-white/30'}`}>{t.count}</span>
-                                    </button>
-                                ))}
+                            <div className="flex flex-col md:flex-row gap-6">
+                                {/* Desktop List Tabs */}
+                                <div className="hidden md:flex bg-[#1c1b1b]/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl w-fit">
+                                     {[
+                                         { id: 'active', label: 'Current Rescues', count: activeCases.length },
+                                         { id: 'scheduled_list', label: 'Planned Tasks', count: scheduledCases.length },
+                                         { id: 'completed_list', label: 'Archive', count: completedCases.length },
+                                     ].map((t) => (
+                                         <button
+                                             key={t.id}
+                                             onClick={() => setSearchParams({ tab: 'my_cases', list: t.id })}
+                                             className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${
+                                                 activeList === t.id 
+                                                 ? 'bg-white/10 text-[#76d6d4]' 
+                                                 : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
+                                             }`}
+                                         >
+                                             {t.label}
+                                             <span className={`px-2 py-0.5 rounded-full text-[9px] ${activeList === t.id ? 'bg-[#76d6d4] text-[#131313]' : 'bg-white/5 text-white/30'}`}>{t.count}</span>
+                                         </button>
+                                     ))}
+                                 </div>
+
+                                 {/* Mobile Dropdown */}
+                                 <div className="md:hidden relative w-full px-2">
+                                    <div className="relative">
+                                        <select
+                                            value={activeList}
+                                            onChange={(e) => setSearchParams({ tab: 'my_cases', list: e.target.value })}
+                                            className="w-full bg-[#1c1b1b] border border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[#76d6d4] outline-none focus:ring-2 focus:ring-[#76d6d4]/20 transition-all appearance-none cursor-pointer"
+                                        >
+                                            {[
+                                                { id: 'active', label: 'Current Rescues' },
+                                                { id: 'scheduled_list', label: 'Planned Tasks' },
+                                                { id: 'completed_list', label: 'Archive' },
+                                            ].map((t) => (
+                                                <option key={t.id} value={t.id} className="bg-[#1c1b1b]">
+                                                    {t.label.toUpperCase()}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#76d6d4]">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
+                                 </div>
                             </div>
 
                             <div className="space-y-6">
