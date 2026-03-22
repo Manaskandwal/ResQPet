@@ -34,7 +34,7 @@ export default {
                 surface: {
                     card: '#ffffff',
                     hover: '#f8fafc',
-                    border: '#e2e8f0',
+                    'surface-border': '#e2e8f0',
                     muted: '#94a3b8',
                 },
                 "inverse-primary": "#006a6a",
