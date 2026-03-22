@@ -22,9 +22,14 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: [true, 'Password is required'],
+            required: function() { return !this.googleId; }, // Required only if not a Google user
             minlength: [6, 'Password must be at least 6 characters'],
             select: false, // never returned by default
+        },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true, // Unique but allows multiple nulls
         },
         role: {
             type: String,
@@ -146,7 +151,7 @@ const userSchema = new mongoose.Schema(
 // ─── Pre-save hook: hash password ────────────────────────────────────────────
 userSchema.pre('save', async function (next) {
     try {
-        if (!this.isModified('password')) return next();
+        if (!this.password || !this.isModified('password')) return next();
         console.log(`[User Model] Hashing password for user: ${this.email}`);
         const salt = await bcrypt.genSalt(12);
         this.password = await bcrypt.hash(this.password, salt);

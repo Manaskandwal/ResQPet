@@ -38,14 +38,14 @@ export default function LandingUIDesign() {
   );
 
   return (
-    <div className="resqpet-obsidian-theme min-h-screen bg-[#131313] text-[#e5e2e1] font-body overflow-x-hidden">
+    <div className="vetscue-obsidian-theme min-h-screen bg-[#131313] text-[#e5e2e1] font-body overflow-x-hidden">
 
       {/* ── Top Navigation ── */}
       <header className="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl border-b border-white/5">
         <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#76d6d5] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-            <span className="text-2xl font-extrabold text-[#76d6d5] tracking-tighter font-headline">ResQPet</span>
+            <span className="text-2xl font-black text-[#76d6d5] tracking-tighter font-headline uppercase leading-none">VetsCue</span>
           </div>
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-[#e5e2e1]/60 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 hover:text-[#e5e2e1] transition-all">
@@ -66,7 +66,7 @@ export default function LandingUIDesign() {
           <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#ffb77d]/5 rounded-full blur-[120px]" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center" style={{ padding: '10px' }}>
           {/* Left: Text */}
           <div className="space-y-8">
             <div className="space-y-2">
@@ -236,7 +236,7 @@ export default function LandingUIDesign() {
           </div>
           <div className="relative space-y-4">
             <h2 className="font-headline text-4xl font-extrabold tracking-tight">Every Second <span className="text-[#76d6d5]">Counts.</span></h2>
-            <p className="text-[#e5e2e1]/50 max-w-md mx-auto">Join ResQPet today. Be the reason an animal makes it home safely.</p>
+            <p className="text-[#e5e2e1]/50 max-w-md mx-auto italic font-medium">Join the VetsCue mission today. Together, we can ensure every pet has a future.</p>
           </div>
           <div className="relative flex flex-col sm:flex-row gap-4 items-center justify-center">
             <button
@@ -260,7 +260,7 @@ export default function LandingUIDesign() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#76d6d5]" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-            <span className="font-headline font-black text-[#76d6d5] text-xl tracking-tight">ResQPet</span>
+            <span className="font-headline font-black text-[#76d6d5] text-xl tracking-tight uppercase leading-none">VetsCue</span>
           </div>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
             <button onClick={() => navigate('/login')} className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors">Emergency</button>
@@ -269,7 +269,7 @@ export default function LandingUIDesign() {
             <button onClick={() => navigate('/register')} className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-colors">Register</button>
           </div>
           <p className="text-[10px] text-[#e5e2e1]/20 font-black uppercase tracking-widest text-center">
-            © 2024 ResQPet · Made for Animals 🐾
+            © 2024 VetsCue · Empowering Every Guardian 🐾
           </p>
         </div>
       </footer>

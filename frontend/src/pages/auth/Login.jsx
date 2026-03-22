@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
-
-const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+import { GoogleLogin } from '@react-oauth/google';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import PawLoader from '../../components/PawLoader';
 
 const Login = () => {
     const { login, user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const redirect = searchParams.get('redirect') || '/';
+    
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState(''); // Local error state for immediate feedback
+    const [errorMsg, setErrorMsg] = useState('');
 
-    // If already logged in, redirect to dashboard
     useEffect(() => {
         if (user && !authLoading) {
             const routes = {
@@ -25,14 +28,32 @@ const Login = () => {
     }, [user, authLoading, navigate]);
 
     const handleChange = (e) => {
-        setErrorMsg(''); // Clear error when typing
+        setErrorMsg('');
         setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    };
+
+    const handleGoogleSuccess = async (response) => {
+        setLoading(true);
+        try {
+            const { data } = await api.post('/auth/google', { credential: response.credential });
+            if (data.success) {
+                login(data.user, data.token);
+                toast.success(`Welcome, ${data.user.name}! 🐾`);
+                const routes = {
+                    user: '/user/dashboard', ngo: '/ngo/dashboard',
+                    hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
+                };
+                navigate(routes[data.user.role] || redirect);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Google login failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // Basic frontend validation
         if (!form.email.trim() || !form.password.trim()) {
             setErrorMsg('Please fill in all fields.');
             return;
@@ -40,25 +61,19 @@ const Login = () => {
 
         setLoading(true);
         setErrorMsg('');
-        
         try {
-            console.log('[Login] Attempting login for:', form.email);
             const { data } = await api.post('/auth/login', form);
-            
             if (data.success) {
                 login(data.user, data.token);
                 toast.success(`Welcome back, ${data.user.name}! 🐾`);
-    
-                // Role-based redirect
                 const routes = {
                     user: '/user/dashboard', ngo: '/ngo/dashboard',
                     hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
                 };
-                navigate(routes[data.user.role] || '/');
+                navigate(routes[data.user.role] || redirect);
             }
         } catch (error) {
             const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
-            console.error('[Login] Error:', message);
             setErrorMsg(message);
             toast.error(message);
         } finally {
@@ -66,138 +81,121 @@ const Login = () => {
         }
     };
 
-    if (isNewUI) {
-        return (
-            <div className="min-h-screen bg-[#131313] flex items-center justify-center p-4">
-                {/* Ambient glow */}
-                <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#76d6d5]/10 rounded-full blur-[128px]" />
+    if (authLoading) return <div className="min-h-screen bg-[#131313] flex items-center justify-center"><PawLoader /></div>;
+
+    return (
+        <div className="h-screen bg-[#131313] flex flex-col lg:flex-row overflow-hidden font-body relative">
+            {/* Left Column: Splash */}
+            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-[#0e0e0e] h-full">
+                <div className="absolute inset-0 z-0">
+                    <img src="/auth_splash.png" alt="Rescue Mission" className="w-full h-full object-cover opacity-60 mix-blend-luminosity grayscale hover:grayscale-0 transition-all duration-1000" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#131313]/20 via-transparent to-[#131313]/50 pointer-events-none" />
                 </div>
-                <div className="relative w-full max-w-md">
-                    <div className="text-center mb-10 space-y-3">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-[1.5rem] bg-[#76d6d5]/10 border border-[#76d6d5]/20 mx-auto">
-                            <span className="text-3xl">🐾</span>
-                        </div>
-                        <h1 className="font-headline text-3xl font-extrabold text-[#e5e2e1] tracking-tight">Welcome Back</h1>
-                        <p className="text-[#e5e2e1]/40 text-sm">Sign in to your ResQPet account</p>
+                
+                <div className="relative z-10 p-16 space-y-6 max-w-2xl">
+                    <div className="flex items-center gap-3 animate-slide-in">
+                        <span className="material-symbols-outlined text-[#76d6d5] text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+                        <span className="text-4xl font-black text-[#76d6d5] font-headline tracking-tighter uppercase leading-none">VetsCue</span>
                     </div>
-                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-8">
-                        {errorMsg && (
-                            <div className="mb-6 p-4 rounded-2xl border border-red-400/20 bg-red-400/5 flex items-start gap-3">
-                                <span className="text-red-400">⚠️</span>
-                                <p className="text-sm text-red-400">{errorMsg}</p>
-                            </div>
-                        )}
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="email">Email Address</label>
-                                <input id="email" name="email" type="email" autoComplete="email" required className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="name@example.com" value={form.email} onChange={handleChange} />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
-                                <input id="password" name="password" type="password" autoComplete="current-password" required className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="••••••••" value={form.password} onChange={handleChange} />
-                            </div>
-                            <button type="submit" disabled={loading} className="w-full py-4 mt-2 rounded-2xl bg-[#76d6d5] text-[#131313] text-sm font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-                                {loading ? <><span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> Signing in...</> : 'Sign In'}
-                            </button>
-                        </form>
-                        <p className="text-center text-sm text-[#e5e2e1]/30 mt-8">
-                            New to ResQPet?{' '}<Link to="/register" className="text-[#76d6d5] font-bold hover:text-[#76d6d5]/80 transition-colors">Create an account</Link>
-                        </p>
+                    <div className="space-y-2 animate-slide-up">
+                        <h2 className="text-6xl font-black font-headline text-white leading-tight tracking-tighter">The Ultimate <br /><span className="text-[#76d6d5]">Guardians</span> of Life.</h2>
+                        <p className="text-lg text-white/50 leading-relaxed max-w-md">Orchestrating every rescue mission with precision and compassion.</p>
                     </div>
-                    <p className="text-center text-xs text-[#e5e2e1]/20 mt-6">© 2024 ResQPet • Made for Animals 🐾</p>
+                    {/* Floating metric */}
+                    <div className="p-6 rounded-3xl bg-white/5 border border-white/5 backdrop-blur-xl w-fit animate-pulse-soft">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] mb-1">Impact Status</p>
+                        <p className="text-2xl font-black text-white">Always On-Duty</p>
+                    </div>
                 </div>
             </div>
-        );
-    }
 
-    return authLoading ? (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center p-4">
-            <div className="animate-spin text-primary-600 text-4xl">🐾</div>
-        </div>
-    ) : (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-md animate-slide-up">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <img src="/logo.svg" alt="PawSaarthi" className="h-12 mx-auto mb-2" />
-                    <p className="text-surface-muted mt-1 text-sm font-medium">All in One Animal Platform</p>
-                </div>
+            {/* Right Column: Form */}
+            <div className="flex-1 relative flex items-center justify-center p-8 lg:p-12 h-full overflow-y-auto no-scrollbar">
+                {/* Back Button */}
+                <button 
+                    onClick={() => navigate(-1)}
+                    className="absolute top-8 left-8 p-3 rounded-full hover:bg-white/5 text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-all group border border-transparent hover:border-white/5 flex items-center gap-2"
+                >
+                    <ArrowLeftIcon className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Go Back</span>
+                </button>
 
-                {/* Card */}
-                <div className="card shadow-card-hover border-surface-border">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2>
-                    <p className="text-slate-500 text-sm mb-6">Sign in to your account to continue</p>
-                    
-                    {/* Error Box */}
+                <div className="w-full max-w-sm space-y-8 animate-fade-in">
+                    <div>
+                        <h1 className="text-3xl font-black font-headline text-white tracking-tight">Welcome Back</h1>
+                        <p className="text-sm text-white/30 mt-2">Sign in to orchestrate the mission.</p>
+                    </div>
+
                     {errorMsg && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 animate-pulse-soft">
-                            <span className="text-red-500 mt-0.5">⚠️</span>
-                            <p className="text-sm text-red-700 font-medium">{errorMsg}</p>
+                        <div className="p-4 rounded-2xl border border-red-500/20 bg-red-500/5 text-xs text-red-500 animate-slide-up flex gap-3 items-center">
+                            <span className="material-symbols-outlined text-sm">warning</span>
+                            {errorMsg}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="form-group">
-                            <label className="label text-slate-700 font-semibold" htmlFor="email">Email Address</label>
-                            <input 
-                                id="email" 
-                                name="email" 
-                                type="email" 
-                                autoComplete="email"
-                                required 
-                                className="input focus:ring-primary-500" 
-                                placeholder="name@example.com"
-                                value={form.email} 
-                                onChange={handleChange} 
-                            />
-                        </div>
-                        <div className="form-group">
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className="label text-slate-700 font-semibold m-0" htmlFor="password">Password</label>
+                    <div className="space-y-6">
+                        {/* Social login integration */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/20">Quick Access</label>
+                            <div className="w-full flex justify-center">
+                                <GoogleLogin 
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => toast.error('Google Sign In failed')}
+                                    theme="filled_black"
+                                    shape="circle"
+                                    width="100%"
+                                />
                             </div>
-                            <input 
-                                id="password" 
-                                name="password" 
-                                type="password" 
-                                autoComplete="current-password"
-                                required 
-                                className="input focus:ring-primary-500" 
-                                placeholder="••••••••"
-                                value={form.password} 
-                                onChange={handleChange} 
-                            />
                         </div>
-                        
-                        <button 
-                            type="submit" 
-                            disabled={loading}
-                            className={`btn-primary w-full btn-lg mt-2 flex items-center justify-center gap-2 ${loading ? 'opacity-80' : ''}`}
-                        >
-                            {loading ? (
-                                <><span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Signing in...</>
-                            ) : (
-                                'Sign In'
-                            )}
-                        </button>
-                    </form>
-                    
-                    <p className="text-center text-sm text-surface-muted mt-8">
-                        New to PawSaarthi?{' '}
-                        <Link to="/register" className="text-primary-600 font-bold hover:text-primary-700 transition-colors">
-                            Create an account
-                        </Link>
-                    </p>
-                </div>
 
-                {/* Footer links or info */}
-                <div className="mt-8 text-center text-xs text-slate-400 space-y-2">
-                    <p>© 2024 ResQPet • Made for Animals 🐾</p>
+                        <div className="relative flex items-center justify-center group">
+                            <div className="w-full border-b border-white/5"></div>
+                            <span className="absolute px-4 text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/20 bg-[#131313]">Or use email</span>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1" htmlFor="email text">Email Address</label>
+                                <input id="email" name="email" type="email" required className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="e.g. guardian@resqpet.com" value={form.email} onChange={handleChange} />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center ml-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
+                                    <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:text-[#76d6d5]/80 pointer-events-none opacity-50">Forgot?</Link>
+                                </div>
+                                <input id="password" name="password" type="password" required className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="••••••••" value={form.password} onChange={handleChange} />
+                            </div>
+
+                            <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(118,214,213,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                                {loading ? <span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> : 'Log In Account'}
+                            </button>
+                        </form>
+                    </div>
+
+                    <div className="pt-4 text-center">
+                        <p className="text-xs text-white/30">
+                            New Guardian? <Link to="/register" className="text-[#76d6d5] font-black hover:underline underline-offset-4">Join the Mission</Link>
+                        </p>
+                    </div>
+                </div>
+                
+                {/* Visual anchor at bottom right for branding if needed */}
+                <div className="absolute bottom-12 right-12 hidden lg:flex items-center gap-2 grayscale hover:grayscale-0 transition-all opacity-20 hover:opacity-100">
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">The Sanctuary Ecosystem</span>
                 </div>
             </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes slide-in { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+                .animate-slide-in { animation: slide-in 0.8s ease-out forwards; }
+                .animate-slide-up { animation: slide-up 0.8s ease-out forwards; }
+                .animate-fade-in { animation: fade-in 1s ease-out forwards; }
+            `}} />
         </div>
     );
 };
-
 
 export default Login;

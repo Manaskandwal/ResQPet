@@ -10,7 +10,7 @@ const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
 const defaultSupportForm = {
     amount: '50',
-    cardName: 'ResQPet Test User',
+    cardName: 'VetsCue Test User',
     cardNumber: '4242 4242 4242 4242',
     expiry: '12/29',
     cvv: '123',

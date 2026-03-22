@@ -255,7 +255,7 @@ const getImpactFeed = async (req, res) => {
                 beforeImage,
                 afterImage,
                 afterSummary: afterLog?.message || (rescue.outcome === 'on_spot_treated' ? 'The animal improved through on-spot treatment and follow-up care.' : 'Reached safe completion after treatment.'),
-                helperName: rescue.assignedNGO?.orgName || rescue.assignedNGO?.name || rescue.user?.name || 'ResQPet team',
+                helperName: rescue.assignedNGO?.orgName || rescue.assignedNGO?.name || rescue.user?.name || 'VetsCue team',
                 likesCount: rescue.impact?.likes?.length || 0,
                 liked: (rescue.impact?.likes || []).some((likeId) => likeId.toString() === req.user._id.toString()),
                 commentsCount: rescue.impact?.comments?.length || 0,

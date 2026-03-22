@@ -2,6 +2,8 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { generateToken } = require('../utils/generateToken');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
 
 /**
  * @route   POST /api/auth/register
@@ -178,4 +180,69 @@ const impersonateUser = asyncHandler(async (req, res) => {
 });
 
 
-module.exports = { register, login, getMe, impersonateUser };
+/**
+ * @route   POST /api/auth/google
+ * @access  Public
+ */
+const googleLogin = asyncHandler(async (req, res) => {
+    const { credential, role = 'user' } = req.body;
+
+    if (!credential) {
+        return res.status(400).json({ success: false, message: 'Missing credential' });
+    }
+
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_WEB_CLIENT_ID
+        });
+        const payload = ticket.getPayload();
+        const { sub, email, name, picture } = payload;
+
+        // Find or create user
+        let user = await User.findOne({ 
+            $or: [
+                { googleId: sub },
+                { email: email.toLowerCase() }
+            ]
+        });
+
+        if (!user) {
+            // New Google account - default to role 'user' (Citizen)
+            user = new User({
+                googleId: sub,
+                name,
+                email: email.toLowerCase(),
+                role: role, // Use selected role or default to 'user'
+                profileImage: picture,
+                isApproved: role === 'user', // Auto-approve citizens
+                password: Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10), // dummy for schema if needed, but schema now allows null with googleId
+            });
+            await user.save();
+            console.log(`[Google Auth] New user registered: ${user.email}`);
+        } else if (!user.googleId) {
+            // Merge existing local user with Google account
+            user.googleId = sub;
+            if (!user.profileImage) user.profileImage = picture;
+            await user.save();
+            console.log(`[Google Auth] Linked existing user to Google: ${user.email}`);
+        }
+
+        const token = generateToken(user);
+        res.status(200).json({
+            success: true,
+            token,
+            user: {
+                _id: user._id, name: user.name, email: user.email,
+                role: user.role, isAdmin: user.isAdmin,
+                isApproved: user.isApproved, walletBalance: user.walletBalance,
+                profileImage: user.profileImage
+            }
+        });
+    } catch (error) {
+        console.error('[Google Auth] Error:', error);
+        res.status(401).json({ success: false, message: 'Google authentication failed' });
+    }
+});
+
+module.exports = { register, login, getMe, impersonateUser, googleLogin };

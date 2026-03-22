@@ -1,25 +1,32 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
-
-const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+import { GoogleLogin } from '@react-oauth/google';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import AuthDropdown from '../../components/AuthDropdown';
+import PawLoader from '../../components/PawLoader';
 
 const ROLES = [
-    { value: 'user', label: '🙋 Citizen (Report Animals)' },
-    { value: 'ngo', label: '🌿 NGO (Rescue Organisation)' },
-    { value: 'hospital', label: '🏥 Animal Hospital' },
-    { value: 'ambulance', label: '🚑 Ambulance Service' },
+    { value: 'user', label: 'Citizen', icon: '🙋', desc: 'Report and save animals' },
+    { value: 'ngo', label: 'NGO', icon: '🌿', desc: 'Rescue organization' },
+    { value: 'hospital', label: 'Hospital', icon: '🏥', desc: 'Animal medical center' },
+    { value: 'ambulance', label: 'Ambulance', icon: '🚑', desc: 'Emergency logistics' },
 ];
 
 const Register = () => {
     const { login, user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
-    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user', orgName: '', phone: '', vehicleNumber: '' });
+    const [searchParams] = useSearchParams();
+    const initialRole = searchParams.get('role') || 'user';
+
+    const [form, setForm] = useState({
+        name: '', email: '', password: '', role: initialRole,
+        orgName: '', phone: '', vehicleNumber: ''
+    });
     const [loading, setLoading] = useState(false);
 
-    // If already logged in, redirect to dashboard
     useEffect(() => {
         if (user && !authLoading) {
             const routes = {
@@ -31,13 +38,40 @@ const Register = () => {
     }, [user, authLoading, navigate]);
 
     const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    const handleRoleChange = (role) => setForm((p) => ({ ...p, role }));
+
+    const handleGoogleSuccess = async (response) => {
+        setLoading(true);
+        try {
+            const { data } = await api.post('/auth/google', {
+                credential: response.credential,
+                role: form.role
+            });
+            if (data.success) {
+                login(data.user, data.token);
+                toast.success(`Welcome, ${data.user.name}! 🐾`);
+                const routes = {
+                    user: '/user/dashboard', ngo: '/ngo/dashboard',
+                    hospital: '/hospital/dashboard', ambulance: '/ambulance/dashboard', admin: '/admin/dashboard',
+                };
+                navigate(routes[data.user.role] || '/');
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Google registration failed');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (form.password.length < 6) { toast.error('Password must be at least 6 characters.'); return; }
+        if (form.password.length < 6) {
+            toast.error('Password must be at least 6 characters.');
+            return;
+        }
+
         setLoading(true);
         try {
-            console.log('[Register] Registering:', form.email, 'as', form.role);
             const { data } = await api.post('/auth/register', form);
             login(data.user, data.token);
             toast.success(data.message || 'Registration successful! 🐾');
@@ -48,7 +82,6 @@ const Register = () => {
             };
             navigate(routes[data.user.role] || '/');
         } catch (error) {
-            console.error('[Register] Error:', error.response?.data?.message || error.message);
             toast.error(error.response?.data?.message || 'Registration failed.');
         } finally {
             setLoading(false);
@@ -57,172 +90,128 @@ const Register = () => {
 
     const isOrg = ['ngo', 'hospital', 'ambulance'].includes(form.role);
 
-    if (isNewUI) {
-        return (
-            <div className="min-h-screen bg-[#131313] flex items-center justify-center p-4">
-                <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#76d6d5]/10 rounded-full blur-[128px]" />
+    if (authLoading) return <div className="min-h-screen bg-[#131313] flex items-center justify-center"><PawLoader /></div>;
+
+    return (
+        <div className="h-screen bg-[#131313] flex flex-col lg:flex-row overflow-hidden font-body relative">
+            {/* Left Column: Splash - Mirroring Login but different slogan */}
+            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-[#0e0e0e] h-full">
+                <div className="absolute inset-0 z-0">
+                    <img src="/auth_splash.png" alt="Rescue Mission" className="w-full h-full object-cover opacity-30 grayscale saturate-50 contrast-125" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
                 </div>
-                <div className="relative w-full max-w-md">
-                    <div className="text-center mb-10 space-y-3">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-[1.5rem] bg-[#76d6d5]/10 border border-[#76d6d5]/20 mx-auto"><span className="text-3xl">🐾</span></div>
-                        <h1 className="font-headline text-3xl font-extrabold text-[#e5e2e1] tracking-tight">Join ResQPet</h1>
-                        <p className="text-[#e5e2e1]/40 text-sm">Create your account</p>
+
+                <div className="relative z-10 p-16 space-y-6 max-w-2xl">
+                    <div className="flex items-center gap-3 animate-slide-in">
+                        <span className="material-symbols-outlined text-[#ffb77d] text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+                        <span className="text-4xl font-black text-[#ffb77d] font-headline tracking-tighter uppercase">VetsCue</span>
                     </div>
-                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-8">
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            {/* Role Selector */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">I am a...</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {ROLES.map(({ value, label }) => (
-                                        <button key={value} type="button" onClick={() => setForm((p) => ({ ...p, role: value }))} className={`text-xs font-bold px-3 py-3 rounded-2xl border transition-all text-left ${form.role === value ? 'border-[#76d6d5]/40 bg-[#76d6d5]/10 text-[#76d6d5]' : 'border-white/5 text-[#e5e2e1]/30 hover:border-white/10 hover:text-[#e5e2e1]/60'}`}>{label}</button>
-                                    ))}
-                                </div>
+                    <div className="space-y-2 animate-slide-up">
+                        <h2 className="text-6xl font-black font-headline text-white leading-tight tracking-tighter">Join the <br /><span className="text-[#ffb77d]">Ecosystem</span> of Care.</h2>
+                        <p className="text-lg text-white/50 leading-relaxed max-w-md">Connect with a nationwide network of rescuers and guardians.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Column: Form Side - Ensuring compact spacing to avoid scroll */}
+            <div className="flex-1 relative flex items-center justify-center p-6 lg:p-2 h-full overflow-y-auto no-scrollbar">
+                {/* Back Button */}
+                <button
+                    onClick={() => navigate(-1)}
+                    className="absolute top-6 left-6 p-2 rounded-full hover:bg-white/5 text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-all border border-transparent hover:border-white/5 flex items-center gap-2 group"
+                >
+                    <ArrowLeftIcon className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Go Back</span>
+                </button>
+
+                <div className="w-full max-w-sm space-y-6 animate-fade-in py-8">
+                    <div>
+                        <h1 className="text-2xl font-black font-headline text-white tracking-tight leading-none">Register Account</h1>
+                        <p className="text-xs text-white/30 mt-2">Become a verified Guardian.</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4">
+                            {/* Role Dropdown */}
+                            <AuthDropdown
+                                label="Join as a..."
+                                options={ROLES}
+                                value={form.role}
+                                onChange={handleRoleChange}
+                            />
+
+                            <div className="w-full flex justify-center mt-2">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => toast.error('Google Auth Signature failed')}
+                                    theme="filled_black"
+                                    shape="circle"
+                                    text="signup_with"
+                                    width="100%"
+                                />
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="name">Full Name</label>
-                                <input id="name" name="name" type="text" required className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="Your name" value={form.name} onChange={handleChange} />
-                            </div>
-                            {isOrg && (
+                        </div>
+
+                        <div className="relative flex items-center justify-center">
+                            <div className="w-full border-b border-white/5"></div>
+                            <span className="absolute px-4 text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/20 bg-[#131313]">Or use details</span>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-3 pb-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="orgName">Organisation Name</label>
-                                    <input id="orgName" name="orgName" type="text" className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="Organisation / Hospital name" value={form.orgName} onChange={handleChange} />
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Full Name</label>
+                                    <input name="name" type="text" required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="Guardian Name" value={form.name} onChange={handleChange} />
                                 </div>
-                            )}
-                            {form.role === 'ambulance' && (
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="vehicleNumber">Vehicle Number</label>
-                                    <input id="vehicleNumber" name="vehicleNumber" type="text" className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="e.g. UP32 AB 1234" value={form.vehicleNumber} onChange={handleChange} />
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Phone Number</label>
+                                    <input name="phone" type="tel" className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="91+..." value={form.phone} onChange={handleChange} />
                                 </div>
-                            )}
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="phone">Phone Number</label>
-                                <input id="phone" name="phone" type="tel" className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="+91 XXXXX XXXXX" value={form.phone} onChange={handleChange} />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="reg-email">Email address</label>
-                                <input id="reg-email" name="email" type="email" required className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="you@example.com" value={form.email} onChange={handleChange} />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="reg-password">Password</label>
-                                <input id="reg-password" name="password" type="password" required className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3.5 text-sm text-[#e5e2e1] placeholder:text-white/20 outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" placeholder="Min. 6 characters" value={form.password} onChange={handleChange} />
-                            </div>
-                            {isOrg && (
-                                <div className="p-4 rounded-2xl border border-[#ffb77d]/20 bg-[#ffb77d]/5 text-xs text-[#ffb77d]/80">
-                                    ⏳ <strong>Note:</strong> Your account will require admin approval before you can access the platform.
+                                {isOrg && (
+                                    <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[#76d6d5] ml-1">Organisation / Hospital Name</label>
+                                        <input name="orgName" type="text" required className="w-full px-4 py-3 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/10 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/20 outline-none transition-all" value={form.orgName} onChange={handleChange} />
+                                    </div>
+                                )}
+                                {form.role === 'ambulance' && (
+                                    <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Ambulance Vehicle ID</label>
+                                        <input name="vehicleNumber" type="text" required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 outline-none transition-all" value={form.vehicleNumber} onChange={handleChange} />
+                                    </div>
+                                )}
+                                <div className="col-span-1 sm:col-span-2 space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Login Email</label>
+                                    <input name="email" type="email" required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 outline-none" placeholder="guardian@example.com" value={form.email} onChange={handleChange} />
                                 </div>
-                            )}
-                            <button type="submit" disabled={loading} className="w-full py-4 mt-2 rounded-2xl bg-[#76d6d5] text-[#131313] text-sm font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-                                {loading ? <><span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" />Creating account...</> : 'Create Account'}
+                                <div className="col-span-1 sm:col-span-2 space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Secure Password</label>
+                                    <input name="password" type="password" required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 outline-none" placeholder="Min. 6 chars" value={form.password} onChange={handleChange} />
+                                </div>
+                            </div>
+
+                            <button type="submit" disabled={loading} className="w-full py-4 mt-2 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(118,214,213,0.3)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                                {loading ? <span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> : 'Confirm Registration'}
                             </button>
                         </form>
-                        <p className="text-center text-sm text-[#e5e2e1]/30 mt-6">
-                            Already have an account?{' '}<Link to="/login" className="text-[#76d6d5] font-bold hover:text-[#76d6d5]/80 transition-colors">Sign in</Link>
+                    </div>
+
+                    <div className="text-center">
+                        <p className="text-[10px] text-white/30">
+                            Already Member? <Link to="/login" className="text-[#76d6d5] font-black hover:underline decoration-1 underline-offset-4">Return to login</Link>
                         </p>
                     </div>
-                    <p className="text-center text-xs text-[#e5e2e1]/20 mt-6">© 2024 ResQPet • Made for Animals 🐾</p>
                 </div>
             </div>
-        );
-    }
 
-    return authLoading ? (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center p-4">
-            <div className="animate-spin text-primary-600 text-4xl">🐾</div>
-        </div>
-    ) : (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-md animate-slide-up">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl shadow-lg mb-4">
-                        <span className="text-3xl">🐾</span>
-                    </div>
-                    <h1 className="text-3xl font-bold text-slate-800">Join PawSaarthi</h1>
-                    <p className="text-surface-muted mt-1">Create your account</p>
-                </div>
-
-                <div className="card shadow-card-hover">
-                    <h2 className="text-xl font-bold text-slate-800 mb-6">Create Account</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Role selector */}
-                        <div className="form-group">
-                            <label className="label">I am a...</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {ROLES.map(({ value, label }) => (
-                                    <button key={value} type="button"
-                                        onClick={() => setForm((p) => ({ ...p, role: value }))}
-                                        className={`text-xs font-medium px-3 py-2.5 rounded-btn border transition-all text-left
-                      ${form.role === value
-                                                ? 'border-primary-400 bg-primary-50 text-primary-700'
-                                                : 'border-surface-border text-slate-600 hover:bg-surface-hover'}`}>
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="label" htmlFor="name">Full Name</label>
-                            <input id="name" name="name" type="text" required className="input"
-                                placeholder="Your name" value={form.name} onChange={handleChange} />
-                        </div>
-
-                        {isOrg && (
-                            <div className="form-group">
-                                <label className="label" htmlFor="orgName">Organisation Name</label>
-                                <input id="orgName" name="orgName" type="text" className="input"
-                                    placeholder="Organisation / Hospital name" value={form.orgName} onChange={handleChange} />
-                            </div>
-                        )}
-
-                        {form.role === 'ambulance' && (
-                            <div className="form-group">
-                                <label className="label" htmlFor="vehicleNumber">Vehicle Number</label>
-                                <input id="vehicleNumber" name="vehicleNumber" type="text" className="input"
-                                    placeholder="e.g. UP32 AB 1234" value={form.vehicleNumber} onChange={handleChange} />
-                            </div>
-                        )}
-
-                        <div className="form-group">
-                            <label className="label" htmlFor="phone">Phone Number</label>
-                            <input id="phone" name="phone" type="tel" className="input"
-                                placeholder="+91 XXXXX XXXXX" value={form.phone} onChange={handleChange} />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="label" htmlFor="reg-email">Email address</label>
-                            <input id="reg-email" name="email" type="email" required className="input"
-                                placeholder="you@example.com" value={form.email} onChange={handleChange} />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="label" htmlFor="reg-password">Password</label>
-                            <input id="reg-password" name="password" type="password" required className="input"
-                                placeholder="Min. 6 characters" value={form.password} onChange={handleChange} />
-                        </div>
-
-                        {/* Approval notice for orgs */}
-                        {isOrg && (
-                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-btn text-xs text-amber-700">
-                                ⏳ <strong>Note:</strong> Your account will require admin approval before you can access the platform.
-                            </div>
-                        )}
-
-                        <button type="submit" disabled={loading} className="btn-primary w-full btn-lg mt-2">
-                            {loading ? (
-                                <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Creating account...</>
-                            ) : 'Create Account'}
-                        </button>
-                    </form>
-
-                    <p className="text-center text-sm text-surface-muted mt-6">
-                        Already have an account?{' '}
-                        <Link to="/login" className="text-primary-600 font-semibold hover:underline">Sign in</Link>
-                    </p>
-                </div>
-            </div>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes slide-in { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                @keyframes slide-up { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+                .animate-slide-in { animation: slide-in 0.8s ease-out forwards; }
+                .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+                .animate-fade-in { animation: fade-in 1s ease-out forwards; }
+            `}} />
         </div>
     );
 };

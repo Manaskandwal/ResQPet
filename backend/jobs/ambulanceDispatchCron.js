@@ -51,35 +51,49 @@ const startAmbulanceDispatchCron = () => {
                 }
 
                 // --- 1.5 Timeout / Refund Logic ---
-                const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-                if (rescue.pingRejectors.length >= 3 || rescue.createdAt <= oneHourAgo) {
-                    console.log(`[Cron] Rescue ${rescue._id} stalled (3+ rejects or 1hr passed). Cancelling and Refunding.`);
+                const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
+                if (rescue.pingRejectors.length >= 3 || rescue.createdAt <= thirtyMinutesAgo) {
+                    console.log(`[Cron] Rescue ${rescue._id} stalled (3+ rejects or 30min passed). Cancelling and Refunding.`);
                     
-                    // Refund the deposit
-                    const reporter = await User.findById(rescue.user);
-                    if (reporter) {
-                        reporter.walletBalance += rescue.depositAmount;
-                        await reporter.save();
+                    // Refund the deposit if not already refunded
+                    if (rescue.depositDeducted && !rescue.depositRefunded) {
+                        const reporter = await User.findById(rescue.user);
+                        if (reporter) {
+                            reporter.walletBalance += rescue.depositAmount || 20; // Default to 20 if missing
+                            await reporter.save();
 
-                        await WalletTransaction.create({
-                            user: reporter._id,
-                            amount: rescue.depositAmount,
-                            type: 'credit',
-                            description: `Refund for unfulfilled ambulance request (Case ID: ${rescue._id})`,
-                            balanceAfter: reporter.walletBalance,
-                        });
+                            await WalletTransaction.create({
+                                user: reporter._id,
+                                amount: rescue.depositAmount || 20,
+                                type: 'refund',
+                                description: `Refund: No ambulance available for Case ID: ${rescue._id}`,
+                                balanceAfter: reporter.walletBalance,
+                                rescueRequest: rescue._id
+                            });
 
-                        await Notification.create({
-                            recipient: reporter._id,
-                            title: 'Ambulance Request Cancelled',
-                            message: `We couldn't find an available ambulance. A refund of ₹${rescue.depositAmount} has been credited to your wallet.`,
-                            type: 'wallet_refund',
-                            rescueRequest: rescue._id
-                        });
+                            await Notification.create({
+                                recipient: reporter._id,
+                                title: 'Ambulance Request Unresolved',
+                                message: `We couldn't find an available ambulance. A refund of ₹${rescue.depositAmount || 20} has been credited to your wallet.`,
+                                type: 'wallet_refund',
+                                rescueRequest: rescue._id
+                            });
+                            rescue.depositRefunded = true;
+                        }
                     }
 
-                    rescue.status = 'unresolved';
-                    rescue.adminNotes = 'Automatically unresolved: No ambulance responded.';
+                    rescue.status = 'closed_unresolved';
+                    rescue.outcome = 'closed_unresolved';
+                    rescue.closedAt = new Date();
+                    rescue.adminNotes = (rescue.adminNotes || '') + '\n[System] Automatically closed: No ambulance responded.';
+                    
+                    // Add to log
+                    rescue.statusLogs.push({
+                        status: 'closed_unresolved',
+                        message: 'System timeout: No ambulance accepted the request within the SLA period.',
+                        timestamp: new Date()
+                    });
+
                     await rescue.save();
                     continue; // Skip the rest of the loop for this case
                 }

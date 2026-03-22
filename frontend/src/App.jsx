@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 import Home from './pages/Home';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import PawLoader from './components/PawLoader';
 
 const Fundraisers = lazy(() => import('./pages/Fundraisers'));
 const Login = lazy(() => import('./pages/auth/Login'));
@@ -25,11 +26,8 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign'));
 
 const RouteFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-      <p className="text-sm text-surface-muted font-medium">Loading PawSaarthi...</p>
-    </div>
+  <div className={`min-h-screen flex items-center justify-center ${isNewUI ? 'bg-[#131313]' : 'bg-slate-50'}`}>
+    <PawLoader />
   </div>
 );
 
