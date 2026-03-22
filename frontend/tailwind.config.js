@@ -7,6 +7,7 @@ export default {
     theme: {
         extend: {
             colors: {
+                // Legacy / Primitive colors
                 primary: {
                     50: '#f0fdfa',
                     100: '#ccfbf1',
@@ -31,12 +32,11 @@ export default {
                     800: '#9a3412',
                     900: '#7c2d12',
                 },
-                surface: {
-                    card: '#ffffff',
-                    hover: '#f8fafc',
-                    'surface-border': '#e2e8f0',
-                    muted: '#94a3b8',
-                },
+                // Semantic & New Obsidian System (Flat structure for reliable build)
+                'surface-card': '#ffffff',
+                'surface-hover': '#f8fafc',
+                'surface-border': '#e2e8f0', // Critical for border-surface-border
+                'surface-muted': '#94a3b8',
                 "inverse-primary": "#006a6a",
                 "inverse-surface": "#e5e2e1",
                 "outline-variant": "#3e4949",
