@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
@@ -9,6 +9,12 @@ import Navbar from './Navbar';
  */
 const Layout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const location = useLocation();
+    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
+    if (isNewUI && location.pathname.endsWith('/dashboard')) {
+        return <Outlet />;
+    }
 
     return (
         <div className="min-h-screen flex bg-slate-50">
