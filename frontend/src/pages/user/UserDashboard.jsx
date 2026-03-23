@@ -427,27 +427,27 @@ const UserDashboard = () => {
                 </div>
                 <button
                     onClick={() => setWalletModalOpen(true)}
-                    className="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-95 group"
+                    className="flex items-center gap-2.5 px-4 py-2 bg-surface border border-surface-border rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-95 group"
                 >
                     <div className="w-8 h-8 bg-primary-50 rounded-xl flex items-center justify-center group-hover:bg-primary-100 transition-colors">
                         <WalletIcon className="w-4 h-4 text-primary-600" />
                     </div>
                     <div className="text-left">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">Wallet</p>
-                        <p className="text-sm font-bold text-slate-700 leading-none">₹{Number(wallet.walletBalance || 0).toFixed(2)}</p>
+                        <p className="text-[10px] font-bold text-surface-muted uppercase tracking-wider leading-none mb-0.5">Wallet</p>
+                        <p className="text-sm font-bold text-on-background leading-none">₹{Number(wallet.walletBalance || 0).toFixed(2)}</p>
                     </div>
                 </button>
             </div>
 
             {/* Stat cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {stats.map(({ label, value, Icon, color, bg }) => (
-                    <div key={label} className="stat-card">
-                        <div className={`w-10 h-10 ${bg} rounded-btn flex items-center justify-center mb-1`}>
-                            <Icon className={`w-5 h-5 ${color}`} />
+                {stats.map(({ label, value, Icon, color }) => (
+                    <div key={label} className="stat-card border border-surface-border">
+                        <div className={`w-10 h-10 bg-primary-50 rounded-btn flex items-center justify-center mb-1`}>
+                            <Icon className={`w-5 h-5 text-primary-600`} />
                         </div>
                         <p className="stat-value">{value}</p>
-                        <p className="stat-label">{label}</p>
+                        <p className="stat-label uppercase tracking-widest text-[10px] font-black">{label}</p>
                     </div>
                 ))}
             </div>
@@ -480,7 +480,7 @@ const UserDashboard = () => {
                                     className="card-hover block cursor-pointer">
                                     <div className="flex items-start justify-between gap-3 mb-3">
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-semibold text-slate-800 truncate">{rescue.description}</p>
+                                            <p className="font-semibold text-on-background truncate">{rescue.description}</p>
                                             <p className="text-xs text-surface-muted mt-0.5">
                                                 📍 {rescue.location.address || `${Number(rescue.location.lat).toFixed(4)}, ${Number(rescue.location.lng).toFixed(4)}`}
                                             </p>
@@ -500,7 +500,7 @@ const UserDashboard = () => {
                             {rescues.length > 1 && (
                                 <Link
                                     to="/user/reports"
-                                    className="flex flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-slate-300 bg-white/80 px-4 py-5 text-sm font-semibold text-slate-600 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+                                    className="flex flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-surface-border bg-surface/80 px-4 py-5 text-sm font-semibold text-on-background transition hover:border-primary-300 hover:bg-surface-hover hover:text-primary-700"
                                 >
                                     <ChevronDoubleDownIcon className="h-5 w-5" />
                                     <span>View More Rescue Reports</span>
@@ -522,22 +522,22 @@ const UserDashboard = () => {
                         <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
                             <Dialog.Panel className="w-full max-w-md rounded-[32px] bg-white p-6 shadow-2xl">
                                 <div className="flex items-center justify-between mb-6">
-                                    <Dialog.Title className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                    <Dialog.Title className="text-xl font-bold text-on-background flex items-center gap-2">
                                         <WalletIcon className="w-6 h-6 text-primary-600" />
                                         My Wallet
                                     </Dialog.Title>
-                                    <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                                    <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-surface-hover rounded-full transition-colors text-surface-muted">
                                         <XMarkIcon className="w-6 h-6" />
                                     </button>
                                 </div>
 
-                                <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-[24px] overflow-hidden relative p-4 mb-4">
+                                <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-[24px] overflow-hidden relative p-6 mb-6">
                                     <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full" />
                                     <div className="absolute -right-4 top-8 w-20 h-20 bg-white/5 rounded-full" />
                                     <div className="relative z-10">
-                                        <span className="text-primary-100 text-xs font-medium">Available Balance</span>
-                                        <p className="text-3xl font-bold mt-1 mb-1">₹{wallet.walletBalance.toFixed(2)}</p>
-                                        <p className="text-primary-200 text-[10px] leading-tight opacity-80">
+                                        <span className="text-primary-100 text-xs font-bold uppercase tracking-widest opacity-80">Available Balance</span>
+                                        <p className="text-4xl font-black mt-2 mb-2">₹{wallet.walletBalance.toFixed(2)}</p>
+                                        <p className="text-primary-100/60 text-[10px] leading-tight font-medium">
                                             ₹30 service fee per rescue. Refunded only if no work starts.
                                         </p>
                                     </div>
@@ -545,12 +545,12 @@ const UserDashboard = () => {
 
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Top-up Wallet</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-surface-muted mb-3">Top-up Wallet</label>
                                         <div className="flex gap-2">
                                             {[50, 100, 200].map((amt) => (
                                                 <button key={amt} onClick={() => handleMockTopup(amt)}
                                                     disabled={mockPaying}
-                                                    className="flex-1 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold hover:bg-primary-50 hover:border-primary-200 hover:text-primary-700 transition-all active:scale-95">
+                                                    className="flex-1 py-3 rounded-xl bg-surface border border-surface-border text-on-background text-xs font-bold hover:bg-surface-hover hover:border-primary-200 transition-all active:scale-95">
                                                     +₹{amt}
                                                 </button>
                                             ))}

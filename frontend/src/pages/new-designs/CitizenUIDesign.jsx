@@ -2,27 +2,27 @@ import React from 'react';
 
 export default function CitizenUIDesign() {
   return (
-    <div className="resqpet-obsidian-theme w-full text-[#e5e2e1]">
+    <div className="resqpet-obsidian-theme w-full text-on-background">
       <div className="p-4 md:p-8 max-w-7xl mx-auto min-h-screen">
         {/* Header Section */}
         <section className="mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
               <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight text-on-background">
-                Hello, <span className="text-[#76d6d5]">Guardian</span>
+                Hello, <span className="text-primary">Guardian</span>
               </h1>
-              <p className="text-[#e5e2e1]/70 max-w-md text-lg">
+              <p className="text-on-background/70 max-w-md text-lg">
                 Your vigilance keeps our furry friends safe. Ready to make an impact today?
               </p>
             </div>
             {/* Summary Card */}
-            <div className="glass-card rounded-2xl p-6 flex items-center gap-4 min-w-[280px] border border-white/5">
-              <div className="w-12 h-12 rounded-full bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
+            <div className="glass-card rounded-2xl p-6 flex items-center gap-4 min-w-[280px] border border-surface-border bg-surface">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <span className="material-symbols-outlined" data-icon="volunteer_activism">volunteer_activism</span>
               </div>
               <div>
-                <div className="text-2xl font-bold font-headline transition-all">12 Animals</div>
-                <div className="text-sm text-[#e5e2e1]/50 font-medium transition-all">Rescued by your reports</div>
+                <div className="text-2xl font-bold font-headline text-on-surface transition-all">12 Animals</div>
+                <div className="text-sm text-on-surface/50 font-medium transition-all">Rescued by your reports</div>
               </div>
             </div>
           </div>
@@ -30,17 +30,17 @@ export default function CitizenUIDesign() {
 
         {/* Main Hero: Report CTA & Map */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-          <div className="lg:col-span-8 relative rounded-[2rem] overflow-hidden group min-h-[400px] border border-white/5 bg-[#1c1b1b]">
+          <div className="lg:col-span-8 relative rounded-[2rem] overflow-hidden group min-h-[400px] border border-surface-border bg-surface">
             <div className="absolute inset-0 opacity-40 grayscale" data-location="New York" style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#131313] via-[#131313]/40 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent"></div>
             </div>
             <div className="relative h-full p-8 md:p-12 flex flex-col justify-center max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76d6d5]/10 text-[#76d6d5] text-xs font-bold uppercase tracking-widest mb-6 w-fit">
-                <span className="w-2 h-2 rounded-full bg-[#76d6d5] animate-pulse"></span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-6 w-fit">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                 Live Map Active
               </div>
-              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4 leading-tight">Spot an animal in distress?</h2>
-              <p className="text-[#e5e2e1]/70 mb-8 text-lg">Pin the location and upload a photo. Our rapid response team is on standby 24/7.</p>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4 leading-tight text-on-background">Spot an animal in distress?</h2>
+              <p className="text-on-background/70 mb-8 text-lg">Pin the location and upload a photo. Our rapid response team is on standby 24/7.</p>
               <button className="w-fit flex items-center gap-3 px-8 py-4 bg-gradient-to-br from-[#76d6d5] to-[#008080] text-[#131313] font-bold rounded-full hover:scale-105 transition-all shadow-xl active:scale-95">
                 <span className="material-symbols-outlined" data-icon="campaign">campaign</span>
                 Report an Animal
@@ -48,37 +48,37 @@ export default function CitizenUIDesign() {
             </div>
             {/* Glass Map Floating UI */}
             <div className="absolute bottom-6 right-6 hidden md:block">
-              <div className="glass-card p-4 rounded-2xl flex items-center gap-3 border border-white/5">
-                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[#76d6d5]" data-icon="location_on">location_on</span>
-                </div>
-                <div>
-                  <div className="text-xs text-[#e5e2e1]/40 uppercase font-bold tracking-tighter">Current Zone</div>
-                  <div className="text-sm font-semibold">Downtown Central</div>
-                </div>
+            <div className="glass-card p-4 rounded-2xl flex items-center gap-3 border border-surface-border">
+              <div className="w-10 h-10 rounded-lg bg-on-surface/5 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
               </div>
+              <div>
+                <div className="text-xs text-on-surface/40 uppercase font-bold tracking-tighter">Current Zone</div>
+                <div className="text-sm font-semibold text-on-surface">Downtown Central</div>
+              </div>
+            </div>
             </div>
           </div>
 
           <div className="lg:col-span-4 flex flex-col gap-8">
             {/* Rescue Tracker */}
-            <div className="glass-card rounded-[2rem] p-8 flex flex-col h-full border border-[#76d6d5]/20 bg-[#1c1b1b]/50">
+            <div className="glass-card rounded-[2rem] p-8 flex flex-col h-full border border-primary/20">
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h3 className="font-headline text-xl font-bold mb-1">Rescue Tracker</h3>
-                  <p className="text-xs text-[#e5e2e1]/40 transition-all uppercase tracking-wider">CASE #RQ-8821 (STRAY DOG)</p>
+                  <h3 className="font-headline text-xl font-bold mb-1 text-on-surface">Rescue Tracker</h3>
+                  <p className="text-xs text-on-surface/40 transition-all uppercase tracking-wider">CASE #RQ-8821 (STRAY DOG)</p>
                 </div>
-                <span className="material-symbols-outlined text-[#76d6d5] animate-pulse" data-icon="radar">radar</span>
+                <span className="material-symbols-outlined text-primary animate-pulse" data-icon="radar">radar</span>
               </div>
               <div className="flex-grow space-y-8">
                 <div className="relative">
                   {/* Status Bar */}
-                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#76d6d5] w-[75%] rounded-full shadow-[0_0_12px_rgba(118,214,213,0.6)]"></div>
+                  <div className="h-1.5 w-full bg-on-surface/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary w-[75%] rounded-full shadow-[0_0_12px_rgba(var(--brand-primary-rgb),0.6)]"></div>
                   </div>
                   <div className="flex justify-between mt-4">
-                    <div className="flex flex-col items-start gap-1">
-                      <span className="text-[10px] font-bold text-[#76d6d5] uppercase">Status</span>
+                    <div className="flex flex-col items-start gap-1 text-on-surface">
+                      <span className="text-[10px] font-bold text-primary uppercase">Status</span>
                       <span className="text-sm font-semibold">En Route</span>
                     </div>
                     <div className="flex flex-col items-end gap-1 text-right">

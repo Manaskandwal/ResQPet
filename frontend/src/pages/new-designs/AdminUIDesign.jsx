@@ -2,12 +2,12 @@ import React from 'react';
 
 export default function AdminUIDesign() {
   return (
-    <div className="resqpet-obsidian-theme w-full text-[#e5e2e1]">
+    <div className="resqpet-obsidian-theme w-full text-on-background">
       <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
         {/* Summary Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Animals Saved Card */}
-          <div className="glass-card p-6 rounded-[2rem] relative overflow-hidden group border border-white/5">
+          <div className="glass-card p-6 rounded-[2rem] relative overflow-hidden group border border-surface-border bg-surface">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500"></div>
             <div className="flex flex-col gap-4">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
@@ -24,7 +24,7 @@ export default function AdminUIDesign() {
             </div>
           </div>
           {/* Active NGOs Card */}
-          <div className="glass-card p-6 rounded-[2rem] relative overflow-hidden group border border-white/5">
+          <div className="glass-card p-6 rounded-[2rem] relative overflow-hidden group border border-surface-border bg-surface">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-secondary/10 rounded-full blur-2xl group-hover:bg-secondary/20 transition-all duration-500"></div>
             <div className="flex flex-col gap-4">
               <div className="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary">
@@ -41,7 +41,7 @@ export default function AdminUIDesign() {
             </div>
           </div>
           {/* Hospitals Card */}
-          <div className="glass-card p-6 rounded-[2rem] relative overflow-hidden group border border-white/5">
+          <div className="glass-card p-6 rounded-[2rem] relative overflow-hidden group border border-surface-border bg-surface">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-tertiary/10 rounded-full blur-2xl group-hover:bg-tertiary/20 transition-all duration-500"></div>
             <div className="flex flex-col gap-4">
               <div className="w-12 h-12 rounded-2xl bg-tertiary/10 flex items-center justify-center text-tertiary">
@@ -61,7 +61,7 @@ export default function AdminUIDesign() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Activity Chart Section */}
           <div className="lg:col-span-8 space-y-8">
-            <div className="glass-card p-8 rounded-[2.5rem] border border-white/5">
+            <div className="glass-card p-8 rounded-[2.5rem] border border-surface-border bg-surface">
               <div className="flex justify-between items-end mb-10">
                 <div>
                   <h2 className="text-2xl font-headline font-bold text-on-surface">Rescue Trends</h2>
@@ -69,17 +69,17 @@ export default function AdminUIDesign() {
                 </div>
                 <div className="flex gap-2">
                   <button className="px-4 py-1.5 rounded-full text-xs font-bold bg-primary text-on-primary">WEEKLY</button>
-                  <button className="px-4 py-1.5 rounded-full text-xs font-bold bg-white/5 hover:bg-white/10 transition-colors">MONTHLY</button>
+                  <button className="px-4 py-1.5 rounded-full text-xs font-bold bg-on-surface/5 hover:bg-on-surface/10 transition-colors text-on-surface/60">MONTHLY</button>
                 </div>
               </div>
               {/* Sleek Visual Chart Simulation */}
               <div className="relative h-64 w-full flex items-end justify-between px-2 gap-4">
                 {/* Background Grid */}
                 <div className="absolute inset-0 flex flex-col justify-between py-2 pointer-events-none opacity-5">
-                  <div className="w-full h-px bg-white"></div>
-                  <div className="w-full h-px bg-white"></div>
-                  <div className="w-full h-px bg-white"></div>
-                  <div className="w-full h-px bg-white"></div>
+                  <div className="w-full h-px bg-on-surface"></div>
+                  <div className="w-full h-px bg-on-surface"></div>
+                  <div className="w-full h-px bg-on-surface"></div>
+                  <div className="w-full h-px bg-on-surface"></div>
                 </div>
                 {/* Chart Bars with Gradient */}
                 <div className="group relative flex-1 h-[40%] bg-white/5 rounded-t-xl hover:bg-primary/20 transition-all duration-300">
@@ -116,14 +116,14 @@ export default function AdminUIDesign() {
               </div>
             </div>
             {/* User Management Section */}
-            <div className="glass-card p-8 rounded-[2.5rem] border border-white/5">
+            <div className="glass-card p-8 rounded-[2.5rem] border border-surface-border bg-surface">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-headline font-bold text-on-surface">Recent Users</h2>
                 <button className="text-primary text-sm font-bold hover:underline">View All Users</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="text-on-surface-variant text-xs uppercase tracking-widest border-b border-white/5">
+                  <thead className="text-on-surface-variant text-xs uppercase tracking-widest border-b border-surface-border">
                     <tr>
                       <th className="pb-4 font-semibold">User Identity</th>
                       <th className="pb-4 font-semibold text-center">Role</th>
@@ -132,10 +132,10 @@ export default function AdminUIDesign() {
                     </tr>
                   </thead>
                   <tbody className="text-sm">
-                    <tr className="border-b border-white/5 group hover:bg-white/5 transition-colors">
+                    <tr className="border-b border-surface-border group hover:bg-on-surface/5 transition-colors">
                       <td className="py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-primary">SC</div>
+                          <div className="w-10 h-10 rounded-full bg-on-surface/5 flex items-center justify-center font-bold text-primary">SC</div>
                           <div>
                             <div className="font-bold text-on-surface">Sarah Chen</div>
                             <div className="text-xs text-on-surface-variant">sarah.c@rescue.org</div>
@@ -153,10 +153,10 @@ export default function AdminUIDesign() {
                       </td>
                       <td className="py-4 text-right text-on-surface-variant text-xs">2 mins ago</td>
                     </tr>
-                    <tr className="border-b border-white/5 group hover:bg-white/5 transition-colors">
+                    <tr className="border-b border-surface-border group hover:bg-on-surface/5 transition-colors">
                       <td className="py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-secondary">MJ</div>
+                          <div className="w-10 h-10 rounded-full bg-on-surface/5 flex items-center justify-center font-bold text-secondary">MJ</div>
                           <div>
                             <div className="font-bold text-on-surface">Marcus Johnson</div>
                             <div className="text-xs text-on-surface-variant">marcus.j@gmail.com</div>
@@ -174,10 +174,10 @@ export default function AdminUIDesign() {
                       </td>
                       <td className="py-4 text-right text-on-surface-variant text-xs">15 mins ago</td>
                     </tr>
-                    <tr className="group hover:bg-white/5 transition-colors">
+                    <tr className="group hover:bg-on-surface/5 transition-colors">
                       <td className="py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-tertiary">LV</div>
+                          <div className="w-10 h-10 rounded-full bg-on-surface/5 flex items-center justify-center font-bold text-tertiary">LV</div>
                           <div>
                             <div className="font-bold text-on-surface">Dr. Linda Vane</div>
                             <div className="text-xs text-on-surface-variant">l.vane@cityhealth.med</div>
@@ -202,7 +202,7 @@ export default function AdminUIDesign() {
           </div>
           {/* Recent Activity Feed */}
           <div className="lg:col-span-4">
-            <div className="glass-card p-8 rounded-[2.5rem] h-full sticky top-4 overflow-hidden flex flex-col border border-white/5">
+            <div className="glass-card p-8 rounded-[2.5rem] h-full sticky top-4 overflow-hidden flex flex-col border border-surface-border bg-surface">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-headline font-bold text-on-surface">Rescue Activity</h2>
                 <span className="bg-secondary/20 px-2 py-1 rounded-md text-[10px] font-black text-secondary">LIVE</span>
@@ -237,7 +237,7 @@ export default function AdminUIDesign() {
                   <span className="text-[10px] text-on-surface-variant mt-2 block">2 hours ago</span>
                 </div>
               </div>
-              <div className="mt-8 pt-6 border-t border-white/5">
+              <div className="mt-8 pt-6 border-t border-surface-border">
                 <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-[#008080] text-black font-headline font-bold text-sm tracking-wide shadow-lg shadow-primary/10 hover:brightness-110 active:scale-[0.98] transition-all">
                   EXPORT REPORT
                 </button>
@@ -247,7 +247,7 @@ export default function AdminUIDesign() {
         </div>
       </div>
       {/* Contextual FAB - Dashboard Main Action */}
-      <button className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-primary text-[#131313] flex items-center justify-center shadow-[0_24px_48px_-12px_rgba(118,214,213,0.4)] hover:scale-110 active:scale-90 transition-all z-50">
+      <button className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-primary text-black flex items-center justify-center shadow-[0_24px_48px_-12px_rgba(var(--brand-primary-rgb),0.4)] hover:scale-110 active:scale-90 transition-all z-50">
         <span className="material-symbols-outlined text-3xl">add</span>
       </button>
     </div>

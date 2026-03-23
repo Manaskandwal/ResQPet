@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import NotificationModal from './NotificationModal';
 
 /**
  * Main app shell: fixed sidebar + top navbar + scrollable content area.
@@ -9,15 +10,20 @@ import Navbar from './Navbar';
  */
 const Layout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
     const location = useLocation();
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
     // Integrated shell for both old and new designs
 
     return (
-        <div className={`min-h-screen flex transition-colors duration-300 ${isNewUI ? 'bg-[#131313]' : 'bg-slate-50'}`}>
+        <div className="min-h-screen flex bg-background transition-colors duration-300">
             {/* Sidebar — desktop always visible, mobile overlay */}
-            <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <Sidebar 
+                open={sidebarOpen} 
+                onClose={() => setSidebarOpen(false)} 
+                onNotificationsClick={() => setShowNotifications(true)}
+            />
 
             {/* Mobile overlay */}
             {sidebarOpen && (
@@ -29,11 +35,17 @@ const Layout = () => {
 
             {/* Main content */}
             <div className="flex-1 flex flex-col lg:ml-64 min-w-0">
-                <Navbar onMenuClick={() => setSidebarOpen(true)} />
+                <Navbar 
+                    onMenuClick={() => setSidebarOpen(true)} 
+                    onNotificationsClick={() => setShowNotifications(true)}
+                />
                 <main className="flex-1 p-5 md:p-8 max-w-7xl mx-auto w-full animate-fade-in">
                     <Outlet />
                 </main>
             </div>
+
+            {/* Global Notification Modal */}
+            <NotificationModal isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
         </div>
     );
 };

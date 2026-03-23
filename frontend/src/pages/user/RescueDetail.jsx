@@ -321,9 +321,9 @@ const RescueDetail = () => {
                 <StatusBadge status={rescue.status} />
             </div>
 
-            <div className="card text-slate-800">
+            <div className="card">
                 <div className="mb-4 flex items-center justify-between">
-                    <h3 className="mb-0 font-semibold text-slate-800">Rescue Progress</h3>
+                    <h3 className="mb-0 font-semibold text-on-background">Rescue Progress</h3>
                     {canMakeFundraiser && (
                         <button onClick={() => setFundraiserModalOpen(true)} className="btn-outline border-teal-200 px-3 py-1.5 text-xs text-teal-700 hover:bg-teal-50">
                             Need Funds? Start Fundraiser
@@ -355,11 +355,11 @@ const RescueDetail = () => {
             </div>
 
             <div className="card">
-                <h3 className="mb-2 font-semibold text-slate-800">Description</h3>
-                <p className="text-sm text-slate-700">{rescue.description}</p>
+                <h3 className="mb-2 font-bold text-on-background">Description</h3>
+                <p className="text-sm text-on-background font-medium">{rescue.description}</p>
                 <div className="divider" />
                 <p className="text-xs text-surface-muted">
-                    Animal: <span className="font-semibold text-slate-700 capitalize">{rescue.animalType === 'other' ? rescue.animalTypeOther : rescue.animalType}</span>
+                    Animal: <span className="font-bold text-on-background capitalize">{rescue.animalType === 'other' ? rescue.animalTypeOther : rescue.animalType}</span>
                 </p>
                 <p className="text-xs text-surface-muted">
                     {rescue.location.address || `${rescue.location.lat.toFixed(5)}, ${rescue.location.lng.toFixed(5)}`}
@@ -370,7 +370,7 @@ const RescueDetail = () => {
                 <button
                     type="button"
                     onClick={() => setLogsOpen(true)}
-                    className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700"
+                    className="mt-4 inline-flex items-center gap-2 rounded-full border border-surface-border bg-surface-hover px-4 py-2 text-sm font-bold text-on-background transition-all hover:scale-105"
                 >
                     <ClipboardDocumentListIcon className="h-4 w-4" />
                     View Detailed Status Log
@@ -382,9 +382,9 @@ const RescueDetail = () => {
             {showTreatmentResults && (
                 <div className="card overflow-hidden">
                     <div className="mb-4 flex items-center gap-2">
-                        <SparklesIcon className="h-5 w-5 text-emerald-500" />
+                        <SparklesIcon className="h-5 w-5 text-emerald-600" />
                         <div>
-                            <h3 className="font-semibold text-slate-800">Before and After Treatment Results</h3>
+                            <h3 className="font-bold text-on-background">Before and After Treatment Results</h3>
                             <p className="text-xs text-surface-muted">{treatmentStory.summary}</p>
                             {rescue.outcome === 'on_spot_treated' && (
                                 <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Completed through on-spot treatment</p>
@@ -432,10 +432,10 @@ const RescueDetail = () => {
 
             {rescue.assignedNGO && (
                 <div className="card">
-                    <h3 className="mb-2 font-semibold text-slate-800">Assigned NGO</h3>
-                    <p className="text-slate-700">{rescue.assignedNGO.orgName || rescue.assignedNGO.name}</p>
+                    <h3 className="mb-2 font-bold text-on-background">Assigned NGO</h3>
+                    <p className="font-medium text-on-background">{rescue.assignedNGO.orgName || rescue.assignedNGO.name}</p>
                     {rescue.assignedNGO.phone && (
-                        <a href={`tel:${rescue.assignedNGO.phone}`} className="mt-1 flex items-center gap-1.5 text-sm text-primary-600 hover:underline">
+                        <a href={`tel:${rescue.assignedNGO.phone}`} className="mt-2 flex items-center gap-2 text-sm text-primary-600 font-bold hover:underline">
                             <PhoneIcon className="h-4 w-4" />{rescue.assignedNGO.phone}
                         </a>
                     )}

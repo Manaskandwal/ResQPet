@@ -91,12 +91,12 @@ const Register = () => {
 
     const isOrg = ['ngo', 'hospital', 'ambulance'].includes(form.role);
 
-    if (authLoading) return <div className="min-h-screen bg-[#131313] flex items-center justify-center"><PawLoader /></div>;
+    if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><PawLoader /></div>;
 
     return (
-        <div className="min-h-screen bg-[#131313] flex flex-col lg:flex-row overflow-x-hidden font-body relative">
+        <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-x-hidden font-body relative transition-colors duration-300">
             {/* Left Column: Splash - Mirroring Login but different slogan */}
-            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-[#0e0e0e] min-h-screen">
+            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-surface min-h-screen">
                 <div className="absolute inset-0 z-0">
                     <img src="/auth_splash.png" alt="Rescue Mission" className="w-full h-full object-cover opacity-30 grayscale saturate-50 contrast-125" />
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
@@ -104,12 +104,12 @@ const Register = () => {
 
                 <div className="relative z-10 p-16 space-y-6 max-w-2xl">
                     <div className="flex items-center gap-3 animate-slide-in">
-                        <span className="material-symbols-outlined text-[#ffb77d] text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-                        <span className="text-4xl font-black text-[#ffb77d] font-headline tracking-tighter">VetsCue</span>
+                        <span className="material-symbols-outlined text-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+                        <span className="text-4xl font-black text-primary font-headline tracking-tighter">VetsCue</span>
                     </div>
                     <div className="space-y-2 animate-slide-up">
-                        <h2 className="text-6xl font-black font-headline text-white leading-tight tracking-tighter">Join the <br /><span className="text-[#ffb77d]">Ecosystem</span> of Care.</h2>
-                        <p className="text-lg text-white/50 leading-relaxed max-w-md">Connect with a nationwide network of rescuers and guardians.</p>
+                        <h2 className="text-6xl font-black font-headline text-on-surface leading-tight tracking-tighter">Join the <br /><span className="text-primary">Ecosystem</span> of Care.</h2>
+                        <p className="text-lg text-on-surface/50 leading-relaxed max-w-md">Connect with a nationwide network of rescuers and guardians.</p>
                     </div>
                 </div>
             </div>
@@ -127,8 +127,8 @@ const Register = () => {
 
                 <div className="w-full max-w-sm space-y-6 animate-fade-in py-8">
                     <div>
-                        <h1 className="text-2xl font-black font-headline text-white tracking-tight leading-none">Register Account</h1>
-                        <p className="text-xs text-white/30 mt-2">Become a verified Guardian.</p>
+                        <h1 className="text-2xl font-black font-headline text-on-background tracking-tight leading-none">Register Account</h1>
+                        <p className="text-xs text-on-background/30 mt-2">Become a verified Guardian.</p>
                     </div>
 
                     <div className="space-y-4">
@@ -154,19 +154,19 @@ const Register = () => {
                         </div>
 
                         <div className="relative flex items-center justify-center">
-                            <div className="w-full border-b border-white/5"></div>
-                            <span className="absolute px-4 text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/20 bg-[#131313]">Or use details</span>
+                            <div className="w-full border-b border-surface-border"></div>
+                            <span className="absolute px-4 text-[9px] font-black uppercase tracking-widest text-on-background/20 bg-background">Or use details</span>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-3 pb-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Full Name</label>
-                                    <input name="name" type="text" required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="Guardian Name" value={form.name} onChange={handleChange} />
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-on-background/30 ml-1">Full Name</label>
+                                    <input name="name" type="text" required className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-1 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10" placeholder="Guardian Name" value={form.name} onChange={handleChange} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Phone Number</label>
-                                    <input name="phone" type="tel" className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="91+..." value={form.phone} onChange={handleChange} />
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-on-background/30 ml-1">Phone Number</label>
+                                    <input name="phone" type="tel" className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-1 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10" placeholder="91+..." value={form.phone} onChange={handleChange} />
                                 </div>
                                 {isOrg && (
                                     <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
@@ -181,8 +181,8 @@ const Register = () => {
                                     </div>
                                 )}
                                 <div className="col-span-1 sm:col-span-2 space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Login Email</label>
-                                    <input name="email" type="email" required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 outline-none" placeholder="guardian@example.com" value={form.email} onChange={handleChange} />
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-on-background/30 ml-1">Login Email</label>
+                                    <input name="email" type="email" required className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 outline-none font-bold" placeholder="guardian@example.com" value={form.email} onChange={handleChange} />
                                 </div>
                                  <div className="col-span-1 sm:col-span-2 space-y-1.5">
                                      <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Secure Password</label>
@@ -202,8 +202,8 @@ const Register = () => {
                     </div>
 
                     <div className="text-center">
-                        <p className="text-[10px] text-white/30">
-                            Already Member? <Link to="/login" className="text-[#76d6d5] font-black hover:underline decoration-1 underline-offset-4">Return to login</Link>
+                        <p className="text-[10px] text-on-background/30">
+                            Already Member? <Link to="/login" className="text-primary font-black hover:underline decoration-1 underline-offset-4">Return to login</Link>
                         </p>
                     </div>
                 </div>

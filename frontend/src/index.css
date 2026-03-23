@@ -1,21 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --brand-primary: #76d6d5;
+    --brand-primary-rgb: 118, 214, 213;
+    --bg-main: #0e0e0e;
+    --bg-surface: #1c1b1b;
+    --bg-surface-hover: #2a2a2a;
+    --text-main: #e5e2e1;
+    --text-on-surface: #e5e2e1;
+    --text-muted: #879392;
+    --text-muted-on-surface: #879392;
+    --border-main: rgba(255, 255, 255, 0.06);
+    --border-surface: rgba(255, 255, 255, 0.1);
+    --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --primary-dim: #76d6d5;
+    --shadow-card: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* ── Material Symbols ──────────────────────────────────── */
   .resqpet-obsidian-theme .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
   .resqpet-obsidian-theme .glass-card {
-    background: rgba(28, 27, 27, 0.4);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    @apply transition-all duration-300;
+    background: var(--bg-surface);
+    color: var(--text-on-surface);
+    border: 1px solid var(--border-surface);
+    @apply transition-all duration-300 rounded-[2rem] shadow-card;
   }
   .resqpet-obsidian-theme .hero-gradient {
-    background: radial-gradient(circle at 50% 50%, rgba(118, 214, 213, 0.1) 0%, rgba(19, 19, 19, 0) 70%);
+    background: radial-gradient(circle at 50% 50%, rgba(var(--brand-primary-rgb), 0.08) 0%, transparent 70%);
   }
   .vetscue-obsidian-theme {
     @apply font-body selection:bg-[#76d6d5]/30 selection:text-[#76d6d5];
@@ -29,50 +48,33 @@
     animation: pulseSlow 4s ease-in-out infinite;
   }
   
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(118, 214, 213, 0.2);
-    border-radius: 10px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(118, 214, 213, 0.4);
-  }
+  /* ── Custom Scrollbar ─────────────────────────────────── */
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(118, 214, 213, 0.2); border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(118, 214, 213, 0.4); }
   
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
+  /* ── Body: Theme-Aware ─────────────────────────────────── */
   body {
-    @apply font-sans text-slate-800 bg-slate-50 antialiased;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    @apply font-sans antialiased transition-colors duration-300;
   }
 
-  ::-webkit-scrollbar {
-    @apply w-1.5;
-  }
+  ::-webkit-scrollbar { @apply w-1.5; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-main); @apply rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
 
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  /* ── Selection ─────────────────────────────────────────── */
+  ::selection {
+    background: rgba(var(--brand-primary-rgb), 0.25);
+    color: var(--text-main);
   }
 }
 
@@ -80,11 +82,19 @@
 
   /* ── Card ─────────────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-card shadow-card p-6 transition-all duration-200;
+    background-color: var(--bg-surface);
+    color: var(--text-on-surface);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-surface);
+    @apply rounded-card p-6 transition-all duration-200;
   }
 
   .card-hover {
-    @apply card hover:shadow-card-hover hover:-translate-y-0.5;
+    @apply card hover:-translate-y-0.5;
+    box-shadow: var(--shadow-card);
+  }
+  .card-hover:hover {
+    box-shadow: var(--shadow-card-hover);
   }
 
   /* ── Buttons ──────────────────────────────────────────── */
@@ -101,112 +111,115 @@
   }
 
   .btn-outline {
-    @apply btn border border-surface-border text-slate-700 hover:bg-surface-hover active:scale-95;
+    border: 1px solid var(--border-main);
+    color: var(--text-main);
+    @apply btn hover:bg-black/5 active:scale-95;
+  }
+
+  /* Variant for buttons on black cards */
+  .card .btn-outline {
+    border: 1px solid var(--border-surface);
+    color: var(--text-on-surface);
+    @apply hover:bg-white/5;
   }
 
   .btn-danger {
-    @apply btn bg-red-500 text-white hover:bg-red-600 active:scale-95;
+    @apply btn bg-red-600 text-white hover:bg-red-700 active:scale-95;
   }
 
   .btn-ghost {
-    @apply btn text-slate-600 hover:bg-surface-hover active:scale-95;
+    color: var(--text-main);
+    @apply btn hover:bg-black/5 active:scale-95;
   }
 
-  .btn-sm {
-    @apply px-3 py-1.5 text-xs;
+  .card .btn-ghost {
+    color: var(--text-on-surface);
+    @apply hover:bg-white/5;
   }
 
-  .btn-lg {
-    @apply px-6 py-3 text-base;
-  }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .btn-lg { @apply px-6 py-3 text-base; }
 
   /* ── Form Inputs ──────────────────────────────────────── */
   .input {
-    @apply w-full px-4 py-2.5 rounded-btn border border-surface-border bg-white text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all duration-200;
+    background-color: transparent;
+    color: inherit;
+    border: 1.5px solid var(--border-main);
+    @apply w-full px-4 py-2.5 rounded-btn text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all duration-200;
   }
 
-  .textarea {
-    @apply input resize-none;
+  .card .input {
+    border-color: var(--border-surface);
   }
+
+  .textarea { @apply input resize-none; }
 
   .label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
+    color: inherit;
+    @apply block text-sm font-bold mb-1.5 opacity-80;
   }
 
-  .form-group {
-    @apply flex flex-col gap-1;
-  }
+  .form-group { @apply flex flex-col gap-1; }
 
   /* ── Badges ───────────────────────────────────────────── */
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
-  }
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+  .badge-pending { @apply badge bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300; }
+  .badge-accepted { @apply badge bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300; }
+  .badge-escalated { @apply badge bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300; }
+  .badge-assigned { @apply badge bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300; }
+  .badge-enroute { @apply badge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300; }
+  .badge-pickedup { @apply badge bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300; }
+  .badge-completed { @apply badge bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300; }
+  .badge-cancelled { @apply badge bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300; }
 
-  .badge-pending {
-    @apply badge bg-amber-100 text-amber-700;
-  }
-
-  .badge-accepted {
-    @apply badge bg-teal-100 text-teal-700;
-  }
-
-  .badge-escalated {
-    @apply badge bg-orange-100 text-orange-700;
-  }
-
-  .badge-assigned {
-    @apply badge bg-blue-100 text-blue-700;
-  }
-
-  .badge-enroute {
-    @apply badge bg-indigo-100 text-indigo-700;
-  }
-
-  .badge-pickedup {
-    @apply badge bg-purple-100 text-purple-700;
-  }
-
-  .badge-completed {
-    @apply badge bg-green-100 text-green-700;
-  }
-
-  .badge-cancelled {
-    @apply badge bg-red-100 text-red-700;
-  }
-
-  /* ── Sidebar nav ─────────────────────────────────── */
+  /* ── Sidebar nav ─────────────────────────────────────── */
   .nav-link {
-    @apply flex items-center gap-2.5 px-3 py-2 rounded-btn text-sm font-medium text-slate-600 hover:bg-primary-50 hover:text-primary-700 transition-all duration-150 whitespace-nowrap overflow-hidden;
+    color: var(--text-muted);
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-btn text-sm font-medium hover:bg-surface-hover transition-all duration-150 whitespace-nowrap overflow-hidden;
   }
+  .nav-link:hover { color: var(--text-main); }
 
   .nav-link-active {
-    @apply nav-link bg-primary-50 text-primary-700 font-semibold;
+    background-color: rgba(var(--brand-primary-rgb), 0.1);
+    color: var(--primary-dim);
+    @apply nav-link font-semibold;
   }
 
-  /* ── Stat Card ────────────────────────────────────────── */
-  .stat-card {
-    @apply card flex flex-col gap-1;
-  }
+  /* ── Stat Card ─────────────────────────────────────────── */
+  .stat-card { @apply card flex flex-col gap-1; }
 
   .stat-value {
-    @apply text-3xl font-bold text-slate-800;
+    color: var(--text-main);
+    @apply text-3xl font-bold;
   }
 
   .stat-label {
-    @apply text-sm text-surface-muted font-medium;
+    color: var(--text-muted);
+    @apply text-sm font-medium;
   }
 
   /* ── Page header ─────────────────────────────────────── */
   .page-title {
-    @apply text-2xl font-bold text-slate-800;
+    color: var(--text-main);
+    @apply text-2xl font-bold;
   }
 
   .page-subtitle {
-    @apply text-sm text-surface-muted mt-0.5;
+    color: var(--text-muted);
+    @apply text-sm mt-0.5;
   }
 
   /* ── Divider ─────────────────────────────────────────── */
   .divider {
-    @apply border-t border-surface-border my-4;
+    border-color: var(--border-main);
+    @apply border-t my-4;
   }
+
+  /* ── Theme-aware text helpers ─────────────────────────── */
+  .text-theme-main { color: var(--text-main); }
+  .text-theme-muted { color: var(--text-muted); }
+  .bg-theme-surface { background-color: var(--bg-surface); }
+  .bg-theme-main { background-color: var(--bg-main); }
+  .border-theme { border-color: var(--border-main); }
 }
+

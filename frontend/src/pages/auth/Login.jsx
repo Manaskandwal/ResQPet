@@ -85,9 +85,9 @@ const Login = () => {
     if (authLoading) return <div className="min-h-screen bg-[#131313] flex items-center justify-center"><PawLoader /></div>;
 
     return (
-        <div className="min-h-screen bg-[#131313] flex flex-col lg:flex-row overflow-x-hidden font-body relative">
+        <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-x-hidden font-body relative transition-colors duration-300">
             {/* Left Column: Splash */}
-            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-[#0e0e0e] min-h-screen">
+            <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-surface min-h-screen">
                 <div className="absolute inset-0 z-0">
                     <img src="/auth_splash.png" alt="Rescue Mission" className="w-full h-full object-cover opacity-60 mix-blend-luminosity grayscale hover:grayscale-0 transition-all duration-1000" />
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
@@ -96,17 +96,17 @@ const Login = () => {
                 
                 <div className="relative z-10 p-16 space-y-6 max-w-2xl">
                     <div className="flex items-center gap-3 animate-slide-in">
-                        <span className="material-symbols-outlined text-[#76d6d5] text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
-                        <span className="text-4xl font-black text-[#76d6d5] font-headline tracking-tighter leading-none">VetsCue</span>
+                        <span className="material-symbols-outlined text-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+                        <span className="text-4xl font-black text-primary font-headline tracking-tighter leading-none">VetsCue</span>
                     </div>
                     <div className="space-y-2 animate-slide-up">
-                        <h2 className="text-6xl font-black font-headline text-white leading-tight tracking-tighter">The Ultimate <br /><span className="text-[#76d6d5]">Guardians</span> of Life.</h2>
-                        <p className="text-lg text-white/50 leading-relaxed max-w-md">Orchestrating every rescue mission with precision and compassion.</p>
+                        <h2 className="text-6xl font-black font-headline text-on-surface leading-tight tracking-tighter">The Ultimate <br /><span className="text-primary">Guardians</span> of Life.</h2>
+                        <p className="text-lg text-on-surface/50 leading-relaxed max-w-md">Orchestrating every rescue mission with precision and compassion.</p>
                     </div>
                     {/* Floating metric */}
-                    <div className="p-6 rounded-3xl bg-white/5 border border-white/5 backdrop-blur-xl w-fit animate-pulse-soft">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] mb-1">Impact Status</p>
-                        <p className="text-2xl font-black text-white">Always On-Duty</p>
+                    <div className="p-6 rounded-3xl bg-on-surface/5 border border-on-surface/5 backdrop-blur-xl w-fit animate-pulse-soft">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Impact Status</p>
+                        <p className="text-2xl font-black text-on-surface">Always On-Duty</p>
                     </div>
                 </div>
             </div>
@@ -116,7 +116,7 @@ const Login = () => {
                 {/* Back Button */}
                 <button 
                     onClick={() => navigate('/')}
-                    className="absolute top-8 left-8 p-3 rounded-full hover:bg-white/5 text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-all group border border-transparent hover:border-white/5 flex items-center gap-2"
+                    className="absolute top-8 left-8 p-3 rounded-full hover:bg-surface-hover text-on-background/40 hover:text-on-background transition-all group border border-transparent hover:border-surface-border flex items-center gap-2"
                 >
                     <ArrowLeftIcon className="w-4 h-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Back to Home</span>
@@ -124,8 +124,8 @@ const Login = () => {
 
                 <div className="w-full max-w-sm space-y-8 animate-fade-in">
                     <div>
-                        <h1 className="text-3xl font-black font-headline text-white tracking-tight">Welcome Back</h1>
-                        <p className="text-sm text-white/30 mt-2">Sign in to orchestrate the mission.</p>
+                        <h1 className="text-3xl font-black font-headline text-on-background tracking-tight">Welcome Back</h1>
+                        <p className="text-sm text-on-background/30 mt-2">Sign in to orchestrate the mission.</p>
                     </div>
 
                     {errorMsg && (
@@ -138,7 +138,7 @@ const Login = () => {
                     <div className="space-y-6">
                         {/* Social login integration */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/20">Quick Access</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-on-background/20">Quick Access</label>
                             <div className="w-full flex justify-center">
                                 <GoogleLogin 
                                     onSuccess={handleGoogleSuccess}
@@ -152,14 +152,14 @@ const Login = () => {
                         </div>
 
                         <div className="relative flex items-center justify-center group">
-                            <div className="w-full border-b border-white/5"></div>
-                            <span className="absolute px-4 text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/20 bg-[#131313]">Or use email</span>
+                            <div className="w-full border-b border-surface-border"></div>
+                            <span className="absolute px-4 text-[10px] font-black uppercase tracking-widest text-on-background/20 bg-background">Or use email</span>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1" htmlFor="email text">Email Address</label>
-                                <input id="email" name="email" type="email" required className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10" placeholder="e.g. guardian@resqpet.com" value={form.email} onChange={handleChange} />
+                                <label className="text-[10px] font-black uppercase tracking-widest text-on-background/30 ml-1" htmlFor="email">Email Address</label>
+                                <input id="email" name="email" type="email" required className="w-full px-5 py-4 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10" placeholder="e.g. guardian@resqpet.com" value={form.email} onChange={handleChange} />
                             </div>
                              <div className="space-y-2">
                                  <div className="flex justify-between items-center ml-1">
@@ -167,8 +167,8 @@ const Login = () => {
                                      <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:text-[#76d6d5]/80 pointer-events-none opacity-50">Forgot?</Link>
                                  </div>
                                  <div className="relative group">
-                                     <input id="password" name="password" type={showPass ? 'text' : 'password'} required className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 outline-none transition-all placeholder:text-white/10 pr-12" placeholder="••••••••" value={form.password} onChange={handleChange} />
-                                     <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-[#76d6d5] transition-colors p-1">
+                                     <input id="password" name="password" type={showPass ? 'text' : 'password'} required className="w-full px-5 py-4 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10 pr-12" placeholder="••••••••" value={form.password} onChange={handleChange} />
+                                     <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-background/20 hover:text-primary transition-colors p-1">
                                          <span className="material-symbols-outlined text-xl">{showPass ? 'visibility_off' : 'visibility'}</span>
                                      </button>
                                  </div>
@@ -181,15 +181,15 @@ const Login = () => {
                     </div>
 
                     <div className="pt-4 text-center">
-                        <p className="text-xs text-white/30">
-                            New Guardian? <Link to="/register" className="text-[#76d6d5] font-black hover:underline underline-offset-4">Join the Mission</Link>
+                        <p className="text-xs text-on-background/30">
+                            New Guardian? <Link to="/register" className="text-primary font-black hover:underline underline-offset-4">Join the Mission</Link>
                         </p>
                     </div>
                 </div>
                 
                 {/* Visual anchor at bottom right for branding if needed */}
                 <div className="absolute bottom-12 right-12 hidden lg:flex items-center gap-2 grayscale hover:grayscale-0 transition-all opacity-20 hover:opacity-100">
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">The Sanctuary Ecosystem</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-on-background">The Sanctuary Ecosystem</span>
                 </div>
             </div>
 

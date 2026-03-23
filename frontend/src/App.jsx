@@ -28,7 +28,7 @@ const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign')
 const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
 const RouteFallback = () => (
-  <div className={`min-h-screen flex items-center justify-center ${isNewUI ? 'bg-[#131313]' : 'bg-slate-50'}`}>
+  <div className={`min-h-screen flex items-center justify-center ${isNewUI ? 'bg-background' : 'bg-slate-50'}`}>
     <PawLoader />
   </div>
 );
