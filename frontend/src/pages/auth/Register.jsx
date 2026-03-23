@@ -184,15 +184,15 @@ const Register = () => {
                                     <label className="text-[9px] font-black uppercase tracking-widest text-on-background/30 ml-1">Login Email</label>
                                     <input name="email" type="email" required className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 outline-none font-bold" placeholder="guardian@example.com" value={form.email} onChange={handleChange} />
                                 </div>
-                                 <div className="col-span-1 sm:col-span-2 space-y-1.5">
-                                     <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Secure Password</label>
-                                     <div className="relative">
-                                         <input name="password" type={showPass ? 'text' : 'password'} required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 outline-none pr-10" placeholder="Min. 6 chars" value={form.password} onChange={handleChange} />
-                                         <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-[#76d6d5] transition-colors p-1">
-                                             <span className="material-symbols-outlined text-lg">{showPass ? 'visibility_off' : 'visibility'}</span>
-                                         </button>
-                                     </div>
-                                 </div>
+                                <div className="col-span-1 sm:col-span-2 space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Secure Password</label>
+                                    <div className="relative">
+                                        <input name="password" type={showPass ? 'text' : 'password'} required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 outline-none pr-10" placeholder="Min. 6 chars" value={form.password} onChange={handleChange} />
+                                        <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-[#76d6d5] transition-colors p-1">
+                                            <span className="material-symbols-outlined text-lg">{showPass ? 'visibility_off' : 'visibility'}</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <button type="submit" disabled={loading} className="w-full py-4 mt-2 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(118,214,213,0.3)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2">

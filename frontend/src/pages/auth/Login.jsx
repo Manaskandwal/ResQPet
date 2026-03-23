@@ -12,7 +12,7 @@ const Login = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const redirect = searchParams.get('redirect') || '/';
-    
+
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
@@ -93,7 +93,7 @@ const Login = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
                     <div className="absolute inset-0 bg-gradient-to-b from-[#131313]/20 via-transparent to-[#131313]/50 pointer-events-none" />
                 </div>
-                
+
                 <div className="relative z-10 p-16 space-y-6 max-w-2xl">
                     <div className="flex items-center gap-3 animate-slide-in">
                         <span className="material-symbols-outlined text-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
@@ -114,7 +114,7 @@ const Login = () => {
             {/* Right Column: Form */}
             <div className="flex-1 relative flex items-center justify-center p-8 lg:p-12 min-h-screen overflow-y-auto no-scrollbar">
                 {/* Back Button */}
-                <button 
+                <button
                     onClick={() => navigate('/')}
                     className="absolute top-8 left-8 p-3 rounded-full hover:bg-surface-hover text-on-background/40 hover:text-on-background transition-all group border border-transparent hover:border-surface-border flex items-center gap-2"
                 >
@@ -140,7 +140,7 @@ const Login = () => {
                         <div className="space-y-3">
                             <label className="text-[10px] font-black uppercase tracking-widest text-on-background/20">Quick Access</label>
                             <div className="w-full flex justify-center">
-                                <GoogleLogin 
+                                <GoogleLogin
                                     onSuccess={handleGoogleSuccess}
                                     onError={() => toast.error('Google Sign In failed')}
                                     theme="filled_black"
@@ -161,18 +161,18 @@ const Login = () => {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-on-background/30 ml-1" htmlFor="email">Email Address</label>
                                 <input id="email" name="email" type="email" required className="w-full px-5 py-4 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10" placeholder="e.g. guardian@resqpet.com" value={form.email} onChange={handleChange} />
                             </div>
-                             <div className="space-y-2">
-                                 <div className="flex justify-between items-center ml-1">
-                                     <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
-                                     <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:text-[#76d6d5]/80 pointer-events-none opacity-50">Forgot?</Link>
-                                 </div>
-                                 <div className="relative group">
-                                     <input id="password" name="password" type={showPass ? 'text' : 'password'} required className="w-full px-5 py-4 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10 pr-12" placeholder="••••••••" value={form.password} onChange={handleChange} />
-                                     <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-background/20 hover:text-primary transition-colors p-1">
-                                         <span className="material-symbols-outlined text-xl">{showPass ? 'visibility_off' : 'visibility'}</span>
-                                     </button>
-                                 </div>
-                             </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center ml-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
+                                    <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:text-[#76d6d5]/80 pointer-events-none opacity-50">Forgot?</Link>
+                                </div>
+                                <div className="relative group">
+                                    <input id="password" name="password" type={showPass ? 'text' : 'password'} required className="w-full px-5 py-4 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10 pr-12" placeholder="••••••••" value={form.password} onChange={handleChange} />
+                                    <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-background/20 hover:text-primary transition-colors p-1">
+                                        <span className="material-symbols-outlined text-xl">{showPass ? 'visibility_off' : 'visibility'}</span>
+                                    </button>
+                                </div>
+                            </div>
 
                             <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(118,214,213,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                                 {loading ? <span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> : 'Log In Account'}
@@ -186,14 +186,15 @@ const Login = () => {
                         </p>
                     </div>
                 </div>
-                
+
                 {/* Visual anchor at bottom right for branding if needed */}
                 <div className="absolute bottom-12 right-12 hidden lg:flex items-center gap-2 grayscale hover:grayscale-0 transition-all opacity-20 hover:opacity-100">
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-on-background">The Sanctuary Ecosystem</span>
                 </div>
             </div>
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @keyframes slide-in { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
                 @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
                 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
