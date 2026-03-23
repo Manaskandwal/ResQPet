@@ -25,6 +25,8 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 // New Design Previews (landing only - other pages use isNewUI flag internally)
 const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign'));
 
+const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
 const RouteFallback = () => (
   <div className={`min-h-screen flex items-center justify-center ${isNewUI ? 'bg-[#131313]' : 'bg-slate-50'}`}>
     <PawLoader />
@@ -53,8 +55,6 @@ const DashboardRedirect = () => {
   if (user.isAdmin && !user.impersonating) return <Navigate to="/admin/dashboard" replace />;
   return <Navigate to={routes[user.role] || '/user/dashboard'} replace />;
 };
-
-const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
 export default function App() {
   return (

@@ -168,7 +168,7 @@ const Fundraisers = () => {
                                                 <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
                                                     <div className="h-full rounded-full bg-gradient-to-r from-[#76d6d5] to-[#008080] transition-all duration-1000 shadow-[0_0_8px_rgba(118,214,213,0.4)]" style={{ width: `${progress}%` }} />
                                                 </div>
-                                                <p className="text-right text-[10px] font-black text-white/20">{progress.toFixed(0)}% FUNDED</p>
+                                                <p className="text-right text-[10px] font-black text-white/20">{Number(progress || 0).toFixed(0)}% FUNDED</p>
                                                 <div className="flex gap-2">
                                                     <input type="number" min="10" placeholder="Amount" className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-2.5 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 transition-all" onChange={(e) => setDonationAmount(e.target.value)} />
                                                     <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="rounded-2xl bg-[#76d6d5] text-[#131313] px-5 py-2.5 text-xs font-black uppercase disabled:opacity-50 hover:scale-105 transition-all">{donatingId === rescue._id ? '...' : 'Help'}</button>
@@ -291,7 +291,7 @@ const Fundraisers = () => {
                                     <div className="mt-auto border-t border-surface-border/50 pt-4">
                                         <div className="mb-2 flex justify-between text-[11px] font-bold"><span className="text-slate-600">Raised: Rs {rescue.amountRaised || 0}</span><span className="text-rose-600">Goal: Rs {rescue.estimatedCost}</span></div>
                                         <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 shadow-inner"><div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 shadow-lg transition-all duration-1000" style={{ width: `${progress}%` }} /></div>
-                                        <p className="mt-1.5 text-right text-[10px] font-bold text-slate-400">{progress.toFixed(0)}% FUNDED</p>
+                                        <p className="mt-1.5 text-right text-[10px] font-bold text-slate-400">{Number(progress || 0).toFixed(0)}% FUNDED</p>
                                         <div className="mt-4 flex items-center gap-2">
                                             <input type="number" min="10" placeholder="100" className="w-full rounded-btn border-none bg-slate-50 px-3 py-2 text-sm font-semibold transition-all focus:ring-2 focus:ring-rose-500/20" onChange={(e) => setDonationAmount(e.target.value)} />
                                             <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="btn bg-rose-500 px-6 py-2 font-bold text-white shadow-md shadow-rose-100 hover:bg-rose-600">{donatingId === rescue._id ? '...' : 'Help'}</button>

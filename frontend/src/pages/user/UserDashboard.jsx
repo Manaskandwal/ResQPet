@@ -434,7 +434,7 @@ const UserDashboard = () => {
                     </div>
                     <div className="text-left">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">Wallet</p>
-                        <p className="text-sm font-bold text-slate-700 leading-none">₹{wallet.walletBalance.toFixed(2)}</p>
+                        <p className="text-sm font-bold text-slate-700 leading-none">₹{Number(wallet.walletBalance || 0).toFixed(2)}</p>
                     </div>
                 </button>
             </div>
@@ -482,7 +482,7 @@ const UserDashboard = () => {
                                         <div className="flex-1 min-w-0">
                                             <p className="font-semibold text-slate-800 truncate">{rescue.description}</p>
                                             <p className="text-xs text-surface-muted mt-0.5">
-                                                📍 {rescue.location.address || `${rescue.location.lat.toFixed(4)}, ${rescue.location.lng.toFixed(4)}`}
+                                                📍 {rescue.location.address || `${Number(rescue.location.lat).toFixed(4)}, ${Number(rescue.location.lng).toFixed(4)}`}
                                             </p>
                                         </div>
                                         <StatusBadge status={rescue.status} />

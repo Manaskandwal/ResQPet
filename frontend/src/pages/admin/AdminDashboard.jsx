@@ -334,16 +334,23 @@ const AdminDashboard = () => {
     const orgRoles = ['ngo', 'hospital', 'ambulance'];
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
-    const statCardsResponsive = analytics ? [
-        { label: 'Total Citizens', value: analytics.totalUsers, Icon: UsersIcon, color: 'text-[#76d6d5]', accent: 'bg-[#76d6d5]/10' },
-        { label: 'Platform Rescues', value: analytics.totalRequests, Icon: ClipboardDocumentListIcon, color: 'text-blue-400', accent: 'bg-blue-400/10' },
-        { label: 'Success Cases', value: analytics.completedRequests, Icon: CheckCircleIcon, color: 'text-green-400', accent: 'bg-green-400/10' },
-        { label: 'Active Tasks', value: analytics.pendingRequests, Icon: ClockIcon, color: 'text-amber-400', accent: 'bg-amber-400/10' },
-        { label: 'NGO Partners', value: analytics.totalNGOs, Icon: HeartIcon, color: 'text-rose-400', accent: 'bg-rose-400/10' },
-        { label: 'Hospital Network', value: analytics.totalHospitals, Icon: BuildingOffice2Icon, color: 'text-indigo-400', accent: 'bg-indigo-400/10' },
-        { label: 'Dispatch Fleet', value: analytics.totalAmbulances, Icon: TruckIcon, color: 'text-teal-400', accent: 'bg-teal-400/10' },
-        { label: 'New Approvals', value: analytics.pendingApprovals, Icon: ShieldCheckIcon, color: 'text-[#ffb77d]', accent: 'bg-[#ffb77d]/10' },
+    const commonStats = analytics ? [
+        { label: 'Total Citizens', value: analytics.totalUsers, Icon: UsersIcon, color: 'text-blue-600', bg: 'bg-blue-50', obsidianColor: 'text-[#76d6d5]', accent: 'bg-[#76d6d5]/10' },
+        { label: 'Platform Rescues', value: analytics.totalRequests, Icon: ClipboardDocumentListIcon, color: 'text-indigo-600', bg: 'bg-indigo-50', obsidianColor: 'text-blue-400', accent: 'bg-blue-400/10' },
+        { label: 'Success Cases', value: analytics.completedRequests, Icon: CheckCircleIcon, color: 'text-green-600', bg: 'bg-green-50', obsidianColor: 'text-green-400', accent: 'bg-green-400/10' },
+        { label: 'Active Tasks', value: analytics.pendingRequests, Icon: ClockIcon, color: 'text-amber-600', bg: 'bg-amber-50', obsidianColor: 'text-amber-400', accent: 'bg-amber-400/10' },
+        { label: 'NGO Partners', value: analytics.totalNGOs, Icon: HeartIcon, color: 'text-rose-600', bg: 'bg-rose-50', obsidianColor: 'text-rose-400', accent: 'bg-rose-400/10' },
+        { label: 'Hospital Network', value: analytics.totalHospitals, Icon: BuildingOffice2Icon, color: 'text-sky-600', bg: 'bg-sky-50', obsidianColor: 'text-indigo-400', accent: 'bg-indigo-400/10' },
+        { label: 'Dispatch Fleet', value: analytics.totalAmbulances, Icon: TruckIcon, color: 'text-teal-600', bg: 'bg-teal-50', obsidianColor: 'text-teal-400', accent: 'bg-teal-400/10' },
+        { label: 'New Approvals', value: analytics.pendingApprovals, Icon: ShieldCheckIcon, color: 'text-orange-600', bg: 'bg-orange-50', obsidianColor: 'text-[#ffb77d]', accent: 'bg-[#ffb77d]/10' },
     ] : [];
+
+    const statCardsResponsive = commonStats.map(s => ({
+        ...s,
+        color: s.obsidianColor
+    }));
+
+    const statCards = commonStats;
 
     if (isNewUI) {
         return (
@@ -870,7 +877,7 @@ const AdminDashboard = () => {
                                                     {u.location?.lat ? (
                                                         <span className="text-green-600 flex items-center gap-0.5">
                                                             <MapPinIcon className="w-3 h-3" />
-                                                            {u.location.address || `${u.location.lat.toFixed(4)}, ${u.location.lng.toFixed(4)}`}
+                                                            {u.location.address || `${Number(u.location.lat).toFixed(4)}, ${Number(u.location.lng).toFixed(4)}`}
                                                             <span className="text-slate-400 ml-1">· 50km radius active</span>
                                                         </span>
                                                     ) : (

@@ -481,7 +481,7 @@ const SubmitRescue = () => {
                             </div>
                             {form.lat && (
                                 <p className="mb-2 text-xs font-medium text-primary-600">
-                                    {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
+                                    {Number(form.lat).toFixed(5)}, {Number(form.lng).toFixed(5)}
                                 </p>
                             )}
                             <div className="h-56 overflow-hidden rounded-btn border border-surface-border">
