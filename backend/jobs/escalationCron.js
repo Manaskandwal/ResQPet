@@ -2,26 +2,37 @@ const cron = require('node-cron');
 const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
-
-const SERVICE_FEE = 30;
+const { SERVICE_FEE } = require('../config/constants');
+const { emitRescueUpdate } = require('../config/socket');
 
 const maybeRefundUnresolvedFee = async (rescue) => {
     if (!rescue.depositDeducted || rescue.depositRefunded || rescue.workStartedAt) {
         return;
     }
 
+    // Atomic idempotency guard
+    const updatedRescue = await RescueRequest.findOneAndUpdate(
+        { _id: rescue._id, depositDeducted: true, depositRefunded: false },
+        { $set: { depositRefunded: true } },
+        { new: true }
+    );
+
+    if (!updatedRescue) return;
+
     const user = await User.findById(rescue.user);
     if (!user) return;
 
-    user.walletBalance += SERVICE_FEE;
+    const refundAmount = Number(rescue.depositAmount || SERVICE_FEE);
+    if (isNaN(refundAmount) || refundAmount <= 0) return;
+
+    user.walletBalance += refundAmount;
     await user.save();
 
-    rescue.depositRefunded = true;
     await WalletTransaction.create({
         user: user._id,
-        amount: SERVICE_FEE,
+        amount: refundAmount,
         type: 'refund',
-        description: `Rs ${SERVICE_FEE} service fee refunded for unresolved rescue #${rescue._id}`,
+        description: `Rs ${refundAmount} service fee refunded for unresolved rescue #${rescue._id}`,
         rescueRequest: rescue._id,
         balanceAfter: user.walletBalance,
     });
@@ -49,6 +60,7 @@ const startEscalationCron = () => {
                     status: 'hospital_broadcasted',
                     message: 'No NGO responded in time. Case escalated to hospitals.',
                 });
+                emitRescueUpdate(rescue._id, rescue.status, { message: 'No NGO responded in time. Case escalated to hospitals.' });
                 await rescue.save();
             }));
 
@@ -67,6 +79,7 @@ const startEscalationCron = () => {
                     message: 'No responder accepted the case within 30 minutes. Case closed unresolved.',
                 });
                 await maybeRefundUnresolvedFee(rescue);
+                emitRescueUpdate(rescue._id, rescue.status, { message: 'No responder accepted the case within 30 minutes. Case closed unresolved.' });
                 await rescue.save();
             }));
         } catch (error) {

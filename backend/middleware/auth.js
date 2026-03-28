@@ -1,7 +1,16 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const TokenBlacklist = require('../models/TokenBlacklist');
 
 const attachUserFromToken = async (token) => {
+    // ── Check Blacklist ──────────────────────────────────────────────────────
+    const isBlacklisted = await TokenBlacklist.findOne({ token });
+    if (isBlacklisted) {
+        const error = new Error('Token has been revoked.');
+        error.statusCode = 401;
+        throw error;
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log(`[Auth] Token verified for userId: ${decoded.id}, role: ${decoded.role}, isAdmin: ${decoded.isAdmin}`);
 

@@ -3,7 +3,8 @@ const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
 const Notification = require('../models/Notification');
-const { getIo } = require('../config/socket');
+const { getIo, emitRescueUpdate } = require('../config/socket');
+const { SERVICE_FEE } = require('../config/constants');
 
 // Helper to calculate distance in meters (haversine formula simplified for testing or use GeoJSON)
 // MongoDB provides a proper geo-spatial query: $near. We will use that in the actual query.
@@ -55,30 +56,41 @@ const startAmbulanceDispatchCron = () => {
                 if (rescue.pingRejectors.length >= 3 || rescue.createdAt <= thirtyMinutesAgo) {
                     console.log(`[Cron] Rescue ${rescue._id} stalled (3+ rejects or 30min passed). Cancelling and Refunding.`);
                     
-                    // Refund the deposit if not already refunded
+                    // Refund the deposit if not already refunded - ATOMIC IDEMPOTENCY GUARD
                     if (rescue.depositDeducted && !rescue.depositRefunded) {
-                        const reporter = await User.findById(rescue.user);
-                        if (reporter) {
-                            reporter.walletBalance += rescue.depositAmount || 20; // Default to 20 if missing
-                            await reporter.save();
+                        const updatedRescue = await RescueRequest.findOneAndUpdate(
+                            { _id: rescue._id, depositDeducted: true, depositRefunded: false },
+                            { $set: { depositRefunded: true } },
+                            { new: true }
+                        );
 
-                            await WalletTransaction.create({
-                                user: reporter._id,
-                                amount: rescue.depositAmount || 20,
-                                type: 'refund',
-                                description: `Refund: No ambulance available for Case ID: ${rescue._id}`,
-                                balanceAfter: reporter.walletBalance,
-                                rescueRequest: rescue._id
-                            });
+                        if (updatedRescue) {
+                            const reporter = await User.findById(rescue.user);
+                            if (reporter) {
+                                const refundAmount = Number(rescue.depositAmount || SERVICE_FEE);
+                                
+                                if (!isNaN(refundAmount) && refundAmount > 0) {
+                                    reporter.walletBalance += refundAmount;
+                                    await reporter.save();
 
-                            await Notification.create({
-                                recipient: reporter._id,
-                                title: 'Ambulance Request Unresolved',
-                                message: `We couldn't find an available ambulance. A refund of ₹${rescue.depositAmount || 20} has been credited to your wallet.`,
-                                type: 'wallet_refund',
-                                rescueRequest: rescue._id
-                            });
-                            rescue.depositRefunded = true;
+                                    await WalletTransaction.create({
+                                        user: reporter._id,
+                                        amount: refundAmount,
+                                        type: 'refund',
+                                        description: `Refund: No ambulance available for Case ID: ${rescue._id}`,
+                                        balanceAfter: reporter.walletBalance,
+                                        rescueRequest: rescue._id
+                                    });
+
+                                    await Notification.create({
+                                        recipient: reporter._id,
+                                        title: 'Ambulance Request Unresolved',
+                                        message: `We couldn't find an available ambulance. A refund of ₹${refundAmount} has been credited to your wallet.`,
+                                        type: 'wallet_refund',
+                                        rescueRequest: rescue._id
+                                    });
+                                }
+                            }
                         }
                     }
 
@@ -95,6 +107,7 @@ const startAmbulanceDispatchCron = () => {
                     });
 
                     await rescue.save();
+                    emitRescueUpdate(rescue._id, 'closed_unresolved', { message: 'System timeout: No ambulance accepted the request.' });
                     continue; // Skip the rest of the loop for this case
                 }
 

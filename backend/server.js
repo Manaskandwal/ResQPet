@@ -2,6 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 const http = require('http'); // <-- Added for Socket.io
 const connectDB = require('./config/db');
 const { connectCloudinary } = require('./config/cloudinary');
@@ -28,9 +32,51 @@ const server = http.createServer(app); // <-- Wrap app in HTTP server
 // Initialize Socket.io
 initSocket(server);
 
+// ─── Environment Validation ──────────────────────────────────────────────────
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    console.error('[Server] Critical Config Error: JWT_SECRET must be at least 32 characters long.');
+    process.exit(1);
+}
+
+const isProd = (process.env.NODE_ENV || 'development') === 'production';
+if (isProd) {
+    if (!process.env.CLIENT_URL || process.env.CLIENT_URL === '*') {
+        console.error('[Server] Critical Config Error: CLIENT_URL must be set to a valid origin in production and cannot be "*".');
+        process.exit(1);
+    }
+}
+
 const PORT = process.env.PORT || 5000;
 
 console.log('[Server] Initializing PawSaarthi Backend...');
+
+// ─── Security Middlewares ─────────────────────────────────────────────────────
+app.use(helmet()); // Set security HTTP headers
+app.use(mongoSanitize()); // Data sanitization against NoSQL query injection
+app.use(xss()); // Data sanitization against XSS
+
+// Global Rate Limiting
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+app.use('/api', globalLimiter);
+
+// Specific Rate Limiting for Auth & Payment
+const loginLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 5, // 5 requests per minute
+    message: 'Too many login attempts, please try again after a minute'
+});
+app.use('/api/auth/login', loginLimiter);
+
+const paymentVerifyLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 10, // 10 requests per minute
+    message: 'Too many payment verification attempts, please try again after a minute'
+});
+app.use('/api/payment/verify', paymentVerifyLimiter);
 
 // ─── Connect to Services ──────────────────────────────────────────────────────
 (async () => {

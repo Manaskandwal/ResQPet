@@ -51,6 +51,7 @@ const seedAdmin = async () => {
         console.log('==============================================');
         console.log('');
         console.log('[Seeder] IMPORTANT: Change the password after first login!');
+        console.log('[Seeder] SECURITY: Remove ADMIN_PASSWORD from your .env file after successful seed.');
         console.log('[Seeder] Admin seed completed successfully.');
 
         process.exit(0);

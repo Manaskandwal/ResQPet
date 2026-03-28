@@ -2,6 +2,7 @@ const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
 const { haversineDistance } = require('../utils/haversine');
 const { uploadBufferToCloudinary } = require('../middleware/upload');
+const { emitRescueUpdate } = require('../config/socket');
 
 const parseCoordinate = (value) => {
     const parsed = Number(value);
@@ -87,6 +88,7 @@ const acceptCase = async (req, res) => {
             pushStatusLog(rescue, 'accepted', 'NGO accepted the case for treatment.');
         }
 
+        emitRescueUpdate(rescue._id, rescue.status, { message: `NGO updated status to ${rescue.status}` });
         await rescue.save();
         res.status(200).json({ success: true, message: 'Case accepted successfully.', rescue });
     } catch (error) {
@@ -131,6 +133,7 @@ const updateNGOStatus = async (req, res) => {
         }
 
         pushStatusLog(rescue, status, message || `NGO updated status to ${status}.`, imageUrls, videoUrl);
+        emitRescueUpdate(rescue._id, rescue.status, { message: message || `NGO updated status to ${status}` });
         await rescue.save();
 
         res.status(200).json({ success: true, message: `Status updated to ${status}.`, rescue });
@@ -167,6 +170,7 @@ const rejectCase = async (req, res) => {
             rescue.status = 'hospital_broadcasted';
             rescue.escalatedAt = new Date();
             pushStatusLog(rescue, 'hospital_broadcasted', 'All nearby NGOs rejected the case. Escalated to hospitals.');
+            emitRescueUpdate(rescue._id, rescue.status, { message: 'All nearby NGOs rejected the case. Escalated to hospitals.' });
         }
 
         await rescue.save();
@@ -233,6 +237,7 @@ const resolveOnSpot = async (req, res) => {
         rescue.outcome = 'on_spot_treated';
         rescue.workStartedAt = rescue.workStartedAt || new Date();
         pushStatusLog(rescue, 'resolved_on_spot', 'NGO treated the animal on the spot. Final completion or follow-up can be added next.');
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'NGO treated the animal on the spot.' });
         await rescue.save();
 
         res.status(200).json({ success: true, message: 'On-spot treatment recorded.', rescue });
@@ -256,6 +261,7 @@ const completeCase = async (req, res) => {
         pushStatusLog(rescue, 'completed', rescue.outcome === 'on_spot_treated'
             ? 'Case completed after on-spot treatment.'
             : 'Case completed by NGO.');
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'Case marked completed by NGO.' });
         await rescue.save();
 
         res.status(200).json({ success: true, message: 'Case marked completed.', rescue });
@@ -302,6 +308,7 @@ const escalateToHospital = async (req, res) => {
         rescue.escalatedAt = new Date();
         rescue.workStartedAt = rescue.workStartedAt || new Date();
         pushStatusLog(rescue, 'hospital_broadcasted', 'Case escalated by NGO to nearby hospitals.');
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'Case escalated by NGO to nearby hospitals.' });
         await rescue.save();
 
         res.status(200).json({ success: true, message: 'Case escalated to hospitals.', rescue });

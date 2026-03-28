@@ -53,12 +53,16 @@ const startRecurringEmergencyDeduction = () => {
                 }
 
                 if (user.walletBalance < subscription.amount) {
-                    await Notification.create({
-                        user: user._id,
-                        title: 'Recurring Contribution Skipped',
-                        message: `Your wallet balance is too low for the next Rs ${subscription.amount} emergency contribution. Please top up your wallet.`,
-                        type: 'warning',
-                    });
+                    try {
+                        await Notification.create({
+                            recipient: user._id,
+                            title: 'Recurring Contribution Skipped',
+                            message: `Your wallet balance is too low for the next Rs ${subscription.amount} emergency contribution. Please top up your wallet.`,
+                            type: 'system', // aligned with enum
+                        });
+                    } catch (notificationError) {
+                        console.error(`[Recurring Job] Failed to create skip notification for ${user._id}:`, notificationError.message);
+                    }
                     continue;
                 }
 
@@ -90,12 +94,16 @@ const startRecurringEmergencyDeduction = () => {
                     note: 'Recurring contribution processed from wallet in test mode.',
                 });
 
-                await Notification.create({
-                    user: user._id,
-                    title: 'Emergency Fund Contribution',
-                    message: `Thank you for your recurring support. Rs ${subscription.amount} was deducted from your wallet in test mode for the emergency fund.`,
-                    type: 'success',
-                });
+                try {
+                    await Notification.create({
+                        recipient: user._id,
+                        title: 'Emergency Fund Contribution',
+                        message: `Thank you for your recurring support. Rs ${subscription.amount} was deducted from your wallet in test mode for the emergency fund.`,
+                        type: 'wallet_debit', // aligned with enum
+                    });
+                } catch (notificationError) {
+                    console.error(`[Recurring Job] Failed to create success notification for ${user._id}:`, notificationError.message);
+                }
             }
         } catch (error) {
             console.error('[Recurring Job] Emergency deduction error:', error.message);

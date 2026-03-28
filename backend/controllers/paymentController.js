@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
+const PaymentOrder = require('../models/PaymentOrder');
 const { getRazorpay } = require('../config/razorpay');
 const crypto = require('crypto');
 
@@ -93,6 +94,15 @@ const createOrder = async (req, res) => {
         const order = await razorpay.orders.create(options);
         console.log(`[Payment] Razorpay order created: ${order.id}`);
 
+        // Save order to database for verification later
+        await PaymentOrder.create({
+            user: req.user._id,
+            razorpayOrderId: order.id,
+            amount: Number(amount),
+            currency: 'INR',
+            status: 'pending'
+        });
+
         res.status(200).json({
             success: true,
             order,
@@ -121,6 +131,19 @@ const verifyPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing payment verification fields.' });
         }
 
+        // ── Database Verification ──────────────────────────────────────────────
+        // Check if order exists in our DB and is still pending
+        const order = await PaymentOrder.findOne({
+            razorpayOrderId: razorpay_order_id,
+            user: req.user._id,
+            status: 'pending'
+        });
+
+        if (!order) {
+            console.warn(`[Payment] Verification failed: Pending order ${razorpay_order_id} not found in DB.`);
+            return res.status(400).json({ success: false, message: 'Invalid or already processed order ID.' });
+        }
+
         // ── HMAC-SHA256 Signature Verification ───────────────────────────────────
         const body = razorpay_order_id + '|' + razorpay_payment_id;
         const expectedSignature = crypto
@@ -140,6 +163,10 @@ const verifyPayment = async (req, res) => {
         const user = await User.findById(req.user._id);
         user.walletBalance += creditAmount;
         await user.save();
+
+        // ── Update Order Status ───────────────────────────────────────────────────
+        order.status = 'completed';
+        await order.save();
 
         // ── Record Transaction ────────────────────────────────────────────────────
         const txn = await WalletTransaction.create({

@@ -1,5 +1,6 @@
 const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
+const { emitRescueUpdate } = require('../config/socket');
 
 const getAssignedTask = async (req, res) => {
     try {
@@ -56,6 +57,7 @@ const updateStatus = async (req, res) => {
                 : `Ambulance updated status to ${rescue.status}.`,
         });
 
+        emitRescueUpdate(rescue._id, rescue.status, { message: `Ambulance updated status to ${rescue.status}` });
         await rescue.save();
 
         if (rescue.status === 'completed') {
@@ -126,6 +128,7 @@ const acceptPing = async (req, res) => {
             message: `${req.user.name} accepted the ambulance dispatch.`,
         });
 
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'Ambulance accepted the dispatch.' });
         await rescue.save();
         await User.findByIdAndUpdate(req.user._id, { isAvailable: false });
 

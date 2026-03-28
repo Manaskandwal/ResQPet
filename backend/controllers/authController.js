@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const AuditLog = require('../models/AuditLog');
 const { generateToken } = require('../utils/generateToken');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { OAuth2Client } = require('google-auth-library');
@@ -137,9 +138,17 @@ const impersonateUser = asyncHandler(async (req, res) => {
         return res.status(403).json({ success: false, message: 'Access denied. Administrator privileges required.' });
     }
 
-    const { userId } = req.body;
-    if (!userId) {
-        return res.status(400).json({ success: false, message: 'No target user ID provided.' });
+    const { userId, password } = req.body;
+    if (!userId || !password) {
+        return res.status(400).json({ success: false, message: 'Target user ID and admin password are required.' });
+    }
+
+    // Verify admin password before allowing impersonation
+    const admin = await User.findById(req.user._id).select('+password');
+    const isMatch = await admin.matchPassword(password);
+    if (!isMatch) {
+        console.warn(`[Auth] Impersonation failed: Incorrect admin password for ${req.user.email}`);
+        return res.status(401).json({ success: false, message: 'Invalid administrator password.' });
     }
 
     const target = await User.findById(userId).select('-password');
@@ -158,6 +167,16 @@ const impersonateUser = asyncHandler(async (req, res) => {
             email: target.email,
             role: target.role,
         },
+    });
+
+    // Log the audit event
+    await AuditLog.create({
+        adminId: req.user._id,
+        targetId: target._id,
+        action: 'impersonation_start',
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        details: { targetEmail: target.email, targetRole: target.role }
     });
 
     console.log(`[Auth] Admin ${req.user.email} started impersonating: ${target.email} (${target.role})`);

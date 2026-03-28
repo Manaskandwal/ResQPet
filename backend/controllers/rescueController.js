@@ -2,8 +2,10 @@ const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
 const { uploadBufferToCloudinary } = require('../middleware/upload');
+const { SERVICE_FEE } = require('../config/constants');
+const { emitRescueUpdate } = require('../config/socket');
 
-const DEPOSIT_AMOUNT = 30;
+const DEPOSIT_AMOUNT = SERVICE_FEE;
 
 const canRefundServiceFee = (rescue) => !!(rescue.depositDeducted && !rescue.depositRefunded && !rescue.workStartedAt);
 
@@ -178,6 +180,7 @@ const cancelRescue = async (req, res) => {
         }
 
         await rescue.save();
+        emitRescueUpdate(rescue._id, 'cancelled', { message: 'Case cancelled by user' });
 
         res.status(200).json({ success: true, message: 'Rescue request cancelled successfully.', rescue });
     } catch (error) {
@@ -207,9 +210,28 @@ const makeFundraiser = async (req, res) => {
             return res.status(400).json({ success: false, message: 'This case is already a fundraiser.' });
         }
 
+        // Only allow fundraiser conversion if the case is in a terminal or stalled state
+        const allowedStatuses = ['completed', 'closed_unresolved', 'hospital_escalated'];
+        if (!allowedStatuses.includes(rescue.status)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `Fundraisers can only be created for cases that are ${allowedStatuses.join(' or ')}.` 
+            });
+        }
+
         rescue.isFundraiser = true;
         rescue.estimatedCost = estimatedCost;
+        rescue.status = 'fundraiser_active';
+        
+        // Add to status logs
+        rescue.statusLogs.push({
+            status: 'fundraiser_active',
+            message: `Case converted to public fundraiser with estimated cost of ₹${estimatedCost}.`,
+            timestamp: new Date()
+        });
+
         await rescue.save();
+        emitRescueUpdate(rescue._id, 'fundraiser_active', { message: `Case converted to public fundraiser` });
 
         res.status(200).json({ success: true, message: 'Your case is now public for fundraising.', rescue });
     } catch (error) {

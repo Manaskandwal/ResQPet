@@ -84,35 +84,46 @@ Outputs: admin email/password to console. **Change password after first login.**
 | `ngo`     | ✅                 | Accept/reject nearby cases |
 | `hospital`| ✅                 | Assign ambulances to escalated cases |
 | `ambulance`| ✅               | Update dispatch status |
-| `admin`   | N/A (seeded)       | Approve accounts, view analytics |
+| `admin`   | N/A (seeded)       | Approve accounts, view analytics, impersonate |
 
 ### Rescue Status Pipeline
 
 ```
 pending
   ├─ (within 5 min)  → ngo_accepted
-  └─ (after 5 min)   → hospital_escalated   ← cron job
-                           └─ ambulance_assigned
+  └─ (after 5 min)   → hospital_escalated   ← cron job (hospital_broadcasted)
+                           └─ ambulance_assigned (ambulance_pinged)
                                  └─ en_route
                                       └─ picked_up
-                                           └─ completed  (₹20 refunded)
+                                           └─ delivered → completed (₹30 refunded)
+                                           └─ fundraiser_active (optional)
 ```
 
 ---
 
+## Security Features
+- **JWT Protection**: Strict 32-character secret enforcement and token blacklist for revoked sessions.
+- **Admin Audit Logs**: Every administrative action (including account switching) is logged with IP and User-Agent.
+- **Rate Limiting**: Protection against brute-force on auth and payment endpoints (via `express-rate-limit`).
+- **Input Sanitization**: Protection against NoSQL injection (`mongo-sanitize`) and XSS (`xss-clean`).
+- **Media Validation**: Server-side magic byte inspection (`file-type`) and hard size limits (5MB image, 50MB video).
+- **Payment Integrity**: Razorpay HMAC verification against pending orders in the database.
+
+---
+
 ## Media Uploads
-- **Images**: up to 5 per rescue request (JPEG/PNG/WebP, max 10MB each)
-- **Video**: 1 video per request (MP4/MOV/WebM, max 200MB ≈ 2 min at 720p)
+- **Images**: up to 5 per rescue request (JPEG/PNG/WebP, max 5MB each)
+- **Video**: 1 video per request (MP4, max 50MB)
 - All media stored on Cloudinary free tier
 
 ---
 
 ## Wallet System
 - Users top up via Razorpay (test mode)
-- **₹20 deposit** deducted on rescue submission
-- **₹20 refunded** automatically when rescue is completed
+- **₹30 service fee** deducted on rescue submission (defined as `SERVICE_FEE` constant)
+- **₹30 refunded** automatically when rescue is completed or unresolved
 - Full transaction history stored in `WalletTransactions` collection
-- Backend verifies Razorpay HMAC-SHA256 signature before crediting wallet
+- Backend verifies Razorpay HMAC-SHA256 signature and order state before crediting wallet
 
 ---
 

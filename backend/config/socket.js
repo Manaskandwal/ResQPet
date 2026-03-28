@@ -81,4 +81,26 @@ const getIo = () => {
     return io;
 };
 
-module.exports = { initSocket, getIo };
+/**
+ * Emits a rescue status update to the dedicated rescue room.
+ * @param {string} rescueId - The ID of the rescue request.
+ * @param {string} status - The new status.
+ * @param {Object} payload - Additional data (e.g. log message).
+ */
+const emitRescueUpdate = (rescueId, status, payload = {}) => {
+    try {
+        const _io = getIo();
+        const roomName = `rescue_${rescueId}`;
+        _io.to(roomName).emit('status_update', {
+            rescueId,
+            status,
+            ...payload,
+            timestamp: new Date()
+        });
+        console.log(`[Socket] Emitted status_update for rescue ${rescueId}: ${status}`);
+    } catch (error) {
+        console.error('[Socket] emitRescueUpdate error:', error.message);
+    }
+};
+
+module.exports = { initSocket, getIo, emitRescueUpdate };

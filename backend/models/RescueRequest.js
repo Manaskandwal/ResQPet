@@ -96,6 +96,11 @@ const rescueRequestSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        depositAmount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
         // Assigned entities
         assignedNGO: {
             type: mongoose.Schema.Types.ObjectId,
@@ -252,6 +257,14 @@ const rescueRequestSchema = new mongoose.Schema(
 // Index for efficient proximity/status queries
 rescueRequestSchema.index({ 'location.lat': 1, 'location.lng': 1 });
 rescueRequestSchema.index({ status: 1, createdAt: 1 });
+
+// Pre-save hook to cap status logs
+rescueRequestSchema.pre('save', function (next) {
+    if (this.statusLogs && this.statusLogs.length > 50) {
+        this.statusLogs = this.statusLogs.slice(-50);
+    }
+    next();
+});
 
 const RescueRequest = mongoose.model('RescueRequest', rescueRequestSchema);
 module.exports = RescueRequest;

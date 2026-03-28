@@ -16,6 +16,7 @@ const { updateStatus } = require('../controllers/ambulanceController');
 const { protect } = require('../middleware/auth');
 const { allowRoles } = require('../middleware/roleGuard');
 const { upload } = require('../middleware/upload');
+const { validateMedia } = require('../middleware/validateMedia');
 
 // @route  POST /api/rescue
 // Accept mixed media (up to 5 images and 1 video) in a single field
@@ -24,6 +25,7 @@ router.post(
     protect,
     allowRoles('user'),
     upload.array('media', 6),
+    validateMedia,
     submitRescue
 );
 
@@ -52,7 +54,7 @@ router.put('/:id/resolve-ngo', protect, allowRoles('ngo'), resolveOnSpot);
 router.put('/:id/escalate-ngo', protect, allowRoles('ngo'), escalateToHospital);
 
 // @route  PUT /api/rescue/:id/ngo-status
-router.put('/:id/ngo-status', protect, allowRoles('ngo'), upload.array('media', 7), updateNGOStatus);
+router.put('/:id/ngo-status', protect, allowRoles('ngo'), upload.array('media', 7), validateMedia, updateNGOStatus);
 
 // @route  PUT /api/rescue/:id/complete-ngo
 router.put('/:id/complete-ngo', protect, allowRoles('ngo'), completeCase);

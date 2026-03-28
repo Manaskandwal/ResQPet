@@ -1,6 +1,7 @@
 const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
 const { haversineDistance } = require('../utils/haversine');
+const { emitRescueUpdate } = require('../config/socket');
 
 const pushStatusLog = (rescue, status, message) => {
     rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
@@ -81,6 +82,7 @@ const assignAmbulance = async (req, res) => {
         rescue.ambulanceAssignedAt = new Date();
         rescue.workStartedAt = rescue.workStartedAt || new Date();
         pushStatusLog(rescue, 'ambulance_assigned', 'Hospital assigned an ambulance for transport.');
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'Hospital assigned an ambulance for transport.' });
         await rescue.save();
 
         ambulance.isAvailable = false;
@@ -149,6 +151,7 @@ const acceptBroadcastedCase = async (req, res) => {
         }));
         rescue.pingRejectors = [];
         pushStatusLog(rescue, 'ambulance_pinged', 'Hospital started ambulance dispatch for this case.');
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'Hospital accepted the case and started ambulance dispatch.' });
         await rescue.save();
 
         res.status(200).json({ success: true, message: 'Case claimed successfully. Ambulance dispatch has started.', rescue });
@@ -185,6 +188,7 @@ const rejectBroadcastedCase = async (req, res) => {
             rescue.closedAt = new Date();
             rescue.outcome = 'closed_unresolved';
             pushStatusLog(rescue, 'closed_unresolved', 'All nearby hospitals rejected the case. Case closed unresolved.');
+            emitRescueUpdate(rescue._id, rescue.status, { message: 'All nearby hospitals rejected the case. Case closed unresolved.' });
         }
 
         await rescue.save();

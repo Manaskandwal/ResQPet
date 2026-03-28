@@ -261,15 +261,23 @@ const overrideRescueStatus = async (req, res) => {
         console.log(`[Admin Controller] overrideRescueStatus: rescueId=${req.params.id}`);
         const { status, adminNotes } = req.body;
 
-        const rescue = await RescueRequest.findByIdAndUpdate(
-            req.params.id,
-            { status, adminNotes: adminNotes || '' },
-            { new: true, runValidators: true }
-        );
-
+        const rescue = await RescueRequest.findById(req.params.id);
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
 
-        console.log(`[Admin Controller] Rescue ${rescue._id} status overridden to: ${status}`);
+        const oldStatus = rescue.status;
+        rescue.status = status;
+        if (adminNotes) rescue.adminNotes = adminNotes;
+
+        // If the case is being closed or cancelled, and it had an assigned ambulance, reset their availability
+        const isClosing = ['completed', 'cancelled', 'closed_unresolved'].includes(status);
+        if (isClosing && rescue.assignedAmbulance) {
+            await User.findByIdAndUpdate(rescue.assignedAmbulance, { isAvailable: true });
+            console.log(`[Admin Controller] Restored availability for ambulance: ${rescue.assignedAmbulance}`);
+        }
+
+        await rescue.save();
+
+        console.log(`[Admin Controller] Rescue ${rescue._id} status overridden from ${oldStatus} to: ${status}`);
         res.status(200).json({ success: true, message: `Rescue status updated to '${status}'.`, rescue });
     } catch (error) {
         console.error('[Admin Controller] overrideRescueStatus error:', error.message);
