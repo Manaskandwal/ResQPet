@@ -35,6 +35,7 @@ const navConfig = {
     hospital: [
         { to: '/hospital/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
         { to: '/hospital/dashboard?tab=escalated', label: 'Escalated Cases', Icon: HeartIcon },
+        { to: '/hospital/fleet', label: 'Fleet', Icon: TruckIcon },
     ],
     ambulance: [
         { to: '/ambulance/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
@@ -102,7 +103,7 @@ const Sidebar = ({ open, onClose, onNotificationsClick }) => {
                         <span className="text-lg font-black text-primary tracking-tighter font-headline leading-none">VetsCue</span>
                     </div>
                 ) : (
-                    <img src="/logo.svg" alt="PawSaarthi" className="h-8" />
+                    <img src="/logo.svg" alt="VetsCue" className="h-8" />
                 )}
                 <button onClick={onClose} className={`lg:hidden p-1.5 rounded transition ${isNewUI ? 'hover:bg-surface-hover text-on-background/40' : 'hover:bg-surface-hover text-slate-500'}`}>
                     <XMarkIcon className="w-4 h-4" />

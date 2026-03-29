@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import NotificationModal from './NotificationModal';
+import AudioAlert from './AudioAlert';
 
 /**
  * Main app shell: fixed sidebar + top navbar + scrollable content area.
@@ -18,6 +19,7 @@ const Layout = () => {
 
     return (
         <div className="min-h-screen flex bg-background transition-colors duration-300">
+            <AudioAlert />
             {/* Sidebar — desktop always visible, mobile overlay */}
             <Sidebar 
                 open={sidebarOpen} 

@@ -2,6 +2,7 @@ const User = require('../models/User');
 const RescueRequest = require('../models/RescueRequest');
 const WalletTransaction = require('../models/WalletTransaction');
 const Donation = require('../models/Donation');
+const AuditLog = require('../models/AuditLog');
 
 /**
  * @route   GET /api/admin/analytics
@@ -331,6 +332,27 @@ const setUserLocation = async (req, res) => {
     }
 };
 
+/**
+ * @route   GET /api/admin/audit-logs
+ * @desc    Get security audit logs (impersonations)
+ * @access  Private (admin only)
+ */
+const getAuditLogs = async (req, res) => {
+    try {
+        console.log('[Admin Controller] getAuditLogs requested');
+        const logs = await AuditLog.find()
+            .populate('adminId', 'name email')
+            .populate('targetId', 'name email')
+            .sort({ timestamp: -1 })
+            .limit(100);
+
+        res.status(200).json({ success: true, logs });
+    } catch (error) {
+        console.error('[Admin Controller] getAuditLogs error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getAnalytics,
     getAllUsers,
@@ -340,4 +362,5 @@ module.exports = {
     getAllRescues,
     overrideRescueStatus,
     setUserLocation,
+    getAuditLogs,
 };

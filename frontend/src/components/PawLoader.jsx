@@ -1,6 +1,6 @@
 import React from 'react';
 
-const PawLoader = ({ message = "Loading PawSaarthi..." }) => {
+const PawLoader = ({ message = "Loading VetsCue..." }) => {
   return (
     <div className="flex flex-col items-center justify-center gap-6 p-10 select-none">
       <div className="relative flex items-center justify-center w-24 h-24">

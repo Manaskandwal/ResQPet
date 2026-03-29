@@ -23,6 +23,9 @@ const AmbulanceDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
 
+    const isIndependent = user?.ambulanceType === 'independent';
+    const isLinked = user?.ambulanceType === 'linked';
+
     const fetchData = useCallback(async () => {
         try {
             console.log('[AmbulanceDashboard] Fetching assigned task, pings, and history...');
@@ -119,10 +122,20 @@ const AmbulanceDashboard = () => {
         const currentAction = task ? STATUS_ACTIONS[task.status] : null;
         return (
             <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8 max-w-xl mx-auto">
-                <section className="space-y-2">
-                    <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Ambulance</span>
+                <section className="space-y-2 text-center md:text-left">
+                    <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">
+                        {isLinked ? `Hospital Fleet Unit` : 'Independent Responder'}
+                    </span>
                     <h1 className="font-headline text-4xl font-extrabold tracking-tight">Mission <span className="text-[#76d6d5]">Control</span></h1>
-                    <p className="text-[#e5e2e1]/40">Vehicle: <span className="text-[#76d6d5] font-bold">{user?.vehicleNumber || 'Not set'}</span></p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[#e5e2e1]/40 text-xs font-medium">
+                        <p>Vehicle: <span className="text-[#76d6d5] font-bold">{user?.vehicleNumber || 'Not set'}</span></p>
+                        {isLinked && user.linkedHospital && (
+                            <p className="flex items-center gap-1.5 border-l border-white/10 pl-4">
+                                <span className="material-symbols-outlined text-sm">apartment</span>
+                                Linked to: <span className="text-[#e5e2e1] font-bold">{user.linkedHospital.name || 'Your Hospital'}</span>
+                            </p>
+                        )}
+                    </div>
                 </section>
 
                 {loading ? (

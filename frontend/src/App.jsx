@@ -18,9 +18,11 @@ const Impact = lazy(() => import('./pages/Impact'));
 const MyRescueReports = lazy(() => import('./pages/user/MyRescueReports'));
 const NGODashboard = lazy(() => import('./pages/ngo/NGODashboard'));
 const HospitalDashboard = lazy(() => import('./pages/hospital/HospitalDashboard'));
+const HospitalFleet = lazy(() => import('./pages/hospital/HospitalFleet'));
 const AmbulanceDashboard = lazy(() => import('./pages/ambulance/AmbulanceDashboard'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const Notifications = lazy(() => import('./pages/Notifications'));
+const AudioAlert = lazy(() => import('./components/AudioAlert'));
 
 // New Design Previews (landing only - other pages use isNewUI flag internally)
 const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign'));
@@ -90,6 +92,7 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRoles={['hospital']} />}>
         <Route element={<Layout />}>
           <Route path="/hospital/dashboard" element={withSuspense(<HospitalDashboard />)} />
+          <Route path="/hospital/fleet" element={withSuspense(<HospitalFleet />)} />
         </Route>
       </Route>
 

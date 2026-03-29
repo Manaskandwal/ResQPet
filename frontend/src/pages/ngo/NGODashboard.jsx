@@ -87,6 +87,72 @@ const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = '
     );
 };
 
+const TransportModal = ({ open, onClose, onConfirm, actionType }) => {
+    if (!open) return null;
+    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+
+    const handleConfirm = (transportType) => {
+        onConfirm(transportType);
+    };
+
+    if (isNewUI) return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] shadow-2xl p-8 space-y-8 animate-scale-in">
+                <div className="text-center space-y-4">
+                    <div className="mx-auto w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
+                        <span className="material-symbols-outlined text-3xl">local_hospital</span>
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-2xl font-headline font-bold text-[#e5e2e1]">Hospital Transport</h3>
+                        <p className="text-sm text-[#e5e2e1]/40">How would you like to transport the animal to the hospital?</p>
+                    </div>
+                </div>
+                <div className="grid gap-4">
+                    <button 
+                        onClick={() => handleConfirm('self')}
+                        className="group flex items-center gap-4 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#76d6d5]/30 hover:bg-[#76d6d5]/5 transition-all text-left"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-[#e5e2e1]/40 group-hover:text-[#76d6d5] transition-colors">
+                            <span className="material-symbols-outlined">person</span>
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm text-[#e5e2e1]">Take by Yourself</p>
+                            <p className="text-[10px] text-[#e5e2e1]/30 uppercase font-black tracking-widest">Direct to Hospital Flow</p>
+                        </div>
+                    </button>
+                    <button 
+                        onClick={() => handleConfirm('ambulance')}
+                        className="group flex items-center gap-4 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#76d6d5]/30 hover:bg-[#76d6d5]/5 transition-all text-left"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-[#e5e2e1]/40 group-hover:text-[#76d6d5] transition-colors">
+                            <span className="material-symbols-outlined">ambulance</span>
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm text-[#e5e2e1]">Request Ambulance</p>
+                            <p className="text-[10px] text-[#e5e2e1]/30 uppercase font-black tracking-widest">Procedural Dispatch Flow</p>
+                        </div>
+                    </button>
+                </div>
+                <button onClick={onClose} className="w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/20 hover:text-[#e5e2e1] transition-all">Cancel Request</button>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-card border border-surface-border bg-white shadow-card-hover p-6">
+                <h3 className="mb-2 text-center text-xl font-bold text-slate-800">Hospital Transport</h3>
+                <p className="mb-6 text-center text-sm text-surface-muted">How will the animal reach the hospital?</p>
+                <div className="space-y-3">
+                    <button onClick={() => handleConfirm('self')} className="btn-primary w-full py-3">Take by Yourself</button>
+                    <button onClick={() => handleConfirm('ambulance')} className="btn-outline w-full py-3">Request Ambulance</button>
+                    <button onClick={onClose} className="btn-ghost w-full py-2 text-xs">Cancel</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const NGODashboard = () => {
     const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -100,6 +166,7 @@ const NGODashboard = () => {
     const [locationSet, setLocationSet] = useState(true);
     const [scheduleCase, setScheduleCase] = useState(null);
     const [followUpCase, setFollowUpCase] = useState(null);
+    const [transportCase, setTransportCase] = useState(null); // { id, actionType: 'accept' | 'escalate' }
     const [gpsCoords, setGpsCoords] = useState(null);
     const [mediaComments, setMediaComments] = useState({});
 
@@ -139,11 +206,21 @@ const NGODashboard = () => {
         try { await action(); } finally { setActing((prev) => ({ ...prev, [id]: null })); }
     };
 
-    const handleAccept = async (id, type = 'immediate', scheduleDate = null) => {
+    const handleAccept = async (id, type = 'immediate', scheduleDate = null, transportType = 'na') => {
         await withActing(id, 'accepting', async () => {
-            await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate });
-            toast.success(type === 'schedule' ? 'Case scheduled.' : 'Case accepted.');
+            await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate, transportType });
+            toast.success(type === 'hospital' ? 'Escalated to Hospital.' : type === 'schedule' ? 'Case scheduled.' : 'Case accepted.');
             setScheduleCase(null);
+            setTransportCase(null);
+            fetchAll();
+        }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
+    };
+
+    const handleEscalate = async (id, transportType = 'ambulance') => {
+        await withActing(id, 'escalating', async () => {
+            await api.put(`/rescue/${id}/escalate-ngo`, { transportType });
+            toast.success('Escalated to Hospital.');
+            setTransportCase(null);
             fetchAll();
         }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
@@ -167,9 +244,6 @@ const NGODashboard = () => {
     };
     const handleComplete = async (id) => {
         await withActing(id, 'completing', async () => { await api.put(`/rescue/${id}/complete-ngo`); toast.success('Case completed.'); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
-    };
-    const handleEscalate = async (id) => {
-        await withActing(id, 'escalating', async () => { await api.put(`/rescue/${id}/escalate-ngo`); toast.success('Case escalated.'); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
     const handleFollowUp = async (id, scheduleDate, notes) => {
         await withActing(id, 'followup', async () => { await api.post(`/rescue/${id}/followup`, { scheduleDate, notes }); toast.success('Follow-up scheduled.'); setFollowUpCase(null); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
@@ -231,6 +305,18 @@ const NGODashboard = () => {
                     onConfirm={(isoDate, notes) => handleFollowUp(followUpCase._id, isoDate, notes)} 
                     submitting={followUpCase ? acting[followUpCase._id] === 'followup' : false} 
                     title="Setup Follow-up Logic" 
+                />
+                <TransportModal 
+                    open={!!transportCase} 
+                    onClose={() => setTransportCase(null)} 
+                    onConfirm={(transportType) => {
+                        if (transportCase.actionType === 'accept') {
+                            handleAccept(transportCase.id, 'hospital', null, transportType);
+                        } else {
+                            handleEscalate(transportCase.id, transportType);
+                        }
+                    }} 
+                    actionType={transportCase?.actionType}
                 />
 
                 {/* Dashboard Title Section */}
@@ -349,7 +435,8 @@ const NGODashboard = () => {
                                                     </p>
                                                 </div>
                                                 <div className="flex gap-2 pt-4">
-                                                    <button onClick={() => handleAccept(c._id, 'immediate')} className="flex-1 py-3 bg-[#76d6d5] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all">Accept Rescue</button>
+                                                    <button onClick={() => handleAccept(c._id, 'immediate')} className="flex-1 py-3 bg-[#76d6d5] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all">Accept Now</button>
+                                                    <button onClick={() => setTransportCase({ id: c._id, actionType: 'accept' })} className="flex-1 py-3 bg-[#ffb77d] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all">Accept & Hospital</button>
                                                     <button onClick={() => setScheduleCase(c)} className="px-4 py-3 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
                                                         <ClockIcon className="w-4 h-4" />
                                                     </button>
@@ -618,7 +705,7 @@ const NGODashboard = () => {
                                                      {c.status === 'treating' && (
                                                         <>
                                                             <button onClick={() => handleTreatOnSpot(c._id)} className="px-6 py-4 bg-teal-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Immediate Resolution</button>
-                                                            <button onClick={() => handleEscalate(c._id)} className="px-6 py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Escalate: Critical</button>
+                                                            <button onClick={() => setTransportCase({ id: c._id, actionType: 'escalate' })} className="px-6 py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Escalate: Critical</button>
                                                         </>
                                                      )}
                                                      {c.status === 'resolved_on_spot' && (
@@ -719,14 +806,14 @@ const NGODashboard = () => {
                         {c.status === 'treating' && (
                             <>
                                 <button onClick={() => handleTreatOnSpot(c._id)} className="btn bg-teal-500 px-3 py-1 text-xs text-white">Treat on Spot</button>
-                                <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 px-3 py-1 text-xs text-white">Escalate to Hospital</button>
+                                <button onClick={() => setTransportCase({ id: c._id, actionType: 'escalate' })} className="btn bg-rose-500 px-3 py-1 text-xs text-white">Escalate to Hospital</button>
                             </>
                         )}
                         {c.status === 'resolved_on_spot' && (
                             <>
                                 <button onClick={() => handleComplete(c._id)} className="btn bg-emerald-600 px-3 py-1 text-xs text-white">Mark Case Completed</button>
                                 <button onClick={() => setFollowUpCase(c)} className="btn bg-amber-500 px-3 py-1 text-xs text-white">Add Follow-up Schedule</button>
-                                <button onClick={() => handleEscalate(c._id)} className="btn bg-rose-500 px-3 py-1 text-xs text-white">Escalate to Hospital</button>
+                                <button onClick={() => setTransportCase({ id: c._id, actionType: 'escalate' })} className="btn bg-rose-500 px-3 py-1 text-xs text-white">Escalate to Hospital</button>
                             </>
                         )}
                     </div>

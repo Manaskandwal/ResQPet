@@ -3,7 +3,7 @@ const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
 const { uploadBufferToCloudinary } = require('../middleware/upload');
 const { SERVICE_FEE } = require('../config/constants');
-const { emitRescueUpdate } = require('../config/socket');
+const { emitRescueUpdate, emitNewCaseToNgos } = require('../config/socket');
 
 const DEPOSIT_AMOUNT = SERVICE_FEE;
 
@@ -42,7 +42,7 @@ const submitRescue = async (req, res) => {
             try {
                 const isVideo = file.mimetype.startsWith('video/');
                 const result = await uploadBufferToCloudinary(file.buffer, {
-                    folder: 'pawsaarthi/rescue',
+                    folder: 'VetsCue/rescue',
                     resource_type: isVideo ? 'video' : 'image',
                 });
 
@@ -88,6 +88,9 @@ const submitRescue = async (req, res) => {
             balanceAfter: user.walletBalance,
         });
 
+        // Emit real-time alert to all NGOs
+        emitNewCaseToNgos(rescueRequest);
+
         res.status(201).json({
             success: true,
             message: 'Rescue request submitted. Help is on the way.',
@@ -127,7 +130,9 @@ const getRescueById = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Rescue request not found.' });
         }
 
-        if (req.user.role === 'user' && rescue.user._id.toString() !== req.user._id.toString()) {
+        // Handle case where user might have been deleted (rescue.user is null)
+        const rescueUserId = rescue.user ? rescue.user._id.toString() : null;
+        if (req.user.role === 'user' && rescueUserId !== req.user._id.toString()) {
             return res.status(403).json({ success: false, message: 'Access denied.' });
         }
 
@@ -177,6 +182,11 @@ const cancelRescue = async (req, res) => {
                 rescueRequest: rescue._id,
                 balanceAfter: user.walletBalance,
             });
+        }
+
+        // Free the assigned ambulance if one was assigned
+        if (rescue.assignedAmbulance) {
+            await User.findByIdAndUpdate(rescue.assignedAmbulance, { isAvailable: true });
         }
 
         await rescue.save();

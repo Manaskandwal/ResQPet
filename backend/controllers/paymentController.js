@@ -22,10 +22,10 @@ const mockTopup = async (req, res) => {
         console.log('[Mock Payment] paymentStatus =', paymentStatus);
 
         const { amount } = req.body;
-        const creditAmount = parseFloat(amount) || 100; // default ₹100 if not provided
+        const creditAmount = Math.abs(parseFloat(amount)) || 100; // Force positive
 
         if (creditAmount <= 0) {
-            return res.status(400).json({ success: false, message: 'Amount must be positive.' });
+            return res.status(400).json({ success: false, message: 'Amount must be a positive number.' });
         }
 
         console.log(`[Mock Payment] Crediting ₹${creditAmount} to userId: ${req.user._id} (mock)`);
@@ -86,7 +86,7 @@ const createOrder = async (req, res) => {
             receipt: `wallet_topup_${req.user._id}_${Date.now()}`,
             notes: {
                 userId: req.user._id.toString(),
-                purpose: 'PawSaarthi Wallet Top-up',
+                purpose: 'VetsCue Wallet Top-up',
             },
         };
 

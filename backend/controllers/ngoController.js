@@ -61,7 +61,7 @@ const getNearbyCases = async (req, res) => {
 
 const acceptCase = async (req, res) => {
     try {
-        const { type, scheduleDate } = req.body;
+        const { type, scheduleDate, transportType } = req.body;
         const rescue = await RescueRequest.findById(req.params.id);
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
 
@@ -71,6 +71,8 @@ const acceptCase = async (req, res) => {
 
         rescue.assignedNGO = req.user._id;
         rescue.acceptedAt = new Date();
+
+        let updateMessage = '';
 
         if (type === 'schedule') {
             if (!scheduleDate) {
@@ -82,13 +84,30 @@ const acceptCase = async (req, res) => {
             }
             rescue.status = 'scheduled';
             rescue.scheduleDate = parsedScheduleDate;
+            updateMessage = `NGO scheduled the rescue for ${parsedScheduleDate.toLocaleString()}`;
             pushStatusLog(rescue, 'scheduled', `NGO scheduled the rescue for ${parsedScheduleDate.toISOString()}`);
+        } else if (type === 'hospital') {
+            rescue.status = 'hospital_broadcasted';
+            rescue.escalatedAt = new Date();
+            rescue.transportType = transportType || 'ambulance';
+            rescue.ngoTransporting = (transportType === 'self');
+            
+            updateMessage = transportType === 'self' 
+                ? 'NGO accepted the case and is bringing the animal to the hospital themselves.'
+                : 'NGO accepted the case and requested an ambulance for hospital transport.';
+            
+            pushStatusLog(rescue, 'hospital_broadcasted', updateMessage);
         } else {
             rescue.status = 'accepted';
-            pushStatusLog(rescue, 'accepted', 'NGO accepted the case for treatment.');
+            updateMessage = 'NGO accepted the case for treatment.';
+            pushStatusLog(rescue, 'accepted', updateMessage);
         }
 
-        emitRescueUpdate(rescue._id, rescue.status, { message: `NGO updated status to ${rescue.status}` });
+        emitRescueUpdate(rescue._id, rescue.status, { 
+            message: updateMessage,
+            transportType: rescue.transportType,
+            ngoTransporting: rescue.ngoTransporting
+        });
         await rescue.save();
         res.status(200).json({ success: true, message: 'Case accepted successfully.', rescue });
     } catch (error) {
@@ -111,7 +130,7 @@ const updateNGOStatus = async (req, res) => {
             try {
                 const isVideo = file.mimetype.startsWith('video/');
                 const result = await uploadBufferToCloudinary(file.buffer, {
-                    folder: `pawsaarthi/rescue/${rescue._id}`,
+                    folder: `VetsCue/rescue/${rescue._id}`,
                     resource_type: isVideo ? 'video' : 'image',
                 });
                 if (isVideo) videoUrl = result.secure_url;
@@ -297,6 +316,7 @@ const addFollowUp = async (req, res) => {
 
 const escalateToHospital = async (req, res) => {
     try {
+        const { transportType } = req.body;
         const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
 
@@ -307,8 +327,19 @@ const escalateToHospital = async (req, res) => {
         rescue.status = 'hospital_broadcasted';
         rescue.escalatedAt = new Date();
         rescue.workStartedAt = rescue.workStartedAt || new Date();
-        pushStatusLog(rescue, 'hospital_broadcasted', 'Case escalated by NGO to nearby hospitals.');
-        emitRescueUpdate(rescue._id, rescue.status, { message: 'Case escalated by NGO to nearby hospitals.' });
+        rescue.transportType = transportType || 'ambulance';
+        rescue.ngoTransporting = (transportType === 'self');
+
+        const updateMessage = transportType === 'self'
+            ? 'NGO escalated the case and is bringing the animal to the hospital themselves.'
+            : 'NGO escalated the case and requested an ambulance for hospital transport.';
+
+        pushStatusLog(rescue, 'hospital_broadcasted', updateMessage);
+        emitRescueUpdate(rescue._id, rescue.status, { 
+            message: updateMessage,
+            transportType: rescue.transportType,
+            ngoTransporting: rescue.ngoTransporting
+        });
         await rescue.save();
 
         res.status(200).json({ success: true, message: 'Case escalated to hospitals.', rescue });

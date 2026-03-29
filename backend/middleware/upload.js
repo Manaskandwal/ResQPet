@@ -37,11 +37,11 @@ const upload = multer({
 const uploadBufferToCloudinary = (buffer, options = {}) => {
     return new Promise((resolve, reject) => {
         try {
-            console.log(`[Cloudinary Upload] Starting upload to folder: ${options.folder || 'pawsaarthi'}`);
+            console.log(`[Cloudinary Upload] Starting upload to folder: ${options.folder || 'VetsCue'}`);
 
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: options.folder || 'pawsaarthi',
+                    folder: options.folder || 'VetsCue',
                     resource_type: options.resource_type || 'auto',
                     ...options,
                 },

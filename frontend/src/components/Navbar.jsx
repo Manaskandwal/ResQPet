@@ -11,7 +11,7 @@ import {
     CreditCardIcon,
 } from '@heroicons/react/24/outline';
 import AdminUserSwitcher from './AdminUserSwitcher';
-import { BellIcon, SunIcon, MoonIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { BellIcon, SunIcon, MoonIcon, XMarkIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../context/ThemeContext';
 import api from '../api/axios';
 
@@ -21,6 +21,7 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
     const navigate = useNavigate();
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [isMuted, setIsMuted] = useState(localStorage.getItem('isMuted') === 'true');
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
     useEffect(() => {
@@ -39,6 +40,13 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
     const handleBackToAdmin = async () => {
         await stopImpersonating();
         navigate('/admin/dashboard');
+    };
+
+    const toggleMute = () => {
+        const newMuted = !isMuted;
+        setIsMuted(newMuted);
+        localStorage.setItem('isMuted', newMuted);
+        window.dispatchEvent(new Event('mute-change'));
     };
 
     return (
@@ -108,6 +116,23 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse-soft" />
                                 Pending Approval
                             </span>
+                        )}
+
+                        {/* Mute Toggle */}
+                        {(user?.role === 'ngo' || user?.role === 'ambulance') && (
+                            <button 
+                                onClick={toggleMute}
+                                className={`p-2 rounded-full transition-all ${
+                                    isNewUI ? 'hover:bg-on-surface/10 text-on-background/70' : 'hover:bg-surface-hover text-slate-600'
+                                }`}
+                                title={isMuted ? "Unmute alerts" : "Mute alerts"}
+                            >
+                                {isMuted ? (
+                                    <SpeakerXMarkIcon className={`w-5 h-5 ${isNewUI ? 'text-red-400' : 'text-red-600'}`} />
+                                ) : (
+                                    <SpeakerWaveIcon className={`w-5 h-5 ${isNewUI ? 'text-[#76d6d4]' : 'text-primary-600'}`} />
+                                )}
+                            </button>
                         )}
 
                         {/* Notification Bell */}

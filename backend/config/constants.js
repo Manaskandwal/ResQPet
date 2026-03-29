@@ -1,5 +1,5 @@
 /**
- * Global Constants for PawSaarthi
+ * Global Constants for VetsCue
  */
 module.exports = {
     SERVICE_FEE: 30, // Rs 30 as per rescueController and escalationCron

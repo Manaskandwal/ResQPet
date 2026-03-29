@@ -3,12 +3,21 @@ import api from '../api/axios';
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = 'pawsaarthi_token';
-const ADMIN_TOKEN_KEY = 'pawsaarthi_admin_token';
+const TOKEN_KEY = 'vetscue_token';
+const ADMIN_TOKEN_KEY = 'vetscue_admin_token';
+const USER_KEY = 'vetscue_user';
 
 export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem(TOKEN_KEY);
-    const [user, setUser] = useState(null);
+    const storedUserRaw = storedToken ? localStorage.getItem(USER_KEY) : null;
+    let storedUser = null;
+    try {
+        storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+    } catch {
+        storedUser = null;
+    }
+
+    const [user, setUser] = useState(storedUser || null);
     const [token, setToken] = useState(storedToken || null);
     const [loading, setLoading] = useState(Boolean(storedToken));
     const [originalAdminToken, setOriginalAdminToken] = useState(
@@ -31,12 +40,20 @@ export const AuthProvider = ({ children }) => {
             try {
                 const { data } = await api.get('/auth/me');
                 setUser(data.user);
-            } catch {
-                localStorage.removeItem(TOKEN_KEY);
-                localStorage.removeItem(ADMIN_TOKEN_KEY);
-                setToken(null);
-                setOriginalAdminToken(null);
-                setUser(null);
+                localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+            } catch (err) {
+                const status = err?.response?.status;
+                if (status === 401 || status === 403) {
+                    localStorage.removeItem(TOKEN_KEY);
+                    localStorage.removeItem(ADMIN_TOKEN_KEY);
+                    localStorage.removeItem(USER_KEY);
+                    setToken(null);
+                    setOriginalAdminToken(null);
+                    setUser(null);
+                } else {
+                    // Network/server error: keep existing session data to avoid forced logout
+                    console.warn('[AuthContext] /auth/me failed, keeping cached session:', err?.message);
+                }
             } finally {
                 setLoading(false);
             }
@@ -47,6 +64,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = useCallback((userData, jwtToken) => {
         localStorage.setItem(TOKEN_KEY, jwtToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(userData));
         setToken(jwtToken);
         setUser(userData);
         setLoading(false);
@@ -55,6 +73,7 @@ export const AuthProvider = ({ children }) => {
     const logout = useCallback(() => {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(ADMIN_TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         setToken(null);
         setOriginalAdminToken(null);
         setUser(null);
@@ -62,7 +81,11 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const updateUser = useCallback((updatedFields) => {
-        setUser((prev) => ({ ...prev, ...updatedFields }));
+        setUser((prev) => {
+            const next = { ...(prev || {}), ...updatedFields };
+            localStorage.setItem(USER_KEY, JSON.stringify(next));
+            return next;
+        });
     }, []);
 
     const impersonateUser = useCallback(async (userId) => {
@@ -71,14 +94,15 @@ export const AuthProvider = ({ children }) => {
             if (!data.success) return { success: false, message: data.message };
 
             if (!originalAdminToken) {
-                localStorage.setItem(ADMIN_TOKEN_KEY, token);
-                setOriginalAdminToken(token);
-            }
+            localStorage.setItem(ADMIN_TOKEN_KEY, token);
+            setOriginalAdminToken(token);
+        }
 
-            localStorage.setItem(TOKEN_KEY, data.token);
-            setToken(data.token);
-            setUser(data.user);
-            return { success: true };
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+        setToken(data.token);
+        setUser(data.user);
+        return { success: true };
         } catch (err) {
             console.error('[AuthContext] impersonateUser error:', err.response?.data?.message || err.message);
             return { success: false, message: err.response?.data?.message || 'Failed to switch account' };
@@ -90,12 +114,14 @@ export const AuthProvider = ({ children }) => {
         try {
             localStorage.setItem(TOKEN_KEY, originalAdminToken);
             localStorage.removeItem(ADMIN_TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
             setToken(originalAdminToken);
             setOriginalAdminToken(null);
             const { data } = await api.get('/auth/me', {
                 headers: { Authorization: `Bearer ${originalAdminToken}` },
             });
             setUser(data.user);
+            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
         } catch {
             logout();
         }

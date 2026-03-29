@@ -103,4 +103,50 @@ const emitRescueUpdate = (rescueId, status, payload = {}) => {
     }
 };
 
-module.exports = { initSocket, getIo, emitRescueUpdate };
+/**
+ * Broadcasts a new rescue alert to all NGOs.
+ */
+const emitNewCaseToNgos = (rescue) => {
+    try {
+        const _io = getIo();
+        _io.to('role_ngo').emit('new_rescue_alert', {
+            rescueId: rescue._id,
+            description: rescue.description,
+            location: rescue.location,
+            timestamp: new Date()
+        });
+        console.log(`[Socket] Broadcasted new_rescue_alert for rescue ${rescue._id} to all NGOs.`);
+    } catch (error) {
+        console.error('[Socket] emitNewCaseToNgos error:', error.message);
+    }
+};
+
+/**
+ * Broadcasts a dispatch alert to specific ambulances or the entire role.
+ */
+const emitAmbulanceDispatch = (rescue, ambulanceIds = []) => {
+    try {
+        const _io = getIo();
+        const payload = {
+            rescueId: rescue._id,
+            description: rescue.description,
+            location: rescue.location,
+            hospitalName: rescue.assignedHospital?.orgName || 'Nearby Hospital',
+            timestamp: new Date()
+        };
+
+        if (ambulanceIds.length > 0) {
+            ambulanceIds.forEach(id => {
+                _io.to(id.toString()).emit('new_dispatch_alert', payload);
+            });
+            console.log(`[Socket] Sent new_dispatch_alert for rescue ${rescue._id} to ${ambulanceIds.length} ambulances.`);
+        } else {
+            _io.to('role_ambulance').emit('new_dispatch_alert', payload);
+            console.log(`[Socket] Broadcasted new_dispatch_alert for rescue ${rescue._id} to all ambulances.`);
+        }
+    } catch (error) {
+        console.error('[Socket] emitAmbulanceDispatch error:', error.message);
+    }
+};
+
+module.exports = { initSocket, getIo, emitRescueUpdate, emitNewCaseToNgos, emitAmbulanceDispatch };

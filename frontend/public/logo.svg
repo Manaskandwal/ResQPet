@@ -14,13 +14,13 @@
   <!-- Main pad -->
   <ellipse cx="35" cy="44" rx="13" ry="11" fill="white"/>
 
-  <!-- Wordmark: "PawSaarthi" -->
-  <!-- "Paw" in teal, "Saarthi" in dark slate -->
+  <!-- Wordmark: "VetsCue" -->
+  <!-- "Vets" in teal, "Cue" in dark slate -->
   <text x="80" y="52"
     font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif"
     font-size="32"
     font-weight="700"
     letter-spacing="-0.5">
-    <tspan fill="#0d9488">Paw</tspan><tspan fill="#1e293b">Saarthi</tspan>
+    <tspan fill="#0d9488">Vets</tspan><tspan fill="#1e293b">Cue</tspan>
   </text>
 </svg>

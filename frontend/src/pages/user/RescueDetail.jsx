@@ -238,6 +238,19 @@ const RescueDetail = () => {
                     <p className="text-xs text-white/30">Animal: <span className="text-[#e5e2e1]/60 capitalize">{rescue.animalType === 'other' ? rescue.animalTypeOther : rescue.animalType}</span></p>
                     <p className="text-xs text-white/20">{rescue.location.address || `${rescue.location.lat.toFixed(5)}, ${rescue.location.lng.toFixed(5)}`}</p>
                     <p className="text-xs text-white/20">Reported: {formatIndianDateTime(rescue.createdAt)}</p>
+                    {rescue.transportType && rescue.transportType !== 'na' && (
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-white/20 font-medium">Transport Mode:</span>
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#76d6d5]/10 border border-[#76d6d5]/20">
+                                <span className="material-symbols-outlined text-[14px] text-[#76d6d5]">
+                                    {rescue.transportType === 'self' ? 'person' : 'ambulance'}
+                                </span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">
+                                    {rescue.transportType === 'self' ? 'NGO Self Transport' : 'Hospital Ambulance'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                     <button type="button" onClick={() => setLogsOpen(true)} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
                         <ClipboardDocumentListIcon className="h-4 w-4" />View Detailed Status Log
                     </button>

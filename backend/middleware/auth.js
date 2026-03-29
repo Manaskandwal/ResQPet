@@ -53,8 +53,13 @@ const protect = async (req, res, next) => {
         try {
             req.user = await attachUserFromToken(token);
         } catch (jwtError) {
-            console.error('[Auth] JWT verification failed:', jwtError.message);
-            return res.status(jwtError.statusCode || 401).json({ success: false, message: jwtError.message || 'Token invalid or expired.' });
+            const isJwtError = jwtError.name === 'JsonWebTokenError' || jwtError.name === 'TokenExpiredError';
+            const status = jwtError.statusCode || (isJwtError ? 401 : 500);
+            console.error('[Auth] Token/user attach failed:', jwtError.message);
+            return res.status(status).json({
+                success: false,
+                message: isJwtError ? (jwtError.message || 'Token invalid or expired.') : 'Authentication service unavailable. Please try again.',
+            });
         }
         next();
     } catch (error) {

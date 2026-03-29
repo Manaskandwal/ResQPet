@@ -270,6 +270,8 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState({});
     const [locationModal, setLocationModal] = useState(null);
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [auditLoading, setAuditLoading] = useState(false);
 
     const fetchAll = useCallback(async () => {
         try {
@@ -297,6 +299,24 @@ const AdminDashboard = () => {
     useEffect(() => {
         fetchAll();
     }, [fetchAll]);
+
+    const fetchAuditLogs = useCallback(async () => {
+        try {
+            setAuditLoading(true);
+            const { data } = await api.get('/admin/audit-logs');
+            setAuditLogs(data.logs || []);
+        } catch (error) {
+            toast.error('Failed to load audit logs.');
+        } finally {
+            setAuditLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'audit') {
+            fetchAuditLogs();
+        }
+    }, [activeTab, fetchAuditLogs]);
 
     const handleApprove = async (userId, approve) => {
         setActing((prev) => ({ ...prev, [userId]: true }));
@@ -327,8 +347,16 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleLocationSaved = (userId, newLocation) => {
-        setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, location: newLocation } : u)));
+    const handleImpersonate = async (userId) => {
+        try {
+            const { data } = await api.post('/auth/impersonate-start', { userId });
+            localStorage.setItem('vetscue_token', data.token);
+            localStorage.setItem('isImpersonating', 'true');
+            toast.success('Successfully impersonated user. Redirecting...');
+            setTimeout(() => window.location.href = '/', 1500);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Impersonation failed.');
+        }
     };
 
     const orgRoles = ['ngo', 'hospital', 'ambulance'];
@@ -376,6 +404,7 @@ const AdminDashboard = () => {
                                 { id: 'overview', label: 'Home' },
                                 { id: 'approvals', label: 'Approvals' },
                                 { id: 'users', label: 'Users' },
+                                { id: 'audit', label: 'Security Logs' },
                                 { id: 'rescues', label: 'Rescues' }
                             ].map((t) => (
                                 <button
@@ -662,13 +691,22 @@ const AdminDashboard = () => {
                                             </button>
                                         )}
                                         {u.role !== 'admin' && (
-                                            <button 
-                                                onClick={() => handleDelete(u._id)}
-                                                className="flex-1 py-3 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-400/60 hover:text-red-400 hover:bg-red-400/10 transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <TrashIcon className="w-3 h-3" />
-                                                Remove
-                                            </button>
+                                            <>
+                                                <button 
+                                                    onClick={() => handleImpersonate(u._id)}
+                                                    className="flex-1 py-3 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#76d6d4] hover:bg-[#76d6d4]/10 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <ShieldCheckIcon className="w-3 h-3" />
+                                                    Impersonate
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(u._id)}
+                                                    className="flex-1 py-3 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <TrashIcon className="w-3 h-3" />
+                                                    Delete
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 </div>
@@ -677,6 +715,64 @@ const AdminDashboard = () => {
                     </section>
                 )}
 
+                {activeTab === 'audit' && (
+                    <section className="space-y-8 w-full">
+                        <div className="flex items-center justify-between px-2">
+                            <div className="flex items-center gap-3">
+                                <h2 className="font-headline text-2xl font-bold">Security Audit Logs</h2>
+                                <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-500/20">Critical</span>
+                            </div>
+                        </div>
+                        <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden">
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left min-w-[800px]">
+                                    <thead className="bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/40">
+                                        <tr>
+                                            <th className="px-8 py-4">Event Group</th>
+                                            <th className="px-8 py-4">Admin Actor</th>
+                                            <th className="px-8 py-4">Target User</th>
+                                            <th className="px-8 py-4">IP Address</th>
+                                            <th className="px-8 py-4">Timestamp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {auditLoading ? (
+                                            [1, 2, 3].map(i => <tr key={i} className="animate-pulse h-16 bg-white/5" />)
+                                        ) : auditLogs.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="5" className="py-20 text-center text-[#e5e2e1]/30 uppercase tracking-[0.3em] font-black">No security audit logs found</td>
+                                            </tr>
+                                        ) : auditLogs.map(log => (
+                                            <tr key={log._id} className="hover:bg-white/5 transition-colors">
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${log.action === 'impersonation_start' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
+                                                            <span className="material-symbols-outlined text-sm">{log.action === 'impersonation_start' ? 'person_search' : 'person'}</span>
+                                                        </div>
+                                                        <p className="text-sm font-bold capitalize">{log.action.replace('_', ' ')}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <p className="font-bold text-[#e5e2e1]">{log.adminId?.name}</p>
+                                                    <p className="text-[10px] text-[#e5e2e1]/40">{log.adminId?.email}</p>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <p className="font-bold text-[#e5e2e1]">{log.targetId?.name}</p>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <p className="text-[10px] font-bold text-[#e5e2e1]/40 font-mono">{log.ipAddress || 'System'}</p>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#e5e2e1]/40">{formatIndianDateTime(log.timestamp)}</p>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                )}
                 {activeTab === 'rescues' && (
                     <section className="space-y-6">
                             <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4">

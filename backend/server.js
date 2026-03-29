@@ -48,7 +48,7 @@ if (isProd) {
 
 const PORT = process.env.PORT || 5000;
 
-console.log('[Server] Initializing PawSaarthi Backend...');
+console.log('[Server] Initializing VetsCue Backend...');
 
 // ─── Security Middlewares ─────────────────────────────────────────────────────
 app.use(helmet()); // Set security HTTP headers
@@ -136,7 +136,7 @@ if (isDev) {
 app.get('/health', (req, res) => {
     res.status(200).json({
         success: true,
-        message: 'PawSaarthi API is running!',
+        message: 'VetsCue API is running!',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
     });
@@ -169,7 +169,7 @@ app.use(errorHandler);
 server.listen(PORT, () => {
     console.log('');
     console.log('============================================');
-    console.log(`  PawSaarthi API Server`);
+    console.log(`  VetsCue API Server`);
     console.log(`  Port    : ${PORT}`);
     console.log(`  Mode    : ${process.env.NODE_ENV || 'development'}`);
     console.log(`  Health  : http://localhost:${PORT}/health`);

@@ -128,7 +128,7 @@ export default function AdminUIDesign() {
                       <th className="pb-4 font-semibold">User Identity</th>
                       <th className="pb-4 font-semibold text-center">Role</th>
                       <th className="pb-4 font-semibold text-center">Status</th>
-                      <th className="pb-4 font-semibold text-right">Activity</th>
+                      <th className="pb-4 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="text-sm">
@@ -151,7 +151,11 @@ export default function AdminUIDesign() {
                           <span className="text-xs font-medium">Active</span>
                         </div>
                       </td>
-                      <td className="py-4 text-right text-on-surface-variant text-xs">2 mins ago</td>
+                      <td className="py-4 text-right">
+                        <button className="px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all hover:text-black">
+                          Impersonate
+                        </button>
+                      </td>
                     </tr>
                     <tr className="border-b border-surface-border group hover:bg-on-surface/5 transition-colors">
                       <td className="py-4">
@@ -172,7 +176,11 @@ export default function AdminUIDesign() {
                           <span className="text-xs font-medium">Active</span>
                         </div>
                       </td>
-                      <td className="py-4 text-right text-on-surface-variant text-xs">15 mins ago</td>
+                      <td className="py-4 text-right">
+                        <button className="px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all hover:text-black">
+                          Impersonate
+                        </button>
+                      </td>
                     </tr>
                     <tr className="group hover:bg-on-surface/5 transition-colors">
                       <td className="py-4">
@@ -193,7 +201,7 @@ export default function AdminUIDesign() {
                           <span className="text-xs font-medium">Active</span>
                         </div>
                       </td>
-                      <td className="py-4 text-right text-on-surface-variant text-xs">1 hour ago</td>
+                      <td className="py-4 text-right text-on-surface-variant/20 italic text-[10px] uppercase font-bold pr-2">System Admin</td>
                     </tr>
                   </tbody>
                 </table>
@@ -241,6 +249,34 @@ export default function AdminUIDesign() {
                 <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-[#008080] text-black font-headline font-bold text-sm tracking-wide shadow-lg shadow-primary/10 hover:brightness-110 active:scale-[0.98] transition-all">
                   EXPORT REPORT
                 </button>
+              </div>
+            </div>
+
+            {/* NEW: Security Audit Log Section */}
+            <div className="glass-card p-6 mt-8 rounded-[2rem] border border-red-500/10 bg-red-500/5 space-y-4">
+              <div className="flex items-center gap-2 text-red-500">
+                <span className="material-symbols-outlined text-xl">security</span>
+                <h3 className="font-headline font-bold text-sm uppercase tracking-widest">Security Audit Log</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-on-surface/5 border border-white/5 flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
+                    <span className="material-symbols-outlined text-sm">person_search</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-on-surface">Admin impersonated Sarah Chen</p>
+                    <p className="text-[10px] text-on-surface-variant/40">SCTR-LOG: #00821 • 2 mins ago</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-on-surface/5 border border-white/5 flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+                    <span className="material-symbols-outlined text-sm">vpn_key</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-on-surface">Failed Login Attempt (User: Admin)</p>
+                    <p className="text-[10px] text-on-surface-variant/40">IP: 192.168.1.42 • 15 mins ago</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

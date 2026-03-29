@@ -94,7 +94,7 @@ const UserDashboard = () => {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID || data.keyId,
                 amount: data.order.amount,
                 currency: 'INR',
-                name: 'PawSaarthi',
+                name: 'VetsCue',
                 description: 'Wallet Top-up',
                 order_id: data.order.id,
                 handler: async (response) => {

@@ -93,6 +93,11 @@ const userSchema = new mongoose.Schema(
             ref: 'User',
             default: null,
         },
+        ambulanceType: {
+            type: String,
+            enum: ['linked', 'independent', 'na'],
+            default: 'na', // 'na' for non-ambulance roles
+        },
         // For ambulance: vehicle number
         vehicleNumber: {
             type: String,

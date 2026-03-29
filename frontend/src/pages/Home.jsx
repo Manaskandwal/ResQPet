@@ -55,7 +55,7 @@ const Home = () => {
                         <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-[8px] flex items-center justify-center shadow-sm">
                             <span className="text-base">ðŸ¾</span>
                         </div>
-                        <span className="text-lg font-bold text-slate-800">PawSaarthi</span>
+                        <span className="text-lg font-bold text-slate-800">VetsCue</span>
                         <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 text-[10px] font-semibold border border-primary-100 ml-1">
                             Phase 1 Â· Pilot
                         </span>
@@ -178,7 +178,7 @@ const Home = () => {
                 <div className="max-w-4xl mx-auto px-5 text-center">
                     <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Be the first responder in your community</h2>
                     <p className="text-white/90 text-lg mb-8">
-                        Whether you are a citizen, NGO, hospital, or ambulance partner -- PawSaarthi helps you act fast.
+                        Whether you are a citizen, NGO, hospital, or ambulance partner -- VetsCue helps you act fast.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link to="/register?role=user" className="btn-accent btn-lg bg-white text-primary-700 hover:bg-white/90">
@@ -195,14 +195,14 @@ const Home = () => {
             <footer className="bg-white border-t border-slate-100 py-4 flex-shrink-0">
                 <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                     <div className="flex items-center gap-2">
-                        <span>ðŸ¾ PawSaarthi</span>
+                        <span>ðŸ¾ VetsCue</span>
                         <span className="h-1 w-1 rounded-full bg-slate-300" />
                         <span>Pilot Delhi</span>
                     </div>
                     <div className="flex gap-6">
                         <Link to="/login" className="hover:text-primary-600 transition-colors">Sign In</Link>
                         <Link to="/register" className="hover:text-primary-600 transition-colors">Register</Link>
-                        <a href="mailto:PawSaarthi.support@gmail.com" className="hover:text-primary-600 transition-colors">Support</a>
+                        <a href="mailto:support@vetscue.com" className="hover:text-primary-600 transition-colors">Support</a>
                     </div>
                 </div>
             </footer>

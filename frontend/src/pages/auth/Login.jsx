@@ -74,7 +74,16 @@ const Login = () => {
                 navigate(routes[data.user.role] || redirect);
             }
         } catch (error) {
-            const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+            let message = error.response?.data?.message;
+            if (!message) {
+                if (error.code === 'ECONNABORTED') {
+                    message = 'Login timed out. Please try again.';
+                } else if (!error.response) {
+                    message = 'Network error. Unable to reach server.';
+                } else {
+                    message = 'Login failed. Please try again.';
+                }
+            }
             setErrorMsg(message);
             toast.error(message);
         } finally {

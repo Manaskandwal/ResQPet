@@ -5,6 +5,45 @@ const { generateToken } = require('../utils/generateToken');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
+const TokenBlacklist = require('../models/TokenBlacklist');
+const jwt = require('jsonwebtoken');
+
+/**
+ * @route   POST /api/auth/logout
+ * @access  Private
+ */
+const logout = asyncHandler(async (req, res) => {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (token) {
+        // Decode token to find expiration
+        const decoded = jwt.decode(token);
+        if (decoded && decoded.exp) {
+            await TokenBlacklist.create({
+                token,
+                expiresAt: new Date(decoded.exp * 1000)
+            });
+        }
+        
+        // Log impersonation end if applicable
+        if (req.user && req.user.impersonating) {
+            await AuditLog.create({
+                adminId: req.user._id,
+                targetId: req.user.impersonating.userId,
+                action: 'impersonation_stop',
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent'),
+                details: { targetEmail: req.user.impersonating.email }
+            });
+            console.log(`[Auth] Admin ${req.user.email} stopped impersonating: ${req.user.impersonating.email}`);
+        }
+    }
+
+    res.status(200).json({ success: true, message: 'Logged out successfully.' });
+});
 
 /**
  * @route   POST /api/auth/register
@@ -34,6 +73,7 @@ const register = asyncHandler(async (req, res) => {
         phone: phone || '', orgName: orgName || '',
         regNumber: regNumber || '', address: address || '',
         vehicleNumber: vehicleNumber || '',
+        ambulanceType: role === 'ambulance' ? 'independent' : 'na',
     });
 
     await newUser.save();
@@ -139,16 +179,18 @@ const impersonateUser = asyncHandler(async (req, res) => {
     }
 
     const { userId, password } = req.body;
-    if (!userId || !password) {
-        return res.status(400).json({ success: false, message: 'Target user ID and admin password are required.' });
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'Target user ID is required.' });
     }
 
-    // Verify admin password before allowing impersonation
-    const admin = await User.findById(req.user._id).select('+password');
-    const isMatch = await admin.matchPassword(password);
-    if (!isMatch) {
-        console.warn(`[Auth] Impersonation failed: Incorrect admin password for ${req.user.email}`);
-        return res.status(401).json({ success: false, message: 'Invalid administrator password.' });
+    // Optional password verification (backward compatible)
+    if (password) {
+        const admin = await User.findById(req.user._id).select('+password');
+        const isMatch = await admin.matchPassword(password);
+        if (!isMatch) {
+            console.warn(`[Auth] Impersonation failed: Incorrect admin password for ${req.user.email}`);
+            return res.status(401).json({ success: false, message: 'Invalid administrator password.' });
+        }
     }
 
     const target = await User.findById(userId).select('-password');
@@ -204,7 +246,14 @@ const impersonateUser = asyncHandler(async (req, res) => {
  * @access  Public
  */
 const googleLogin = asyncHandler(async (req, res) => {
-    const { credential, role = 'user' } = req.body;
+    let { credential, role = 'user' } = req.body;
+
+    // SECURITY: Prevent role escalation via Google Login
+    // Only allow 'user' role via Google. NGO/Hospital/Ambulance must register manually for approval.
+    if (role !== 'user') {
+        console.warn(`[Google Auth] Blocked attempt to register as ${role} via Google: ${req.body.email}`);
+        role = 'user'; 
+    }
 
     if (!credential) {
         return res.status(400).json({ success: false, message: 'Missing credential' });
@@ -264,4 +313,4 @@ const googleLogin = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { register, login, getMe, impersonateUser, googleLogin };
+module.exports = { register, login, logout, getMe, impersonateUser, googleLogin };

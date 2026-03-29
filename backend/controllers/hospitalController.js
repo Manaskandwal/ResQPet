@@ -1,7 +1,7 @@
 const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
 const { haversineDistance } = require('../utils/haversine');
-const { emitRescueUpdate } = require('../config/socket');
+const { emitRescueUpdate, emitAmbulanceDispatch } = require('../config/socket');
 
 const pushStatusLog = (rescue, status, message) => {
     rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
@@ -25,19 +25,11 @@ const getEscalatedCases = async (req, res) => {
             .populate('user', 'name phone email')
             .sort({ escalatedAt: 1 });
 
-        const fiveMinutesMs = 5 * 60 * 1000;
-        const now = Date.now();
-        const isGovt = req.user.isGovernment === true;
-
-        const visibleCases = broadcastCases.filter((rescue) => {
-            const timeSinceEscalation = now - new Date(rescue.escalatedAt).getTime();
-            if (isGovt) return true;
-            return timeSinceEscalation > fiveMinutesMs;
-        });
-
-        const nearbyCases = visibleCases
+        // Removed the 5-minute delay for private hospitals. 
+        // When an NGO escalates, the case should be visible to all nearby hospitals immediately.
+        const nearbyCases = broadcastCases
             .map((rescue) => ({ ...rescue.toObject(), distance: haversineDistance(lat, lng, rescue.location.lat, rescue.location.lng) }))
-            .filter((rescue) => rescue.distance <= 10)
+            .filter((rescue) => rescue.distance <= 50) 
             .sort((a, b) => a.distance - b.distance);
 
         res.status(200).json({ success: true, count: nearbyCases.length, cases: nearbyCases });
@@ -126,35 +118,83 @@ const getMyCases = async (req, res) => {
 
 const acceptBroadcastedCase = async (req, res) => {
     try {
-        const rescue = await RescueRequest.findById(req.params.id);
-        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
-
-        if (rescue.status !== 'hospital_broadcasted') {
-            return res.status(400).json({ success: false, message: `Cannot accept: status is '${rescue.status}'. Another hospital may have already claimed it.` });
+        const checkRescue = await RescueRequest.findById(req.params.id);
+        if (!checkRescue || checkRescue.status !== 'hospital_broadcasted') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Could not claim case. It may have already been accepted or its status changed.' 
+            });
         }
 
-        rescue.assignedHospital = req.user._id;
-        rescue.workStartedAt = rescue.workStartedAt || new Date();
-        pushStatusLog(rescue, 'hospital_accepted', `${req.user.orgName || req.user.name} accepted the escalated rescue.`);
+        const isNgoSelfTransport = checkRescue.ngoTransporting === true;
+        const newStatus = isNgoSelfTransport ? 'hospital_accepted' : 'ambulance_pinged';
 
-        const availableAmbulances = await User.find({
-            role: 'ambulance',
-            linkedHospital: req.user._id,
-            isAvailable: true,
-            isApproved: true,
-        });
+        // Atomic update
+        const rescue = await RescueRequest.findOneAndUpdate(
+            { _id: req.params.id, status: 'hospital_broadcasted' },
+            { 
+                $set: { 
+                    assignedHospital: req.user._id,
+                    status: newStatus,
+                    workStartedAt: new Date()
+                }
+            },
+            { new: true }
+        );
 
-        rescue.status = 'ambulance_pinged';
-        rescue.activeAmbulancePings = availableAmbulances.map((amb) => ({
-            ambulanceId: amb._id,
-            pingedAt: new Date(),
-        }));
-        rescue.pingRejectors = [];
-        pushStatusLog(rescue, 'ambulance_pinged', 'Hospital started ambulance dispatch for this case.');
-        emitRescueUpdate(rescue._id, rescue.status, { message: 'Hospital accepted the case and started ambulance dispatch.' });
+        if (!rescue) {
+            return res.status(400).json({ success: false, message: 'Failed to claim case.' });
+        }
+
+        pushStatusLog(rescue, newStatus, `${req.user.orgName || req.user.name} accepted the escalated rescue.`);
+
+        if (isNgoSelfTransport) {
+            pushStatusLog(rescue, 'hospital_accepted', 'NGO is transporting the animal themselves. Hospital is ready for arrival.');
+            emitRescueUpdate(rescue._id, 'hospital_accepted', { message: 'Hospital accepted the case. NGO is bringing the animal themselves.' });
+        } else {
+            // Ping logic: Hospital Fleet + Independent Drivers in range
+            const hospitalFleet = await User.find({
+                role: 'ambulance',
+                linkedHospital: req.user._id,
+                isAvailable: true,
+                isApproved: true,
+            });
+
+            // Independent ambulances within 20km of the rescue
+            const allIndependent = await User.find({
+                role: 'ambulance',
+                ambulanceType: 'independent',
+                isAvailable: true,
+                isApproved: true,
+            });
+
+            const nearbyIndependent = allIndependent.filter(amb => {
+                if (!amb.location?.lat || !amb.location?.lng) return false;
+                const dist = haversineDistance(rescue.location.lat, rescue.location.lng, amb.location.lat, amb.location.lng);
+                return dist <= 20; // 20km radius for independent drivers
+            });
+
+            const targetAmbulances = [...hospitalFleet, ...nearbyIndependent];
+
+            rescue.activeAmbulancePings = targetAmbulances.map((amb) => ({
+                ambulanceId: amb._id,
+                pingedAt: new Date(),
+            }));
+            rescue.pingRejectors = [];
+            pushStatusLog(rescue, 'ambulance_pinged', `Hospital started dispatch. Notified ${hospitalFleet.length} fleet and ${nearbyIndependent.length} independent ambulances.`);
+            emitRescueUpdate(rescue._id, 'ambulance_pinged', { 
+                message: 'Hospital accepted the case and started ambulance dispatch.',
+                notifiedFleet: hospitalFleet.length,
+                notifiedIndependent: nearbyIndependent.length
+            });
+
+            // Emit the actual dispatch alert to the targeted ambulances
+            const targetIds = targetAmbulances.map(a => a._id);
+            emitAmbulanceDispatch(rescue, targetIds);
+        }
+        
         await rescue.save();
-
-        res.status(200).json({ success: true, message: 'Case claimed successfully. Ambulance dispatch has started.', rescue });
+        res.status(200).json({ success: true, message: isNgoSelfTransport ? 'Case claimed. NGO is bringing the animal.' : 'Case claimed. Ambulance dispatch started.', rescue });
     } catch (error) {
         console.error('[Hospital Controller] acceptBroadcastedCase error:', error.message);
         res.status(500).json({ success: false, message: error.message });
@@ -199,6 +239,50 @@ const rejectBroadcastedCase = async (req, res) => {
     }
 };
 
+const onboardAmbulance = async (req, res) => {
+    try {
+        const { name, email, password, vehicleNumber, phone } = req.body;
+
+        if (!name || !email || !password || !vehicleNumber || !phone) {
+            return res.status(400).json({ success: false, message: 'All fields are required.' });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'Email already registered.' });
+        }
+
+        const ambulance = await User.create({
+            name,
+            email,
+            password,
+            vehicleNumber,
+            phone,
+            role: 'ambulance',
+            ambulanceType: 'linked',
+            linkedHospital: req.user._id,
+            isApproved: true, // Auto-approved since onboarded by hospital
+            isAvailable: true,
+        });
+
+        console.log(`[Hospital Controller] Hospital ${req.user.name} onboarded linked ambulance: ${ambulance.email}`);
+
+        res.status(201).json({
+            success: true,
+            message: 'Ambulance onboarded and linked to your hospital successfully.',
+            ambulance: {
+                _id: ambulance._id,
+                name: ambulance.name,
+                email: ambulance.email,
+                vehicleNumber: ambulance.vehicleNumber,
+            },
+        });
+    } catch (error) {
+        console.error('[Hospital Controller] onboardAmbulance error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getEscalatedCases,
     assignAmbulance,
@@ -206,4 +290,5 @@ module.exports = {
     getMyCases,
     acceptBroadcastedCase,
     rejectBroadcastedCase,
+    onboardAmbulance,
 };

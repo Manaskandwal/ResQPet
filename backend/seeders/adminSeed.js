@@ -17,8 +17,8 @@ const seedAdmin = async () => {
         });
         console.log('[Seeder] MongoDB connected.');
 
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@pawsaarthi.com';
-        const adminName = process.env.ADMIN_NAME || 'PawSaarthi Admin';
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@VetsCue.com';
+        const adminName = process.env.ADMIN_NAME || 'VetsCue Admin';
         const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
 
         // Check if admin already exists
@@ -35,6 +35,7 @@ const seedAdmin = async () => {
             email: adminEmail,
             password: adminPassword,
             role: 'admin',
+            isAdmin: true, // Grants superadmin/impersonation privileges
             isApproved: true,
         });
 
@@ -42,7 +43,7 @@ const seedAdmin = async () => {
 
         console.log('');
         console.log('==============================================');
-        console.log(' PawSaarthi Admin Account Created!');
+        console.log(' VetsCue Admin Account Created!');
         console.log('==============================================');
         console.log(` Name   : ${adminName}`);
         console.log(` Email  : ${adminEmail}`);

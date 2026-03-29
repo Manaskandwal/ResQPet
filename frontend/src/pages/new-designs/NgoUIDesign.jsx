@@ -90,9 +90,15 @@ export default function NgoUIDesign() {
                     <div className="w-2 h-2 rounded-full bg-[#ffb77d] animate-pulse"></div>
                     <span className="text-xs font-bold text-[#ffb77d]">Awaiting Dispatch</span>
                   </div>
-                  <button className="px-6 py-2 bg-gradient-to-br from-primary to-primary-dim text-white font-headline font-bold text-sm rounded-full shadow-xl hover:scale-105 transition-transform">
-                    Dispatch Team
-                  </button>
+                  <div className="flex gap-3">
+                    <button className="px-6 py-2 bg-white/5 border border-white/5 text-on-surface-variant font-headline font-bold text-[10px] rounded-full hover:bg-red-500/10 hover:text-red-400 transition-all flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">local_hospital</span>
+                        ESCALATE
+                    </button>
+                    <button className="px-6 py-2 bg-gradient-to-br from-primary to-primary-dim text-white font-headline font-bold text-sm rounded-full shadow-xl hover:scale-105 transition-transform uppercase tracking-widest">
+                        Dispatch Team
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

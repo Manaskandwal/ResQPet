@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 /**
- * Axios instance configured for the PawSaarthi API.
+ * Axios instance configured for the VetsCue API.
  * Automatically attaches JWT token from localStorage on every request.
  */
 const api = axios.create({
@@ -14,7 +14,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         try {
-            const token = localStorage.getItem('pawsaarthi_token');
+            const token = localStorage.getItem('vetscue_token');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -44,8 +44,8 @@ api.interceptors.response.use(
 
                 if (!isAuthRequest && !isPublicRoute) {
                     console.warn('[Axios] session expired on protected route — redirecting to login.');
-                    localStorage.removeItem('pawsaarthi_token');
-                    localStorage.removeItem('pawsaarthi_admin_token');
+                    localStorage.removeItem('vetscue_token');
+                    localStorage.removeItem('vetscue_admin_token');
                     window.location.href = '/login';
                 } else {
                     // For public routes or login attempts, we just want the state to update (handled in AuthContext/Component)

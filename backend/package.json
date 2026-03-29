@@ -1,7 +1,7 @@
 {
-  "name": "pawsaarthi-backend",
+  "name": "VetsCue-backend",
   "version": "1.0.0",
-  "description": "PawSaarthi Animal Rescue Platform - Backend API",
+  "description": "VetsCue Animal Rescue Platform - Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

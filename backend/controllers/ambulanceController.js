@@ -92,6 +92,11 @@ const getHistory = async (req, res) => {
     }
 };
 
+const pushStatusLog = (rescue, status, message) => {
+    rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
+    rescue.statusLogs.push({ status, message });
+};
+
 const getPingedTasks = async (req, res) => {
     try {
         const pingedTasks = await RescueRequest.find({
@@ -109,28 +114,36 @@ const getPingedTasks = async (req, res) => {
 
 const acceptPing = async (req, res) => {
     try {
-        const rescue = await RescueRequest.findById(req.params.id);
-        if (!rescue || rescue.status !== 'ambulance_pinged') {
-            return res.status(400).json({ success: false, message: 'Rescue no longer available.' });
+        const rescueId = req.params.id;
+        
+        // Atomic update: only succeed if status is still 'ambulance_pinged'
+        const rescue = await RescueRequest.findOneAndUpdate(
+            { _id: rescueId, status: 'ambulance_pinged' },
+            { 
+                $set: { 
+                    status: 'ambulance_assigned',
+                    assignedAmbulance: req.user._id,
+                    ambulanceAssignedAt: new Date(),
+                    workStartedAt: new Date(),
+                    activeAmbulancePings: [] // Clear all other pings
+                }
+            },
+            { new: true }
+        ).populate('user', 'name phone');
+
+        if (!rescue) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Dispatch no longer available. It may have been accepted by another driver.' 
+            });
         }
 
-        const isPinged = rescue.activeAmbulancePings.some((ping) => ping.ambulanceId.toString() === req.user._id.toString());
-        if (!isPinged) return res.status(403).json({ success: false, message: 'You were not pinged or ping expired.' });
-
-        rescue.status = 'ambulance_assigned';
-        rescue.assignedAmbulance = req.user._id;
-        rescue.ambulanceAssignedAt = new Date();
-        rescue.workStartedAt = rescue.workStartedAt || new Date();
-        rescue.activeAmbulancePings = [];
-        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
-        rescue.statusLogs.push({
-            status: 'ambulance_assigned',
-            message: `${req.user.name} accepted the ambulance dispatch.`,
-        });
-
-        emitRescueUpdate(rescue._id, rescue.status, { message: 'Ambulance accepted the dispatch.' });
-        await rescue.save();
+        // Set driver to unavailable
         await User.findByIdAndUpdate(req.user._id, { isAvailable: false });
+
+        pushStatusLog(rescue, 'ambulance_assigned', `${req.user.name} accepted the ambulance dispatch.`);
+        emitRescueUpdate(rescue._id, 'ambulance_assigned', { message: 'Ambulance accepted the dispatch.' });
+        await rescue.save();
 
         res.status(200).json({ success: true, message: 'You have claimed this dispatch.', rescue });
     } catch (error) {
