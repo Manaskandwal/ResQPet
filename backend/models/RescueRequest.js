@@ -258,6 +258,34 @@ const rescueRequestSchema = new mongoose.Schema(
             ref: 'Commission',
             default: null,
         },
+
+        // ─── Hospital Billing (Phase 1) ───────────────────────────────────────────
+        bill: {
+            // Line items (private hospitals)
+            items: [{
+                name: { type: String, default: '' },
+                amount: { type: Number, default: 0 },
+            }],
+            // Government hospitals: upload prescription image + estimated cost
+            prescriptionImageUrl: { type: String, default: null },
+            // Total billed amount
+            totalAmount: { type: Number, default: 0 },
+            // Who the bill was sent to
+            sentTo: { type: String, enum: ['user', 'ngo', null], default: null },
+            // Payment tracking via wallet
+            paidStatus: { type: String, enum: ['pending', 'paid', 'waived'], default: 'pending' },
+            // WalletTransaction reference when paid
+            walletTransactionId: { type: mongoose.Schema.Types.ObjectId, ref: 'WalletTransaction', default: null },
+            createdAt: { type: Date, default: null },
+        },
+
+        // Hospital treatment status updates
+        treatmentStatus: {
+            type: String,
+            enum: ['not_started', 'admitted', 'under_treatment', 'treatment_complete', 'discharged'],
+            default: 'not_started',
+        },
+        hospitalNote: { type: String, default: '' },
     },
     {
         timestamps: true,

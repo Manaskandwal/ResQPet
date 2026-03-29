@@ -209,9 +209,10 @@ const getPaymentHistory = async (req, res) => {
         const monthlySubscription = normalizeMonthlySubscription(user);
         await user.save();
 
-        const [subscriptionPayments, walletTransactions] = await Promise.all([
+        const [subscriptionPayments, walletTransactions, rescueBills] = await Promise.all([
             Donation.find({ user: req.user._id, type: 'subscription' }).sort({ createdAt: -1 }).limit(50),
             WalletTransaction.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(50),
+            RescueRequest.find({ user: req.user._id, 'bill.createdAt': { $ne: null } }).populate('assignedHospital', 'name orgName isGovernment').sort({ 'bill.createdAt': -1 }).limit(50),
         ]);
 
         res.status(200).json({
@@ -220,6 +221,7 @@ const getPaymentHistory = async (req, res) => {
             monthlySubscription,
             subscriptionPayments,
             walletTransactions,
+            rescueBills,
             paymentModeMessage: monthlySubscription.isSubscribed
                 ? 'Recurring support currently deducts from wallet balance in test mode. This can later be replaced with UPI autopay.'
                 : 'Recurring support is not active. Wallet top-up works now; UPI autopay can be added later.',

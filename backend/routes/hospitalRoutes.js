@@ -6,7 +6,10 @@ const {
     getMyCases, 
     acceptBroadcastedCase, 
     rejectBroadcastedCase,
-    onboardAmbulance
+    onboardAmbulance,
+    submitBill,
+    getBill,
+    updateTreatmentStatus,
 } = require('../controllers/hospitalController');
 const { protect } = require('../middleware/auth');
 const { allowRoles } = require('../middleware/roleGuard');
@@ -28,5 +31,14 @@ router.put('/rescue/:id/accept-broadcast', protect, allowRoles('hospital'), acce
 
 // @route  PUT /api/hospital/rescue/:id/reject-broadcast
 router.put('/rescue/:id/reject-broadcast', protect, allowRoles('hospital'), rejectBroadcastedCase);
+
+// @route  POST /api/hospital/rescue/:id/bill   — submit bill
+router.post('/rescue/:id/bill', protect, allowRoles('hospital'), submitBill);
+
+// @route  GET /api/hospital/rescue/:id/bill    — get bill for a case
+router.get('/rescue/:id/bill', protect, allowRoles('hospital', 'admin'), getBill);
+
+// @route  PUT /api/hospital/rescue/:id/treatment — update treatment status
+router.put('/rescue/:id/treatment', protect, allowRoles('hospital'), updateTreatmentStatus);
 
 module.exports = router;

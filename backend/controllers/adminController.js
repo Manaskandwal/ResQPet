@@ -172,7 +172,7 @@ const getPendingApprovals = async (req, res) => {
 const approveUser = async (req, res) => {
     try {
         console.log(`[Admin Controller] approveUser: userId=${req.params.userId}`);
-        const { approve } = req.body; // true = approve, false = revoke
+        const { approve, isGovernment } = req.body; // allow admin to set/update isGovernment at approval
 
         const user = await User.findById(req.params.userId).select('-password');
         if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
@@ -182,6 +182,11 @@ const approveUser = async (req, res) => {
         }
 
         user.isApproved = approve !== false; // default to approve if not specified
+        // Admin can override the isGovernment flag during approval
+        if (typeof isGovernment === 'boolean' && ['hospital', 'ambulance'].includes(user.role)) {
+            user.isGovernment = isGovernment;
+            console.log(`[Admin Controller] isGovernment set to ${isGovernment} for ${user.email}`);
+        }
         await user.save();
 
         console.log(`[Admin Controller] User ${user.email} isApproved set to ${user.isApproved}`);
@@ -353,6 +358,35 @@ const getAuditLogs = async (req, res) => {
     }
 };
 
+/**
+ * @route   PATCH /api/admin/users/:userId/meta
+ * @desc    Admin updates user metadata (isGovernment, isAvailable, etc.)
+ * @access  Private (admin only)
+ */
+const updateUserMeta = async (req, res) => {
+    try {
+        const { isGovernment, isAvailable } = req.body;
+        const user = await User.findById(req.params.userId).select('-password');
+        if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+        if (typeof isGovernment === 'boolean') {
+            if (!['hospital', 'ambulance'].includes(user.role)) {
+                return res.status(400).json({ success: false, message: 'isGovernment can only be set for hospital or ambulance.' });
+            }
+            user.isGovernment = isGovernment;
+        }
+        if (typeof isAvailable === 'boolean') {
+            user.isAvailable = isAvailable;
+        }
+        await user.save();
+        console.log(`[Admin Controller] User meta updated: ${user.email}`);
+        res.status(200).json({ success: true, message: 'User metadata updated.', user });
+    } catch (error) {
+        console.error('[Admin Controller] updateUserMeta error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getAnalytics,
     getAllUsers,
@@ -363,4 +397,5 @@ module.exports = {
     overrideRescueStatus,
     setUserLocation,
     getAuditLogs,
+    updateUserMeta,
 };

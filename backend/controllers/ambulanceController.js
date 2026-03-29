@@ -79,11 +79,12 @@ const getHistory = async (req, res) => {
     try {
         const history = await RescueRequest.find({
             assignedAmbulance: req.user._id,
-            status: 'completed',
+            status: { $in: ['completed', 'delivered'] },
         })
             .populate('user', 'name phone')
+            .populate('assignedHospital', 'name orgName isGovernment')
             .sort({ completedAt: -1 })
-            .limit(50);
+            .limit(100);
 
         res.status(200).json({ success: true, count: history.length, history });
     } catch (error) {
@@ -91,6 +92,7 @@ const getHistory = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 
 const pushStatusLog = (rescue, status, message) => {
     rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
@@ -170,4 +172,25 @@ const rejectPing = async (req, res) => {
     }
 };
 
-module.exports = { getAssignedTask, updateStatus, getHistory, getPingedTasks, acceptPing, rejectPing };
+const updateLocation = async (req, res) => {
+    try {
+        const { lat, lng } = req.body;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return res.status(400).json({ success: false, message: 'Valid lat and lng required.' });
+        }
+
+        await User.findByIdAndUpdate(req.user._id, {
+            'location.lat': lat,
+            'location.lng': lng,
+            locationUpdatedAt: new Date(),
+        });
+
+        console.log(`[Ambulance Controller] Location updated for ${req.user.name}: ${lat}, ${lng}`);
+        res.status(200).json({ success: true, message: 'Location updated.' });
+    } catch (error) {
+        console.error('[Ambulance Controller] updateLocation error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { getAssignedTask, updateStatus, getHistory, getPingedTasks, acceptPing, rejectPing, updateLocation };

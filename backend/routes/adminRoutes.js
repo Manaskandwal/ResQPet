@@ -10,6 +10,7 @@ const {
     overrideRescueStatus,
     setUserLocation,
     getAuditLogs,
+    updateUserMeta,
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/auth');
 const { allowRoles } = require('../middleware/roleGuard');
@@ -43,5 +44,8 @@ router.put('/users/:userId/location', setUserLocation);
 
 // @route  GET  /api/admin/audit-logs
 router.get('/audit-logs', getAuditLogs);
+
+// @route  PATCH /api/admin/users/:userId/meta  — admin updates isGovernment, isAvailable
+router.patch('/users/:userId/meta', updateUserMeta);
 
 module.exports = router;

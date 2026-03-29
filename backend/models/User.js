@@ -60,6 +60,8 @@ const userSchema = new mongoose.Schema(
             lat: { type: Number, default: null },
             lng: { type: Number, default: null },
         },
+        // When the ambulance last pinged their GPS (for 2-min ping tracking)
+        locationUpdatedAt: { type: Date, default: null },
         phone: {
             type: String,
             trim: true,

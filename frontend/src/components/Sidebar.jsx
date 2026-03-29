@@ -33,13 +33,14 @@ const navConfig = {
         { to: '/ngo/dashboard?tab=my_cases', label: 'My Cases', Icon: ClipboardDocumentListIcon },
     ],
     hospital: [
-        { to: '/hospital/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
-        { to: '/hospital/dashboard?tab=escalated', label: 'Escalated Cases', Icon: HeartIcon },
+        { to: '/hospital/dashboard', label: 'Dashboard', Icon: HomeIcon },
+        { to: '/hospital/cases', label: 'My Cases', Icon: ClipboardDocumentListIcon },
         { to: '/hospital/fleet', label: 'Fleet', Icon: TruckIcon },
+        { to: '/hospital/history', label: 'History', Icon: HeartIcon },
     ],
     ambulance: [
-        { to: '/ambulance/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
-        { to: '/ambulance/dashboard?tab=assignments', label: 'My Assignments', Icon: TruckIcon },
+        { to: '/ambulance/dashboard', label: 'Dashboard', Icon: HomeIcon },
+        { to: '/ambulance/history', label: 'My History', Icon: ClipboardDocumentListIcon },
     ],
     admin: [
         { to: '/admin/dashboard?tab=overview', label: 'Home', Icon: HomeIcon },
@@ -48,6 +49,7 @@ const navConfig = {
         { to: '/admin/dashboard?tab=rescues', label: 'Rescues', Icon: ClipboardDocumentListIcon },
     ],
 };
+
 
 const comingSoon = [
     { tag: 'EMS', label: 'Emergency Ambulance' },

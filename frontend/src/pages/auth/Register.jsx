@@ -23,7 +23,7 @@ const Register = () => {
 
     const [form, setForm] = useState({
         name: '', email: '', password: '', role: initialRole,
-        orgName: '', phone: '', vehicleNumber: ''
+        orgName: '', phone: '', vehicleNumber: '', hospitalType: ''
     });
     const [loading, setLoading] = useState(false);
     const [showPass, setShowPass] = useState(false);
@@ -172,6 +172,22 @@ const Register = () => {
                                     <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
                                         <label className="text-[9px] font-black uppercase tracking-widest text-[#76d6d5] ml-1">Organisation / Hospital Name</label>
                                         <input name="orgName" type="text" required className="w-full px-4 py-3 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/10 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/20 outline-none transition-all" value={form.orgName} onChange={handleChange} />
+                                    </div>
+                                )}
+                                {form.role === 'hospital' && (
+                                    <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[#76d6d5] ml-1">Hospital Type</label>
+                                        <select
+                                            name="hospitalType"
+                                            required
+                                            value={form.hospitalType}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/10 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/20 outline-none transition-all appearance-none"
+                                        >
+                                            <option value="" disabled className="bg-[#1c1b1b]">Select hospital type</option>
+                                            <option value="private" className="bg-[#1c1b1b]">Private Hospital</option>
+                                            <option value="government" className="bg-[#1c1b1b]">Government Hospital</option>
+                                        </select>
                                     </div>
                                 )}
                                 {form.role === 'ambulance' && (

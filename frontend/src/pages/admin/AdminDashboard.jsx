@@ -257,6 +257,66 @@ const LocationModal = ({ user, onClose, onSaved }) => {
     );
 };
 
+const ApprovalCard = ({ user: u, acting, onApprove }) => {
+    const needsTypeSelect = ['hospital', 'ambulance'].includes(u.role);
+    const [selectedType, setSelectedType] = useState(u.isGovernment ? 'government' : 'private');
+
+    return (
+        <div className="glass-card p-6 rounded-[2rem] border border-white/5 bg-[#1c1b1b] w-full flex flex-col md:flex-row md:items-center gap-6 group hover:border-[#76d6d5]/30 transition-all">
+            <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] text-2xl font-black flex-shrink-0">
+                {u.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-3">
+                    <h4 className="font-bold text-lg">{u.orgName || u.name}</h4>
+                    <span className="px-2 py-0.5 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">{u.role}</span>
+                    {needsTypeSelect && (
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border ${selectedType === 'government' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
+                            {selectedType === 'government' ? 'Govt' : 'Private'}
+                        </span>
+                    )}
+                </div>
+                <p className="text-sm text-[#e5e2e1]/50">{u.email}</p>
+                {u.regNumber && <p className="text-[10px] font-black text-[#e5e2e1]/20 uppercase tracking-widest">Reg No: {u.regNumber}</p>}
+                {u.address && <p className="text-[10px] text-[#e5e2e1]/20">{u.address}</p>}
+
+                {/* Govt/Private Type Selector */}
+                {needsTypeSelect && (
+                    <div className="flex items-center gap-2 mt-3">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Institution Type:</span>
+                        <div className="flex rounded-xl overflow-hidden border border-white/10">
+                            {['government', 'private'].map((type) => (
+                                <button key={type} onClick={() => setSelectedType(type)}
+                                    className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest transition-all ${selectedType === type
+                                        ? type === 'government' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'
+                                        : 'text-white/30 hover:text-white/50'}`}>
+                                    {type === 'government' ? '🏛 Govt' : '🏢 Private'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+            <div className="flex flex-col gap-2 flex-shrink-0">
+                <button
+                    onClick={() => onApprove(u._id, true, needsTypeSelect ? selectedType === 'government' : undefined)}
+                    disabled={acting[u._id]}
+                    className="px-6 py-3 bg-[#76d6d5] text-[#131313] font-black text-xs uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all min-w-[130px]"
+                >
+                    {acting[u._id] ? '...' : 'Approve'}
+                </button>
+                <button
+                    onClick={() => onApprove(u._id, false)}
+                    disabled={acting[u._id]}
+                    className="px-6 py-3 border border-red-500/20 text-red-400/60 hover:text-red-400 hover:border-red-500/40 font-black text-xs uppercase tracking-widest rounded-xl transition-all"
+                >
+                    Reject
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const AdminDashboard = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
@@ -318,15 +378,30 @@ const AdminDashboard = () => {
         }
     }, [activeTab, fetchAuditLogs]);
 
-    const handleApprove = async (userId, approve) => {
+    const handleApprove = async (userId, approve, isGovernment) => {
         setActing((prev) => ({ ...prev, [userId]: true }));
         try {
-            const { data } = await api.put(`/admin/approve/${userId}`, { approve });
+            const payload = { approve };
+            if (typeof isGovernment === 'boolean') payload.isGovernment = isGovernment;
+            const { data } = await api.put(`/admin/approve/${userId}`, payload);
             toast.success(data.message);
             setPending((prev) => prev.filter((u) => u._id !== userId));
             fetchAll();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Action failed.');
+        } finally {
+            setActing((prev) => ({ ...prev, [userId]: false }));
+        }
+    };
+
+    const handleUpdateMeta = async (userId, payload) => {
+        setActing((prev) => ({ ...prev, [userId]: true }));
+        try {
+            const { data } = await api.patch(`/admin/users/${userId}/meta`, payload);
+            toast.success(data.message);
+            fetchAll();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Update failed.');
         } finally {
             setActing((prev) => ({ ...prev, [userId]: false }));
         }
@@ -596,28 +671,12 @@ const AdminDashboard = () => {
                                 </div>
                             ) : (
                                 pending.map(u => (
-                                    <div key={u._id} className="glass-card p-6 rounded-[2rem] border border-white/5 bg-[#1c1b1b] w-full flex flex-col md:flex-row md:items-center gap-6 group hover:border-[#76d6d5]/30 transition-all">
-                                        <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] text-2xl font-black">
-                                            {u.name?.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <h4 className="font-bold text-lg">{u.orgName || u.name}</h4>
-                                                <span className="px-2 py-0.5 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">{u.role}</span>
-                                            </div>
-                                            <p className="text-sm text-[#e5e2e1]/50">{u.email}</p>
-                                            {u.regNumber && <p className="text-[10px] font-black text-[#e5e2e1]/20 uppercase tracking-widest mt-2">Registration No: {u.regNumber}</p>}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button 
-                                                onClick={() => handleApprove(u._id, true)}
-                                                disabled={acting[u._id]}
-                                                className="px-6 py-3 bg-[#76d6d5] text-[#131313] font-black text-xs uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all"
-                                            >
-                                                {acting[u._id] ? '...' : 'Approve Partner'}
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <ApprovalCard
+                                        key={u._id}
+                                        user={u}
+                                        acting={acting}
+                                        onApprove={handleApprove}
+                                    />
                                 ))
                             )}
                         </div>
@@ -662,7 +721,19 @@ const AdminDashboard = () => {
                                             {(u.name || u.orgName || '?').charAt(0).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
-                                            <h4 className="font-bold truncate pr-12">{u.orgName || u.name || 'Unknown User'}</h4>
+                                            <div className="flex items-center gap-2">
+                                                <h4 className="font-bold truncate max-w-[120px]">{u.orgName || u.name || 'Unknown User'}</h4>
+                                                {['hospital', 'ambulance'].includes(u.role) && (
+                                                    <button
+                                                        onClick={() => handleUpdateMeta(u._id, { isGovernment: !u.isGovernment })}
+                                                        disabled={acting[u._id]}
+                                                        title="Click to toggle institution type"
+                                                        className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border transition-colors flex-shrink-0 ${u.isGovernment ? 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20' : 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20'} ${acting[u._id] ? 'opacity-50 cursor-wait' : ''}`}
+                                                    >
+                                                        {acting[u._id] ? '...' : u.isGovernment ? 'Govt' : 'Private'}
+                                                    </button>
+                                                )}
+                                            </div>
                                             <p className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">{u.role || 'user'}</p>
                                         </div>
                                     </div>

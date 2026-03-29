@@ -19,7 +19,10 @@ const MyRescueReports = lazy(() => import('./pages/user/MyRescueReports'));
 const NGODashboard = lazy(() => import('./pages/ngo/NGODashboard'));
 const HospitalDashboard = lazy(() => import('./pages/hospital/HospitalDashboard'));
 const HospitalFleet = lazy(() => import('./pages/hospital/HospitalFleet'));
+const HospitalCases = lazy(() => import('./pages/hospital/HospitalCases'));
+const HospitalHistory = lazy(() => import('./pages/hospital/HospitalHistory'));
 const AmbulanceDashboard = lazy(() => import('./pages/ambulance/AmbulanceDashboard'));
+const AmbulanceHistory = lazy(() => import('./pages/ambulance/AmbulanceHistory'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const AudioAlert = lazy(() => import('./components/AudioAlert'));
@@ -93,12 +96,15 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/hospital/dashboard" element={withSuspense(<HospitalDashboard />)} />
           <Route path="/hospital/fleet" element={withSuspense(<HospitalFleet />)} />
+          <Route path="/hospital/cases" element={withSuspense(<HospitalCases />)} />
+          <Route path="/hospital/history" element={withSuspense(<HospitalHistory />)} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['ambulance']} />}>
         <Route element={<Layout />}>
           <Route path="/ambulance/dashboard" element={withSuspense(<AmbulanceDashboard />)} />
+          <Route path="/ambulance/history" element={withSuspense(<AmbulanceHistory />)} />
         </Route>
       </Route>
 

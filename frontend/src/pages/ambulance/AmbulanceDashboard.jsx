@@ -1,244 +1,314 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { StatusBadge } from '../../components/StatusComponents';
-import { SkeletonCard } from '../../components/Skeleton';
 import { formatIndianDateTime } from '../../utils/dateTime';
-import { TruckIcon, MapPinIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import {
+    TruckIcon, MapPinIcon, ArrowPathIcon, CheckCircleIcon, ClockIcon, HistoryIcon
+} from '@heroicons/react/24/outline';
 
-const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+const LOCATION_PING_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 
-const STATUS_ACTIONS = {
-    ambulance_assigned: { label: 'Mark En Route', nextStatus: 'en_route', btnClass: 'btn-primary' },
-    en_route: { label: 'Mark Picked Up', nextStatus: 'picked_up', btnClass: 'btn-accent' },
-    picked_up: { label: 'Mark Delivered', nextStatus: 'delivered', btnClass: 'btn-primary' },
+const AMBULANCE_STATUS_LABELS = {
+    ambulance_assigned: 'Assignment Accepted',
+    en_route: 'En Route to Animal',
+    picked_up: 'Animal Picked Up',
+    delivered: 'Delivered to Hospital',
+    completed: 'Completed',
+};
+
+const NEXT_STATUS = {
+    ambulance_assigned: 'en_route',
+    en_route: 'picked_up',
+    picked_up: 'delivered',
+};
+
+const STATUS_LABELS = {
+    en_route: 'Mark En Route',
+    picked_up: 'Mark Picked Up',
+    delivered: 'Mark Delivered',
 };
 
 const AmbulanceDashboard = () => {
     const { user } = useAuth();
     const [task, setTask] = useState(null);
-    const [pingedTasks, setPingedTasks] = useState([]);
-    const [history, setHistory] = useState([]);
+    const [pings, setPings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [updating, setUpdating] = useState(false);
+    const [acting, setActing] = useState({});
+    const [locationSharing, setLocationSharing] = useState(false);
+    const [locationError, setLocationError] = useState('');
+    const locationIntervalRef = useRef(null);
 
-    const isIndependent = user?.ambulanceType === 'independent';
-    const isLinked = user?.ambulanceType === 'linked';
-
-    const fetchData = useCallback(async () => {
+    const fetchTask = useCallback(async () => {
         try {
-            console.log('[AmbulanceDashboard] Fetching assigned task, pings, and history...');
-            const [taskRes, histRes, pingsRes] = await Promise.all([
-                api.get('/ambulance/assigned'),
-                api.get('/ambulance/history'),
-                api.get('/ambulance/pinged'),
+            const [taskRes, pingsRes] = await Promise.all([
+                api.get('/ambulance/assigned').catch(() => ({ data: { task: null } })),
+                api.get('/ambulance/pinged').catch(() => ({ data: { tasks: [] } })),
             ]);
-            setTask(taskRes.data.task);
-            setHistory(histRes.data.history);
-            setPingedTasks(pingsRes.data.tasks || []);
-            console.log('[AmbulanceDashboard] Task:', taskRes.data.task?._id, 'Pings:', pingsRes.data.count);
+            setTask(taskRes.data.task || null);
+            setPings(pingsRes.data.tasks || []);
         } catch (error) {
-            console.error('[AmbulanceDashboard] Fetch error:', error.message);
-            toast.error('Failed to load dashboard.');
+            console.error('[AmbulanceDashboard] fetchTask error:', error.message);
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        fetchTask();
+        return () => { if (locationIntervalRef.current) clearInterval(locationIntervalRef.current); };
+    }, [fetchTask]);
 
-    const handleUpdateStatus = async () => {
-        if (!task) return;
-        const action = STATUS_ACTIONS[task.status];
-        if (!action) return;
+    // ─── Location Ping ───────────────────────────────────────────────────────────
+    const pingLocation = useCallback(async () => {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                try {
+                    await api.put('/ambulance/location', { lat: pos.coords.latitude, lng: pos.coords.longitude });
+                    setLocationError('');
+                } catch (err) {
+                    setLocationError('Failed to ping location.');
+                }
+            },
+            (err) => setLocationError(err.message || 'Location access denied.'),
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }, []);
 
-        setUpdating(true);
-        try {
-            const { data } = await api.put(`/rescue/${task._id}/status`, { status: action.nextStatus });
-            toast.success(`Status updated to: ${data.rescue.status}`);
-            if (data.rescue.status === 'completed') {
-                setTask(null);
-                fetchData();
-            } else {
-                setTask(data.rescue);
-            }
-        } catch (error) {
-            console.error('[AmbulanceDashboard] Status update error:', error.message);
-            toast.error(error.response?.data?.message || 'Failed to update status.');
-        } finally {
-            setUpdating(false);
-        }
+    const startLocationSharing = () => {
+        if (!navigator.geolocation) { toast.error('Geolocation not supported.'); return; }
+        setLocationSharing(true);
+        pingLocation(); // immediate first ping
+        locationIntervalRef.current = setInterval(pingLocation, LOCATION_PING_INTERVAL_MS);
+        toast.success('Location sharing started — pinging every 2 minutes.');
     };
 
+    const stopLocationSharing = () => {
+        if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
+        locationIntervalRef.current = null;
+        setLocationSharing(false);
+        toast.success('Location sharing stopped.');
+    };
+
+    // ─── Ping Accept / Reject ────────────────────────────────────────────────────
     const handleAcceptPing = async (id) => {
-        setUpdating(true);
+        setActing((p) => ({ ...p, [id]: 'accept' }));
         try {
             const { data } = await api.put(`/ambulance/rescue/${id}/accept-ping`);
-            toast.success(data.message);
-            fetchData();
+            toast.success('Dispatch accepted!');
+            setTask(data.rescue);
+            setPings([]);
+            // Auto-start location sharing
+            startLocationSharing();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to accept dispatch.');
         } finally {
-            setUpdating(false);
+            setActing((p) => ({ ...p, [id]: false }));
         }
     };
 
     const handleRejectPing = async (id) => {
-        setUpdating(true);
+        setActing((p) => ({ ...p, [id]: 'reject' }));
         try {
             await api.put(`/ambulance/rescue/${id}/reject-ping`);
-            toast.success('Dispatch rejected.');
-            fetchData();
+            toast.success('Dispatch skipped.');
+            setPings((p) => p.filter((t) => t._id !== id));
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to reject dispatch.');
+            toast.error(error.response?.data?.message || 'Failed to skip dispatch.');
         } finally {
-            setUpdating(false);
+            setActing((p) => ({ ...p, [id]: false }));
         }
     };
 
-    if (!user.isApproved) {
-        if (isNewUI) return (
-            <div className="resqpet-obsidian-theme flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-                <div className="w-20 h-20 rounded-[2rem] bg-[#ffb77d]/10 flex items-center justify-center text-4xl">⏳</div>
-                <div className="space-y-2">
-                    <h2 className="font-headline text-3xl font-extrabold text-[#e5e2e1]">Awaiting Approval</h2>
-                    <p className="text-[#e5e2e1]/40 max-w-sm">Your ambulance account is under admin review.</p>
-                </div>
-            </div>
-        );
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-                <div className="text-6xl mb-4">⏳</div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-2">Awaiting Admin Approval</h2>
-                <p className="text-surface-muted max-w-md">Your ambulance account is under review.</p>
-            </div>
-        );
-    }
+    // ─── Status Update ───────────────────────────────────────────────────────────
+    const handleStatusUpdate = async (rescueId, newStatus) => {
+        setActing((p) => ({ ...p, [rescueId]: 'status' }));
+        try {
+            const { data } = await api.put(`/ambulance/rescue/${rescueId}/status`, { status: newStatus });
+            toast.success(`Status updated: ${AMBULANCE_STATUS_LABELS[newStatus] || newStatus}`);
+            setTask(data.rescue);
+            if (['completed', 'delivered'].includes(newStatus)) {
+                stopLocationSharing();
+                fetchTask();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update status.');
+        } finally {
+            setActing((p) => ({ ...p, [rescueId]: false }));
+        }
+    };
 
-    if (isNewUI) {
-        const currentAction = task ? STATUS_ACTIONS[task.status] : null;
-        return (
-            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8 max-w-xl mx-auto">
-                <section className="space-y-2 text-center md:text-left">
-                    <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">
-                        {isLinked ? `Hospital Fleet Unit` : 'Independent Responder'}
-                    </span>
-                    <h1 className="font-headline text-4xl font-extrabold tracking-tight">Mission <span className="text-[#76d6d5]">Control</span></h1>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[#e5e2e1]/40 text-xs font-medium">
-                        <p>Vehicle: <span className="text-[#76d6d5] font-bold">{user?.vehicleNumber || 'Not set'}</span></p>
-                        {isLinked && user.linkedHospital && (
-                            <p className="flex items-center gap-1.5 border-l border-white/10 pl-4">
-                                <span className="material-symbols-outlined text-sm">apartment</span>
-                                Linked to: <span className="text-[#e5e2e1] font-bold">{user.linkedHospital.name || 'Your Hospital'}</span>
-                            </p>
-                        )}
-                    </div>
-                </section>
-
-                {loading ? (
-                    <div className="h-48 rounded-[2rem] bg-white/5 animate-pulse" />
-                ) : !task ? (
-                    <div className="space-y-6">
-                        {pingedTasks.length > 0 && (
-                            <div className="glass-card rounded-[2rem] border-2 border-red-500/30 bg-red-500/5 p-6 space-y-5">
-                                <div className="flex items-center gap-3">
-                                    <span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" /></span>
-                                    <p className="text-xs font-black uppercase tracking-widest text-red-400">Incoming Dispatch</p>
-                                </div>
-                                {pingedTasks.map((ping) => (
-                                    <div key={ping._id} className="space-y-4">
-                                        <p className="font-bold text-[#e5e2e1]">{ping.description}</p>
-                                        <p className="text-xs text-[#e5e2e1]/40">{ping.location?.address || 'Location provided'}</p>
-                                        <div className="flex gap-3">
-                                            <button onClick={() => handleAcceptPing(ping._id)} disabled={updating} className="flex-1 py-4 rounded-2xl bg-red-500 text-white text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">ACCEPT</button>
-                                            <button onClick={() => handleRejectPing(ping._id)} disabled={updating} className="flex-1 py-4 rounded-2xl border border-white/10 text-[#e5e2e1]/40 text-xs font-black uppercase tracking-widest hover:border-white/20 transition-all disabled:opacity-50">Skip</button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {pingedTasks.length === 0 && (
-                            <div className="glass-card rounded-[3rem] border border-dashed border-white/10 p-16 text-center space-y-4">
-                                <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center mx-auto"><TruckIcon className="w-8 h-8 text-[#76d6d5]" /></div>
-                                <p className="text-xs font-black uppercase tracking-widest text-white/20">No active assignment.</p>
-                                <p className="text-xs text-white/20">You are available. A hospital will dispatch you when needed.</p>
-                                <button onClick={fetchData} className="rounded-2xl border border-white/10 px-6 py-2.5 text-xs font-black uppercase text-[#e5e2e1]/30 hover:text-[#76d6d5] transition-all">Refresh</button>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        <div className="glass-card rounded-[2rem] border-2 border-[#76d6d5]/20 bg-[#1c1b1b] p-6 space-y-5">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <TruckIcon className="w-5 h-5 text-[#76d6d5]" />
-                                    <span className="text-xs font-black uppercase tracking-widest text-[#76d6d5]">Active Dispatch</span>
-                                </div>
-                                <StatusBadge status={task.status} />
-                            </div>
-                            <p className="font-bold text-[#e5e2e1]">{task.description}</p>
-                            <div className="flex items-center gap-2 text-sm text-[#e5e2e1]/40">
-                                <MapPinIcon className="w-4 h-4 text-[#76d6d5] flex-shrink-0" />
-                                {task.location?.address || `${task.location?.lat?.toFixed(4)}, ${task.location?.lng?.toFixed(4)}`}
-                            </div>
-                            {task.images?.[0] && <img src={task.images[0]} alt="rescue" className="w-full h-36 object-cover rounded-2xl opacity-70" />}
-                            {currentAction && (
-                                <button onClick={handleUpdateStatus} disabled={updating} className="w-full py-4 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">
-                                    {updating ? 'Updating...' : currentAction.label}
-                                </button>
-                            )}
-                        </div>
-                        <button onClick={fetchData} className="w-full py-3 rounded-2xl border border-white/5 text-[#e5e2e1]/20 text-xs font-black uppercase tracking-widest hover:text-[#76d6d5] transition-all">Refresh Status</button>
-                    </div>
-                )}
-
-                {history.length > 0 && (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                            <CheckCircleIcon className="w-5 h-5 text-[#76d6d5]" />
-                            <p className="text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40">Completed Rescues</p>
-                        </div>
-                        <div className="space-y-3">
-                            {history.slice(0, 5).map((h) => (
-                                <div key={h._id} className="glass-card rounded-2xl border border-white/5 bg-[#1c1b1b] p-4">
-                                    <p className="text-sm font-bold text-[#e5e2e1] truncate">{h.description}</p>
-                                    <p className="text-xs text-white/20 mt-1">{formatIndianDateTime(h.completedAt)}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+    // ─── Awaiting Approval ───────────────────────────────────────────────────────
+    if (!user.isApproved) return (
+        <div className="resqpet-obsidian-theme flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+            <div className="w-20 h-20 rounded-[2rem] bg-[#ffb77d]/10 flex items-center justify-center text-4xl">⏳</div>
+            <div className="space-y-2">
+                <h2 className="font-headline text-3xl font-extrabold text-[#e5e2e1]">Awaiting Approval</h2>
+                <p className="text-[#e5e2e1]/40 max-w-sm">Your ambulance account is under admin review. You'll be notified once approved.</p>
             </div>
-        );
-    }
+        </div>
+    );
 
     return (
-        <div className="space-y-6 max-w-xl mx-auto">
-            <div>
-                <h1 className="page-title">Ambulance Dashboard</h1>
-                <p className="page-subtitle">Vehicle: {user?.vehicleNumber || 'Not set'}</p>
+        <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8">
+            {/* Header */}
+            <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Ambulance</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border ${user.ambulanceType === 'linked' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
+                            {user.ambulanceType === 'linked' ? 'Fleet Unit' : 'Independent'}
+                        </span>
+                        {user.vehicleNumber && <span className="text-[10px] font-mono text-[#e5e2e1]/30">{user.vehicleNumber}</span>}
+                    </div>
+                    <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">
+                        Dispatch <span className="text-[#76d6d5]">Control</span>
+                    </h1>
+                    <p className="text-[#e5e2e1]/40 text-sm">Manage assigned dispatches and share live location.</p>
+                </div>
+                <button onClick={fetchTask} className="h-11 w-11 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 transition-all self-start md:self-auto">
+                    <ArrowPathIcon className="w-4 h-4 text-[#76d6d5]" />
+                </button>
+            </section>
+
+            {/* Location Sharing Toggle */}
+            <div className={`glass-card rounded-[2rem] border p-6 transition-all ${locationSharing ? 'border-[#76d6d5]/30 bg-[#76d6d5]/5' : 'border-white/5 bg-[#1c1b1b]'}`}>
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center ${locationSharing ? 'bg-[#76d6d5]/20' : 'bg-white/5'}`}>
+                            <MapPinIcon className={`w-6 h-6 ${locationSharing ? 'text-[#76d6d5]' : 'text-white/20'}`} />
+                            {locationSharing && (
+                                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#76d6d5] border-2 border-[#131313] animate-pulse" />
+                            )}
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm text-[#e5e2e1]">
+                                {locationSharing ? 'Location Sharing Active' : 'Location Sharing Off'}
+                            </p>
+                            <p className="text-[10px] text-[#e5e2e1]/40 mt-0.5">
+                                {locationSharing ? 'Pinging hospital every 2 minutes' : 'Turn on when on an active dispatch'}
+                            </p>
+                            {locationError && <p className="text-[10px] text-red-400 mt-0.5">{locationError}</p>}
+                        </div>
+                    </div>
+                    <button
+                        onClick={locationSharing ? stopLocationSharing : startLocationSharing}
+                        className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${locationSharing
+                            ? 'bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20'
+                            : 'bg-[#76d6d5] text-[#131313] hover:scale-105'}`}>
+                        {locationSharing ? 'Stop' : 'Start'}
+                    </button>
+                </div>
             </div>
 
+            {/* Quick Link: History */}
+            <Link to="/ambulance/history"
+                className="glass-card rounded-2xl border border-white/5 bg-[#1c1b1b] p-4 flex items-center gap-3 hover:border-white/10 transition-all group">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#e5e2e1]/60 group-hover:text-[#e5e2e1] transition-colors">My Trip History</span>
+                    <p className="text-[9px] text-white/30 mt-0.5">View past completed dispatches and stats.</p>
+                </div>
+                <span className="text-white/20 text-lg">›</span>
+            </Link>
+
             {loading ? (
-                <SkeletonCard />
-            ) : !task ? (
-                <div className="space-y-4">
-                    {pingedTasks.length > 0 && (
-                        <div className="card border-2 border-rose-400 bg-rose-50/50">
-                            <div className="flex items-center gap-2 mb-3 text-rose-600 font-bold">Incoming Dispatch</div>
-                            {pingedTasks.map((ping) => (
-                                <div key={ping._id} className="mb-4 last:mb-0">
-                                    <p className="font-semibold text-slate-800 mb-1">{ping.description}</p>
-                                    <p className="text-sm text-slate-600 mb-4">Location: {ping.location?.address || 'Location provided'}</p>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => handleAcceptPing(ping._id)} disabled={updating} className="btn bg-rose-600 hover:bg-rose-700 text-white flex-1 py-3 text-lg font-bold">
-                                            ACCEPT
+                <div className="space-y-4">{[1, 2].map(i => <div key={i} className="h-40 rounded-[2rem] bg-white/5 animate-pulse" />)}</div>
+            ) : (
+                <>
+                    {/* Active Assignment */}
+                    {task && (
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#76d6d5]">Active Assignment</p>
+                            <div className="glass-card rounded-[2rem] border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-6 space-y-5">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="space-y-1.5 min-w-0 flex-1">
+                                        <p className="font-bold text-[#e5e2e1]">{task.description}</p>
+                                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#e5e2e1]/40">
+                                            <span>👤 {task.user?.name}</span>
+                                            {task.user?.phone && <span>📞 {task.user.phone}</span>}
+                                        </div>
+                                        {task.assignedHospital && (
+                                            <div className="flex items-center gap-1.5 text-xs text-[#76d6d5]/60">
+                                                <span className="material-symbols-outlined text-sm">local_hospital</span>
+                                                {task.assignedHospital.orgName || task.assignedHospital.name}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <StatusBadge status={task.status} />
+                                </div>
+
+                                {/* Progress Steps */}
+                                <div className="flex items-center gap-2">
+                                    {['ambulance_assigned', 'en_route', 'picked_up', 'delivered'].map((step, idx) => {
+                                        const stepOrder = ['ambulance_assigned', 'en_route', 'picked_up', 'delivered'];
+                                        const currentIdx = stepOrder.indexOf(task.status);
+                                        const done = idx <= currentIdx;
+                                        return (
+                                            <div key={step} className="flex items-center gap-2 flex-1">
+                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${done ? 'bg-[#76d6d5]' : 'bg-white/10'}`} />
+                                                {idx < 3 && <div className={`h-px flex-1 ${idx < currentIdx ? 'bg-[#76d6d5]/50' : 'bg-white/10'}`} />}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-[#76d6d5] font-bold">{AMBULANCE_STATUS_LABELS[task.status] || task.status}</p>
+
+                                {/* Update Button */}
+                                {NEXT_STATUS[task.status] && (
+                                    <button
+                                        onClick={() => handleStatusUpdate(task._id, NEXT_STATUS[task.status])}
+                                        disabled={!!acting[task._id]}
+                                        className="w-full py-3.5 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50"
+                                    >
+                                        {acting[task._id] === 'status' ? 'Updating...' : STATUS_LABELS[NEXT_STATUS[task.status]]}
+                                    </button>
+                                )}
+                                {task.status === 'delivered' || task.status === 'completed' ? (
+                                    <div className="text-center text-xs text-emerald-400 font-bold">✓ Assignment Complete</div>
+                                ) : null}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Pending Pings */}
+                    {pings.length > 0 && (
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-400">Incoming Dispatches ({pings.length})</p>
+                            {pings.map((ping) => (
+                                <div key={ping._id} className="glass-card rounded-[2rem] border border-amber-500/20 bg-amber-500/5 p-6 space-y-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-bold text-[#e5e2e1]">{ping.description}</p>
+                                            <p className="text-xs text-[#e5e2e1]/40 mt-1">{ping.user?.name}</p>
+                                            <div className="flex items-center gap-1.5 text-[10px] text-amber-400/60 mt-1">
+                                                <span className="material-symbols-outlined text-sm">local_hospital</span>
+                                                {ping.assignedHospital?.orgName || ping.assignedHospital?.name}
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/20">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">New Dispatch</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => handleAcceptPing(ping._id)}
+                                            disabled={!!acting[ping._id] || !!task}
+                                            className="flex-[2] py-3 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-40"
+                                        >
+                                            {acting[ping._id] === 'accept' ? 'Accepting...' : task ? 'Already on a Mission' : '✓ Accept Dispatch'}
                                         </button>
-                                        <button onClick={() => handleRejectPing(ping._id)} disabled={updating} className="btn bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 flex-1 py-3 font-semibold">
-                                            Skip
+                                        <button
+                                            onClick={() => handleRejectPing(ping._id)}
+                                            disabled={!!acting[ping._id]}
+                                            className="flex-1 py-3 rounded-2xl border border-white/10 text-[#e5e2e1]/40 text-xs font-black uppercase tracking-widest hover:border-red-400/30 hover:text-red-400 transition-all disabled:opacity-50"
+                                        >
+                                            {acting[ping._id] === 'reject' ? '...' : 'Skip'}
                                         </button>
                                     </div>
                                 </div>
@@ -246,68 +316,20 @@ const AmbulanceDashboard = () => {
                         </div>
                     )}
 
-                    {pingedTasks.length === 0 && (
-                        <div className="card text-center py-14">
-                            <div className="text-5xl mb-3">OK</div>
-                            <p className="text-slate-700 font-semibold text-lg">No Active Assignment</p>
-                            <p className="text-surface-muted text-sm mt-1">You are available. A hospital will dispatch you when needed.</p>
-                            <button onClick={fetchData} className="btn-outline mt-5">Refresh</button>
+                    {/* Idle State */}
+                    {!task && pings.length === 0 && (
+                        <div className="glass-card rounded-[2.5rem] border border-dashed border-white/10 p-16 text-center space-y-4">
+                            <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center mx-auto">
+                                <TruckIcon className="w-8 h-8 text-[#76d6d5]" />
+                            </div>
+                            <p className="text-xs font-black uppercase tracking-widest text-white/20">Standing By</p>
+                            <p className="text-xs text-white/20">No active assignment or incoming dispatches right now.</p>
+                            <button onClick={fetchTask} className="rounded-2xl border border-white/10 px-6 py-2.5 text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
+                                Refresh
+                            </button>
                         </div>
                     )}
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    <div className="card border-2 border-primary-200 relative overflow-hidden">
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <TruckIcon className="w-5 h-5 text-primary-600" />
-                                    <span className="font-bold text-primary-700">Active Dispatch</span>
-                                </div>
-                                <StatusBadge status={task.status} />
-                            </div>
-
-                            <p className="font-semibold text-slate-800 mb-2">{task.description}</p>
-
-                            <div className="space-y-1.5 mb-4">
-                                <div className="flex items-center gap-2 text-sm text-slate-600">
-                                    <MapPinIcon className="w-4 h-4 text-primary-500 flex-shrink-0" />
-                                    <span>{task.location?.address || `${task.location?.lat?.toFixed(4)}, ${task.location?.lng?.toFixed(4)}`}</span>
-                                </div>
-                            </div>
-
-                            {task.images?.[0] && (
-                                <img src={task.images[0]} alt="rescue" className="w-full h-40 object-cover rounded-btn mb-4 border border-surface-border" />
-                            )}
-
-                            {STATUS_ACTIONS[task.status] && (
-                                <button onClick={handleUpdateStatus} disabled={updating} className={`${STATUS_ACTIONS[task.status].btnClass} w-full btn-lg`}>
-                                    {updating ? 'Updating...' : STATUS_ACTIONS[task.status].label}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    <button onClick={fetchData} className="btn-ghost w-full text-sm">Refresh Status</button>
-                </div>
-            )}
-
-            {history.length > 0 && (
-                <div>
-                    <h2 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-                        <CheckCircleIcon className="w-5 h-5 text-green-500" /> Completed Rescues
-                    </h2>
-                    <div className="space-y-2">
-                        {history.slice(0, 5).map((h) => (
-                            <div key={h._id} className="card py-3">
-                                <p className="text-sm font-medium text-slate-700 truncate">{h.description}</p>
-                                <p className="text-[11px] text-surface-muted mt-0.5">
-                                    {formatIndianDateTime(h.completedAt)}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                </>
             )}
         </div>
     );

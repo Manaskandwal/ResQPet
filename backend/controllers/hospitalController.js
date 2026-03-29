@@ -106,7 +106,8 @@ const getMyCases = async (req, res) => {
     try {
         const cases = await RescueRequest.find({ assignedHospital: req.user._id })
             .populate('user', 'name phone')
-            .populate('assignedAmbulance', 'name vehicleNumber phone')
+            .populate('assignedNGO', 'name orgName')
+            .populate('assignedAmbulance', 'name vehicleNumber phone location locationUpdatedAt')
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, count: cases.length, cases });
@@ -115,6 +116,7 @@ const getMyCases = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 
 const acceptBroadcastedCase = async (req, res) => {
     try {
@@ -283,6 +285,134 @@ const onboardAmbulance = async (req, res) => {
     }
 };
 
+const submitBill = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findById(req.params.id)
+            .populate('user', 'name phone email')
+            .populate('assignedNGO', 'name email');
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue not found.' });
+        if (!rescue.assignedHospital || rescue.assignedHospital.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to bill this case.' });
+        }
+
+        const isGovt = req.user.isGovernment;
+        const { items, prescriptionImageUrl, estimatedCost, totalAmount } = req.body;
+
+        // Determine whom to bill: NGO if involved, otherwise user
+        const hasNgo = !!rescue.assignedNGO;
+        const billRecipient = hasNgo ? 'ngo' : 'user';
+        const recipientUser = hasNgo ? rescue.assignedNGO : rescue.user;
+
+        rescue.bill = {
+            items: isGovt ? [] : (items || []),
+            prescriptionImageUrl: isGovt ? (prescriptionImageUrl || null) : null,
+            totalAmount: isGovt ? (estimatedCost || 0) : (totalAmount || 0),
+            sentTo: billRecipient,
+            paidStatus: 'pending',
+            createdAt: new Date(),
+        };
+        await rescue.save();
+
+        // Create notification for bill recipient
+        const Notification = require('../models/Notification');
+        await Notification.create({
+            recipient: recipientUser._id,
+            title: `Bill from ${req.user.orgName || req.user.name}`,
+            message: `An estimated bill of ₹${rescue.bill.totalAmount} has been sent for rescue case. Please review and pay via your wallet.`,
+            type: 'rescue_bill_sent',
+            rescueRequest: rescue._id,
+        });
+
+        // Emit socket notification
+        emitRescueUpdate(rescue._id, 'bill_sent', {
+            message: `Hospital sent a bill of ₹${rescue.bill.totalAmount}`,
+            billTotal: rescue.bill.totalAmount,
+            sentTo: billRecipient,
+        });
+
+        console.log(`[Hospital Controller] Bill submitted for rescue ${rescue._id}. Amount: ₹${rescue.bill.totalAmount}, Sent to: ${billRecipient}`);
+        res.status(200).json({ success: true, message: 'Bill submitted and notification sent.', bill: rescue.bill });
+    } catch (error) {
+        console.error('[Hospital Controller] submitBill error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const getBill = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findById(req.params.id)
+            .select('bill treatmentStatus assignedHospital assignedNGO user description')
+            .populate('assignedHospital', 'name orgName isGovernment');
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue not found.' });
+        res.status(200).json({ success: true, bill: rescue.bill, treatmentStatus: rescue.treatmentStatus });
+    } catch (error) {
+        console.error('[Hospital Controller] getBill error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const updateTreatmentStatus = async (req, res) => {
+    try {
+        const { treatmentStatus, hospitalNote } = req.body;
+        const validStatuses = ['admitted', 'under_treatment', 'treatment_complete', 'discharged'];
+        if (!validStatuses.includes(treatmentStatus)) {
+            return res.status(400).json({ success: false, message: 'Invalid treatment status.' });
+        }
+
+        const rescue = await RescueRequest.findById(req.params.id)
+            .populate('user', 'name')
+            .populate('assignedNGO', 'name');
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue not found.' });
+        if (!rescue.assignedHospital || rescue.assignedHospital.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Not authorized.' });
+        }
+
+        rescue.treatmentStatus = treatmentStatus;
+        if (hospitalNote) rescue.hospitalNote = hospitalNote;
+        pushStatusLog(rescue, treatmentStatus, `Hospital updated treatment: ${treatmentStatus}${hospitalNote ? ` — ${hospitalNote}` : ''}`);
+        await rescue.save();
+
+        const Notification = require('../models/Notification');
+        const statusLabels = {
+            admitted: 'Animal Admitted',
+            under_treatment: 'Treatment in Progress',
+            treatment_complete: 'Treatment Complete',
+            discharged: 'Animal Discharged',
+        };
+        const label = statusLabels[treatmentStatus] || treatmentStatus;
+
+        // Notify user
+        if (rescue.user) {
+            await Notification.create({
+                recipient: rescue.user._id,
+                title: `Treatment Update: ${label}`,
+                message: `${req.user.orgName || req.user.name} updated treatment status to "${label}" for your animal rescue case.${hospitalNote ? ` Note: ${hospitalNote}` : ''}`,
+                type: 'treatment_update',
+                rescueRequest: rescue._id,
+            });
+        }
+        // Notify NGO if assigned
+        if (rescue.assignedNGO) {
+            await Notification.create({
+                recipient: rescue.assignedNGO._id,
+                title: `Treatment Update: ${label}`,
+                message: `Hospital updated treatment status to "${label}" for the rescue case.`,
+                type: 'treatment_update',
+                rescueRequest: rescue._id,
+            });
+        }
+
+        emitRescueUpdate(rescue._id, treatmentStatus, { message: `Treatment status: ${label}` });
+        res.status(200).json({ success: true, message: `Treatment status updated to "${label}".`, treatmentStatus, rescue });
+    } catch (error) {
+        console.error('[Hospital Controller] updateTreatmentStatus error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getEscalatedCases,
     assignAmbulance,
@@ -291,4 +421,7 @@ module.exports = {
     acceptBroadcastedCase,
     rejectBroadcastedCase,
     onboardAmbulance,
+    submitBill,
+    getBill,
+    updateTreatmentStatus,
 };

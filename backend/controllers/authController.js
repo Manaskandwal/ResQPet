@@ -50,7 +50,7 @@ const logout = asyncHandler(async (req, res) => {
  * @access  Public
  */
 const register = asyncHandler(async (req, res) => {
-    const { name, email, password, role, phone, orgName, regNumber, address, vehicleNumber } = req.body;
+    const { name, email, password, role, phone, orgName, regNumber, address, vehicleNumber, hospitalType } = req.body;
 
     // Robust validation
     if (!name || !email || !password || !role) {
@@ -60,6 +60,10 @@ const register = asyncHandler(async (req, res) => {
     if (role === 'admin') {
         console.warn(`[Auth] Blocked self-registration attempt as admin: ${email}`);
         return res.status(403).json({ success: false, message: 'System admins cannot be self-registered.' });
+    }
+
+    if (role === 'hospital' && !hospitalType) {
+        return res.status(400).json({ success: false, message: 'Please specify whether this is a Government or Private hospital.' });
     }
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -74,6 +78,8 @@ const register = asyncHandler(async (req, res) => {
         regNumber: regNumber || '', address: address || '',
         vehicleNumber: vehicleNumber || '',
         ambulanceType: role === 'ambulance' ? 'independent' : 'na',
+        // Set isGovernment for hospital registrations
+        isGovernment: role === 'hospital' ? hospitalType === 'government' : false,
     });
 
     await newUser.save();

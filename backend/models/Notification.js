@@ -30,15 +30,19 @@ const notificationSchema = new mongoose.Schema(
         type: {
             type: String,
             enum: [
-                'rescue_new',        // New rescue submitted nearby
-                'rescue_escalated',  // Rescue escalated after 5 min
-                'rescue_accepted',   // NGO / hospital accepted
-                'rescue_completed',  // Rescue marked completed
-                'wallet_credit',     // Wallet topped up
-                'wallet_debit',      // Deposit deducted
-                'wallet_refund',     // Deposit refunded
-                'approval_granted',  // Admin approved account
-                'system',            // General system message
+                'rescue_new',           // New rescue submitted nearby
+                'rescue_escalated',     // Rescue escalated after 5 min
+                'rescue_accepted',      // NGO / hospital accepted
+                'rescue_completed',     // Rescue marked completed
+                'rescue_bill_sent',     // Hospital sent a bill
+                'rescue_bill_paid',     // Bill was paid
+                'treatment_update',     // Hospital updated treatment status
+                'ambulance_update',     // Ambulance status chang (en_route, picked_up, etc.)
+                'wallet_credit',        // Wallet topped up
+                'wallet_debit',         // Deposit deducted
+                'wallet_refund',        // Deposit refunded
+                'approval_granted',     // Admin approved account
+                'system',               // General system message
             ],
             default: 'system',
         },

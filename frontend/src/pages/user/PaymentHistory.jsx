@@ -75,6 +75,13 @@ const PaymentHistory = () => {
             title: item.description,
             amountLabel: `${item.type === 'debit' ? '-' : '+'}Rs ${item.amount}`,
         })),
+        ...(data.rescueBills || []).map((item) => ({
+            ...item,
+            kind: 'bill',
+            occurredAt: item.bill.createdAt,
+            title: `Hospital Bill: ${item.assignedHospital?.orgName || 'Unknown Hospital'}`,
+            amountLabel: `-Rs ${item.bill.totalAmount || item.bill.estimatedCost || 0}`,
+        })),
     ].sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt));
 
     if (isNewUI) {
@@ -99,9 +106,9 @@ const PaymentHistory = () => {
                 <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
                     {/* Transactions panel */}
                     <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-6">
-                        <div className="flex gap-2 rounded-2xl bg-white/5 p-1">
-                            {[['subscription','Subscription'],['wallet','Wallet'],['all','All']].map(([id, label]) => (
-                                <button key={id} onClick={() => setSearchParams({ tab: id })} className={`flex-1 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all ${activeTab === id ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>{label}</button>
+                        <div className="flex gap-2 rounded-2xl bg-white/5 p-1 overflow-x-auto no-scrollbar">
+                            {[['subscription','Subscription'],['wallet','Wallet'],['rescues', 'Hospital Bills'],['all','All']].map(([id, label]) => (
+                                <button key={id} onClick={() => setSearchParams({ tab: id })} className={`flex-1 min-w-max rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all ${activeTab === id ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>{label}</button>
                             ))}
                         </div>
 
@@ -132,6 +139,32 @@ const PaymentHistory = () => {
                                             <p className="text-xs text-white/20">Balance after: ₹{txn.balanceAfter}</p>
                                         </div>
                                         <span className={`text-sm font-black ${txn.type === 'debit' ? 'text-red-400' : 'text-[#76d6d5]'}`}>{txn.type === 'debit' ? '-' : '+'}₹{txn.amount}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : activeTab === 'rescues' ? (
+                            <div className="space-y-3">
+                                {!data.rescueBills || data.rescueBills.length === 0 ? <div className="rounded-2xl bg-white/5 p-6 text-sm text-white/20 text-center">No hospital bills found.</div> : data.rescueBills.map((r) => (
+                                    <div key={r._id} className="rounded-2xl bg-white/5 border border-white/5 p-4 space-y-3">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <p className="font-bold text-[#e5e2e1]">{r.assignedHospital?.orgName || 'Hospital Bill'}</p>
+                                                    {r.assignedHospital?.isGovernment && <span className="bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-blue-500/20">Govt</span>}
+                                                </div>
+                                                <p className="text-xs text-[#e5e2e1]/40">{r.description?.substring(0, 50)}...</p>
+                                            </div>
+                                            <div className="text-right flex flex-col items-end gap-1">
+                                                <span className="font-headline font-bold text-[#e5e2e1] text-lg">₹{r.bill.totalAmount || r.bill.estimatedCost || 0}</span>
+                                                <span className={`px-2 py-0.5 rounded w-max text-[8px] font-black uppercase tracking-widest ${r.bill.paidStatus === 'paid' ? 'bg-[#76d6d5]/10 text-[#76d6d5]' : r.bill.paidStatus === 'waived' ? 'bg-purple-500/10 text-purple-400' : 'bg-red-500/10 text-red-400'}`}>{r.bill.paidStatus || 'pending'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between items-center text-[10px] text-white/40 uppercase tracking-widest pt-3 border-t border-white/5">
+                                            <span>{formatIndianDateTime(r.bill.createdAt)}</span>
+                                            <button onClick={() => window.open(`/rescue/${r._id}`, '_blank')} className="text-[#76d6d5] hover:text-[#76d6d5]/70 flex items-center gap-1 transition-colors">
+                                                View Details <ArrowLeftIcon className="w-3 h-3 rotate-135" />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
