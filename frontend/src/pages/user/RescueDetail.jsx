@@ -368,7 +368,7 @@ const RescueDetail = () => {
                             <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden"><div className="h-1.5 rounded-full bg-[#76d6d5] transition-all" style={{ width: `${Math.min((rescue.amountRaised / rescue.estimatedCost) * 100, 100)}%` }} /></div>
                         </div>
                     )}
-                    {rescue.depositRefunded && <div className="rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-3 text-xs text-[#76d6d5]">Your ₹20 deposit has been refunded because the rescue could not proceed.</div>}
+                    {rescue.depositRefunded && rescue.status !== 'completed' && <div className="rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-3 text-xs text-[#76d6d5]">Your ₹30 service fee has been refunded because the rescue could not proceed.</div>}
                 </div>
 
                 {/* Description */}
@@ -603,9 +603,9 @@ const RescueDetail = () => {
                     </div>
                 )}
 
-                {rescue.depositRefunded && (
+                {rescue.depositRefunded && rescue.status !== 'completed' && (
                     <div className="mt-4 rounded-btn border border-green-100 bg-green-50 p-3 text-xs font-medium text-green-700">
-                        Your ₹20 deposit has been refunded because the rescue could not proceed.
+                        Your ₹30 service fee has been refunded because the rescue could not proceed.
                     </div>
                 )}
             </div>

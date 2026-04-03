@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
 const Donation = require('../models/Donation');
+const RescueRequest = require('../models/RescueRequest');
 
 const addBillingMonth = (dateLike) => {
     const base = dateLike ? new Date(dateLike) : new Date();
@@ -215,20 +216,41 @@ const getPaymentHistory = async (req, res) => {
             RescueRequest.find({ user: req.user._id, 'bill.createdAt': { $ne: null } }).populate('assignedHospital', 'name orgName isGovernment').sort({ 'bill.createdAt': -1 }).limit(50),
         ]);
 
+        // Ensure rescue bills have all required fields
+        const safeRescueBills = rescueBills.map(bill => {
+            // Handle potential missing fields gracefully
+            const safeBill = bill.toObject();
+            return {
+                ...safeBill,
+                assignedHospital: safeBill.assignedHospital || null,
+                bill: {
+                    ...(safeBill.bill || {}),
+                    createdAt: safeBill.bill?.createdAt || null,
+                    totalAmount: safeBill.bill?.totalAmount || 0,
+                    estimatedCost: safeBill.bill?.estimatedCost || 0,
+                    paidStatus: safeBill.bill?.paidStatus || 'pending'
+                }
+            };
+        });
+
         res.status(200).json({
             success: true,
             walletBalance: user.walletBalance,
             monthlySubscription,
             subscriptionPayments,
             walletTransactions,
-            rescueBills,
+            rescueBills: safeRescueBills,
             paymentModeMessage: monthlySubscription.isSubscribed
                 ? 'Recurring support currently deducts from wallet balance in test mode. This can later be replaced with UPI autopay.'
                 : 'Recurring support is not active. Wallet top-up works now; UPI autopay can be added later.',
         });
     } catch (error) {
         console.error('[User Controller] getPaymentHistory error:', error.message);
-        res.status(500).json({ success: false, message: error.message });
+        console.error('Stack trace:', error.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to load payment history. Please try again later.'
+        });
     }
 };
 

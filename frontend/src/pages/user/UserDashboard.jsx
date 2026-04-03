@@ -333,7 +333,7 @@ const UserDashboard = () => {
 
                         <div className="fixed inset-0 flex items-center justify-center p-4">
                             <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                                <Dialog.Panel className="w-full max-w-lg rounded-[3rem] bg-[#1c1b1b] p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)]">
+                                <Dialog.Panel className="w-full max-w-lg rounded-[3rem] bg-[#1c1b1b] p-6 md:p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh]">
                                     <div className="flex items-center justify-between mb-8">
                                         <Dialog.Title className="text-2xl font-headline font-extrabold text-[#e5e2e1] flex items-center gap-3">
                                             <WalletIcon className="w-8 h-8 text-[#76d6d5]" />
@@ -383,28 +383,38 @@ const UserDashboard = () => {
                                         </div>
 
                                         <div className="pt-6 border-t border-white/5">
-                                            <h3 className="font-bold text-[#e5e2e1]/40 text-xs uppercase tracking-widest mb-4 px-2">Transactions</h3>
-                                            <div className="space-y-4 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
-                                                {wallet.transactions.length === 0 ? (
-                                                    <p className="text-[#e5e2e1]/20 text-xs text-center py-4">No history available</p>
-                                                ) : (
-                                                    wallet.transactions.slice(0, 10).map((txn) => (
-                                                        <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] ${txn.type === 'debit' ? 'bg-red-500/10 text-red-400' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>
-                                                                    <span className="material-symbols-outlined text-sm">{txn.type === 'debit' ? 'arrow_downward' : 'arrow_upward'}</span>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="font-bold text-[#e5e2e1]/40 text-xs uppercase tracking-widest px-2">Transactions</h3>
+                                                <button
+                                                    onClick={() => { setWalletModalOpen(false); navigate('/user/payments?tab=all'); }}
+                                                    className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:underline"
+                                                >
+                                                    View All
+                                                </button>
+                                            </div>
+                                            <div className="overflow-hidden rounded-[1.5rem]">
+                                                <div className="space-y-4 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                                                    {wallet.transactions.length === 0 ? (
+                                                        <p className="text-[#e5e2e1]/20 text-xs text-center py-4">No history available</p>
+                                                    ) : (
+                                                        wallet.transactions.slice(0, 10).map((txn) => (
+                                                            <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] ${txn.type === 'debit' ? 'bg-red-500/10 text-red-400' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>
+                                                                        <span className="material-symbols-outlined text-sm">{txn.type === 'debit' ? 'arrow_downward' : 'arrow_upward'}</span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-xs font-bold text-[#e5e2e1] truncate max-w-[200px]">{txn.description}</p>
+                                                                        <p className="text-[10px] text-[#e5e2e1]/40">{formatIndianDate(txn.createdAt)}</p>
+                                                                    </div>
                                                                 </div>
-                                                                <div>
-                                                                    <p className="text-xs font-bold text-[#e5e2e1] truncate max-w-[200px]">{txn.description}</p>
-                                                                    <p className="text-[10px] text-[#e5e2e1]/40">{formatIndianDate(txn.createdAt)}</p>
-                                                                </div>
+                                                                <span className={`text-sm font-black ${txn.type === 'credit' || txn.type === 'refund' ? 'text-[#76d6d5]' : 'text-red-400'}`}>
+                                                                    {txn.type === 'debit' ? '-' : '+'}₹{txn.amount}
+                                                                </span>
                                                             </div>
-                                                            <span className={`text-sm font-black ${txn.type === 'credit' || txn.type === 'refund' ? 'text-[#76d6d5]' : 'text-red-400'}`}>
-                                                                {txn.type === 'debit' ? '-' : '+'}₹{txn.amount}
-                                                            </span>
-                                                        </div>
-                                                    ))
-                                                )}
+                                                        ))
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

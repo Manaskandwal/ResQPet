@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { StatusBadge } from '../../components/StatusComponents';
 import { formatIndianDateTime } from '../../utils/dateTime';
 import {
-    TruckIcon, MapPinIcon, ArrowPathIcon, CheckCircleIcon, ClockIcon, HistoryIcon
+    TruckIcon, MapPinIcon, ArrowPathIcon, CheckCircleIcon, ClockIcon
 } from '@heroicons/react/24/outline';
 
 const LOCATION_PING_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
@@ -40,26 +40,30 @@ const AmbulanceDashboard = () => {
     const [locationSharing, setLocationSharing] = useState(false);
     const [locationError, setLocationError] = useState('');
     const locationIntervalRef = useRef(null);
+    const [error, setError] = useState(null);
 
     const fetchTask = useCallback(async () => {
         try {
             const [taskRes, pingsRes] = await Promise.all([
-                api.get('/ambulance/assigned').catch(() => ({ data: { task: null } })),
-                api.get('/ambulance/pinged').catch(() => ({ data: { tasks: [] } })),
+                api.get('/ambulance/assigned').catch((err) => {
+                    console.error('Error fetching assigned task:', err);
+                    return { data: { task: null } };
+                }),
+                api.get('/ambulance/pinged').catch((err) => {
+                    console.error('Error fetching pings:', err);
+                    return { data: { tasks: [] } };
+                }),
             ]);
             setTask(taskRes.data.task || null);
             setPings(pingsRes.data.tasks || []);
+            setError(null);
         } catch (error) {
             console.error('[AmbulanceDashboard] fetchTask error:', error.message);
+            setError(error.response?.data?.message || 'Failed to load ambulance assignments. Please try again.');
         } finally {
             setLoading(false);
         }
     }, []);
-
-    useEffect(() => {
-        fetchTask();
-        return () => { if (locationIntervalRef.current) clearInterval(locationIntervalRef.current); };
-    }, [fetchTask]);
 
     // ─── Location Ping ───────────────────────────────────────────────────────────
     const pingLocation = useCallback(async () => {
@@ -140,6 +144,8 @@ const AmbulanceDashboard = () => {
             setActing((p) => ({ ...p, [rescueId]: false }));
         }
     };
+
+    useEffect(() => { fetchTask(); }, [fetchTask]);
 
     // ─── Awaiting Approval ───────────────────────────────────────────────────────
     if (!user.isApproved) return (

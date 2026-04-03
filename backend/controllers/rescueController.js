@@ -548,8 +548,8 @@ const requestReturnTransport = async (req, res) => {
                 timestamp: new Date()
             });
 
-            // Handle ₹20 deposit refund logic
-            if (canRefundServiceFee(rescue) || rescue.depositDeducted) {
+            // Handle deposit refund logic - only refund if work never started (rescue couldn't proceed)
+            if (canRefundServiceFee(rescue)) {
                 const requestingUser = await User.findById(rescue.user);
                 requestingUser.walletBalance += DEPOSIT_AMOUNT;
                 await requestingUser.save();
@@ -557,8 +557,8 @@ const requestReturnTransport = async (req, res) => {
                 await WalletTransaction.create({
                     user: requestingUser._id,
                     amount: DEPOSIT_AMOUNT,
-                    type: 'credit',
-                    description: `Rs ${DEPOSIT_AMOUNT} deposit refunded for completed case #${rescue._id}`,
+                    type: 'refund',
+                    description: `Rs ${DEPOSIT_AMOUNT} service fee refunded for cancelled rescue request #${rescue._id}`,
                     rescueRequest: rescue._id,
                     balanceAfter: requestingUser.walletBalance,
                 });
