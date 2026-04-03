@@ -9,6 +9,10 @@ const {
     getImpactFeed,
     toggleImpactLike,
     addImpactComment,
+    updateWillingness,
+    manualTransportResponse,
+    payHospitalBill,
+    requestReturnTransport
 } = require('../controllers/rescueController');
 const { acceptCase, rejectCase, resolveOnSpot, escalateToHospital, updateNGOStatus, completeCase, addFollowUp } = require('../controllers/ngoController');
 const { assignAmbulance } = require('../controllers/hospitalController');
@@ -76,5 +80,17 @@ router.post('/:id/impact/like', protect, toggleImpactLike);
 
 // @route  POST /api/rescue/:id/impact/comment
 router.post('/:id/impact/comment', protect, addImpactComment);
+
+// @route  PATCH /api/rescue/:id/willingness
+router.patch('/:id/willingness', protect, allowRoles('user'), updateWillingness);
+
+// @route  POST /api/rescue/:id/manual-transport-response
+router.post('/:id/manual-transport-response', protect, allowRoles('ngo', 'user'), manualTransportResponse);
+
+// @route  POST /api/rescue/:id/pay-bill
+router.post('/:id/pay-bill', protect, allowRoles('ngo', 'user'), payHospitalBill);
+
+// @route  POST /api/rescue/:id/return-transport
+router.post('/:id/return-transport', protect, allowRoles('ngo', 'user'), requestReturnTransport);
 
 module.exports = router;

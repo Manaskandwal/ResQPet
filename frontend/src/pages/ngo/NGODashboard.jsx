@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -11,12 +12,13 @@ import {
     CheckCircleIcon,
     PhoneIcon,
     ArrowUpTrayIcon,
+    WalletIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import { StatusBadge } from '../../components/StatusComponents';
 import { SkeletonCard, SkeletonStatCard } from '../../components/Skeleton';
-import { formatIndianDateTime, toDateInputValue, toTimeInputValue } from '../../utils/dateTime';
+import { formatIndianDate, formatIndianDateTime, toDateInputValue, toTimeInputValue } from '../../utils/dateTime';
 
 const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = 'Schedule Rescue' }) => {
     const initialDate = rescue?.scheduleDate ? new Date(rescue.scheduleDate) : new Date(Date.now() + 30 * 60 * 1000);
@@ -187,8 +189,18 @@ const TransportModal = ({ open, onClose, onConfirm, actionType }) => {
     );
 };
 
+const loadRazorpay = () =>
+    new Promise((resolve) => {
+        if (window.Razorpay) { resolve(true); return; }
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+
 const NGODashboard = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
     const activeList = searchParams.get('list') || 'active';
@@ -196,6 +208,12 @@ const NGODashboard = () => {
     const [nearbyCases, setNearbyCases] = useState([]);
     const [myCases, setMyCases] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [wallet, setWallet] = useState({ walletBalance: user?.walletBalance || 0, transactions: [] });
+    const [topupAmt, setTopupAmt] = useState('');
+    const [paying, setPaying] = useState(false);
+    const [mockPaying, setMockPaying] = useState(false);
+    const [walletModalOpen, setWalletModalOpen] = useState(false);
+    const topupRef = useRef(null);
     const [acting, setActing] = useState({});
     const [locationSet, setLocationSet] = useState(true);
     const [scheduleCase, setScheduleCase] = useState(null);
@@ -217,15 +235,18 @@ const NGODashboard = () => {
         try {
             setLoading(true);
             const nearbyUrl = gpsCoords ? `/ngo/nearby?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}` : '/ngo/nearby';
-            const [analyticsRes, nearbyRes, mycasesRes] = await Promise.all([
+            const [analyticsRes, nearbyRes, mycasesRes, walletRes] = await Promise.all([
                 api.get('/ngo/analytics'),
                 api.get(nearbyUrl),
                 api.get('/ngo/my-cases'),
+                api.get('/user/wallet'),
             ]);
             setAnalytics(analyticsRes.data.analytics);
             setNearbyCases(nearbyRes.data.cases || []);
             setLocationSet(nearbyRes.data.locationSet ?? true);
             setMyCases(mycasesRes.data.cases || []);
+            setWallet({ walletBalance: walletRes.data.walletBalance, transactions: walletRes.data.transactions });
+            updateUser({ walletBalance: walletRes.data.walletBalance });
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to load panel data.');
         } finally {
@@ -238,6 +259,79 @@ const NGODashboard = () => {
     const withActing = async (id, state, action) => {
         setActing((prev) => ({ ...prev, [id]: state }));
         try { await action(); } finally { setActing((prev) => ({ ...prev, [id]: null })); }
+    };
+
+    const handleTopup = async () => {
+        const amount = parseFloat(topupAmt);
+        if (!amount || amount < 10) { toast.error('Minimum top-up is ₹10.'); return; }
+
+        setPaying(true);
+        try {
+            console.log('[NGODashboard] Initiating Razorpay top-up for ₹', amount);
+            const loaded = await loadRazorpay();
+            if (!loaded) { toast.error('Failed to load Razorpay. Check your internet connection.'); return; }
+
+            const { data } = await api.post('/payment/create-order', { amount });
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || data.keyId,
+                amount: data.order.amount,
+                currency: 'INR',
+                name: 'VetsCue',
+                description: 'Wallet Top-up',
+                order_id: data.order.id,
+                handler: async (response) => {
+                    try {
+                        console.log('[NGODashboard] Razorpay payment successful, verifying...');
+                        const verifyRes = await api.post('/payment/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            amount,
+                        });
+                        toast.success(`₹${amount} added to wallet! 🎉`);
+                        updateUser({ walletBalance: verifyRes.data.walletBalance });
+                        setWallet((p) => ({ ...p, walletBalance: verifyRes.data.walletBalance }));
+                        setTopupAmt('');
+                        fetchAll();
+                    } catch (verifyErr) {
+                        console.error('[NGODashboard] Payment verification failed:', verifyErr.message);
+                        toast.error('Payment verification failed. Contact support.');
+                    }
+                },
+                prefill: { name: user?.name, email: user?.email },
+                theme: { color: '#0d9488' },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (resp) => {
+                console.error('[NGODashboard] Razorpay payment failed:', resp.error);
+                toast.error(`Payment failed: ${resp.error.description}`);
+            });
+            rzp.open();
+        } catch (error) {
+            console.error('[NGODashboard] Top-up error:', error.message);
+            toast.error(error.response?.data?.message || 'Failed to initiate payment.');
+        } finally {
+            setPaying(false);
+        }
+    };
+
+    const handleMockTopup = async (amount) => {
+        setMockPaying(true);
+        try {
+            console.log('[Mock] crediting ₹', amount);
+            const { data } = await api.post('/payment/mock-topup', { amount });
+            toast.success(data.message);
+            updateUser({ walletBalance: data.walletBalance });
+            setWallet((p) => ({ ...p, walletBalance: data.walletBalance }));
+            fetchAll();
+        } catch (error) {
+            console.error('[Mock] mockTopup error:', error.message);
+            toast.error(error.response?.data?.message || 'Mock top-up failed.');
+        } finally {
+            setMockPaying(false);
+        }
     };
 
     const handleAccept = async (id, type = 'immediate', scheduleDate = null, transportType = 'na', ngoCannotPay = false) => {
@@ -281,6 +375,30 @@ const NGODashboard = () => {
     };
     const handleFollowUp = async (id, scheduleDate, notes) => {
         await withActing(id, 'followup', async () => { await api.post(`/rescue/${id}/followup`, { scheduleDate, notes }); toast.success('Follow-up scheduled.'); setFollowUpCase(null); fetchAll(); }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
+    };
+
+    const handleManualResponse = async (id, accept) => {
+        await withActing(id, 'acting', async () => {
+            await api.post(`/rescue/${id}/manual-transport-response`, { accept });
+            toast.success('Response recorded.');
+            fetchAll();
+        }).catch((e) => toast.error(e.response?.data?.message || 'Action failed'));
+    };
+
+    const handlePayBill = async (id) => {
+        await withActing(id, 'acting', async () => {
+            await api.post(`/rescue/${id}/pay-bill`);
+            toast.success('Bill paid.');
+            fetchAll();
+        }).catch((e) => toast.error(e.response?.data?.message || 'Payment failed'));
+    };
+
+    const handleReturnTransport = async (id, takeManually) => {
+         await withActing(id, 'acting', async () => {
+            await api.post(`/rescue/${id}/return-transport`, { takeManually });
+            toast.success('Return transport requested.');
+            fetchAll();
+        }).catch((e) => toast.error(e.response?.data?.message || 'Request failed'));
     };
 
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
@@ -353,13 +471,118 @@ const NGODashboard = () => {
                     actionType={transportCase?.actionType}
                 />
 
+                {/* Wallet Modal Override */}
+                <Transition appear show={walletModalOpen} as={Fragment}>
+                    <Dialog as="div" className="relative z-50 resqpet-obsidian-theme" onClose={() => setWalletModalOpen(false)}>
+                        <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
+                            <div className="fixed inset-0 bg-[#131313]/90 backdrop-blur-xl" />
+                        </Transition.Child>
+
+                        <div className="fixed inset-0 flex items-center justify-center p-4">
+                            <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+                                <Dialog.Panel className="w-full max-w-lg rounded-[3rem] bg-[#1c1b1b] p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)]">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <Dialog.Title className="text-2xl font-headline font-extrabold text-[#e5e2e1] flex items-center gap-3">
+                                            <WalletIcon className="w-8 h-8 text-[#76d6d5]" />
+                                            Unified Wallet
+                                        </Dialog.Title>
+                                        <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-[#e5e2e1]/40">
+                                            <XMarkIcon className="w-6 h-6" />
+                                        </button>
+                                    </div>
+
+                                    <div className="glass-card bg-gradient-to-br from-[#76d6d5]/20 to-[#008080]/20 rounded-[2.5rem] border border-[#76d6d5]/30 p-8 mb-8 relative overflow-hidden group">
+                                        <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#76d6d5]/10 rounded-full blur-3xl" />
+                                        <div className="relative z-10 text-center py-4">
+                                            <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Available Balance</span>
+                                            <p className="text-5xl font-headline font-black mt-2 mb-2 text-[#e5e2e1]">₹{wallet?.walletBalance?.toFixed(2) || '0.00'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-black text-[#e5e2e1]/40 uppercase tracking-widest mb-3 px-2">Quick Top-up</label>
+                                            <div className="flex gap-2">
+                                                {[50, 100, 200, 500].map((amt) => (
+                                                    <button key={amt} onClick={() => handleMockTopup(amt)}
+                                                        disabled={mockPaying}
+                                                        className="flex-1 py-3 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-xs font-bold hover:bg-[#76d6d5]/10 hover:border-[#76d6d5]/30 transition-all active:scale-95 disabled:opacity-50">
+                                                        +₹{amt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    ref={topupRef}
+                                                    type="number" min="10" placeholder="Custom"
+                                                    value={topupAmt}
+                                                    onChange={(e) => setTopupAmt(e.target.value)}
+                                                    className="w-full h-14 px-6 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-sm focus:outline-none focus:ring-2 focus:ring-[#76d6d5]/20 focus:border-[#76d6d5]/50 transition-all font-bold placeholder:text-[#e5e2e1]/20"
+                                                />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#e5e2e1]/20">INR</span>
+                                            </div>
+                                            <button onClick={handleTopup} disabled={paying} className="h-14 px-10 bg-[#e5e2e1] text-[#131313] rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-[#e5e2e1]/5 disabled:opacity-50">
+                                                {paying ? '...' : 'Top Up'}
+                                            </button>
+                                        </div>
+
+                                        <div className="pt-6 border-t border-white/5">
+                                            <h3 className="font-bold text-[#e5e2e1]/40 text-xs uppercase tracking-widest mb-4 px-2">Transactions</h3>
+                                            <div className="space-y-4 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                                                {wallet?.transactions?.length === 0 ? (
+                                                    <p className="text-[#e5e2e1]/20 text-xs text-center py-4">No history available</p>
+                                                ) : (
+                                                    wallet.transactions.slice(0, 10).map((txn) => (
+                                                        <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] ${txn.type === 'debit' ? 'bg-red-500/10 text-red-400' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>
+                                                                    <span className="material-symbols-outlined text-sm">{txn.type === 'debit' ? 'arrow_downward' : 'arrow_upward'}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-bold text-[#e5e2e1] truncate max-w-[200px]">{txn.description}</p>
+                                                                    <p className="text-[10px] text-[#e5e2e1]/40">{formatIndianDate(txn.createdAt)}</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className={`text-sm font-black ${txn.type === 'credit' || txn.type === 'refund' ? 'text-[#76d6d5]' : 'text-red-400'}`}>
+                                                                {txn.type === 'debit' ? '-' : '+'}₹{txn.amount}
+                                                            </span>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </Dialog>
+                </Transition>
+
                 {/* Dashboard Title Section */}
                 <section>
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div className="space-y-2">
-                            <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Rescue Center</span>
-                            <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">NGO <span className="text-[#76d6d5]">Dashboard</span></h1>
-                            <p className="text-[#e5e2e1]/50 max-w-md">Help animals in need and manage your rescue tasks.</p>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-12">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Rescue Center</span>
+                                <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">NGO <span className="text-[#76d6d5]">Dashboard</span></h1>
+                                <p className="text-[#e5e2e1]/50 max-w-md">Help animals in need and manage your rescue tasks.</p>
+                            </div>
+                            {/* Wallet Summary Card */}
+                            <div 
+                                onClick={() => setWalletModalOpen(true)}
+                                className="glass-card rounded-[2rem] p-6 flex items-center gap-4 w-fit border border-white/5 bg-[#1c1b1b]/50 cursor-pointer hover:bg-[#1c1b1b] transition-all group"
+                            >
+                                <div className="w-12 h-12 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
+                                    <WalletIcon className="w-6 h-6" />
+                                </div>
+                                <div className="pr-12">
+                                    <div className="text-2xl font-bold font-headline transition-all">₹{wallet?.walletBalance?.toFixed(2) || '0.00'}</div>
+                                    <div className="text-[10px] text-[#76d6d5] font-black uppercase tracking-widest">Available Balance</div>
+                                </div>
+                            </div>
                         </div>
                         <div className="flex bg-[#1c1b1b]/50 p-1 rounded-2xl border border-white/5 backdrop-blur-xl overflow-x-auto no-scrollbar scroll-smooth flex-nowrap">
                             {[
@@ -706,7 +929,7 @@ const NGODashboard = () => {
                                          </div>
 
                                          {c.status === 'manual_transport_accepted' && (
-                                             <div className="p-6 rounded-[2rem] bg-[#ffb77d]/10 border border-[#ffb77d]/20 space-y-2">
+                                             <div className="p-6 rounded-[2rem] bg-[#ffb77d]/10 border border-[#ffb77d]/20 space-y-3 mb-6">
                                                  <div className="flex items-center gap-2 font-bold text-[#ffb77d] text-sm">
                                                      <span className="material-symbols-outlined">hail</span>
                                                      Manual Transport Mode
@@ -715,6 +938,68 @@ const NGODashboard = () => {
                                                      No ambulance responded to this critical dispatch. The hospital has already accepted. 
                                                      Please coordinate manual transport for the subject to <strong>{c.assignedHospital?.name || 'Assigned Hospital'}</strong> immediately.
                                                  </p>
+                                                 <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                                                     <button
+                                                         onClick={() => handleManualResponse(c._id, true)}
+                                                         disabled={acting[c._id]}
+                                                         className="flex-1 py-3 rounded-xl bg-[#ffb77d]/20 hover:bg-[#ffb77d]/30 text-[#ffb77d] text-[10px] font-black uppercase tracking-widest transition-all"
+                                                     >
+                                                         I Will Transport
+                                                     </button>
+                                                     <button
+                                                         onClick={() => handleManualResponse(c._id, false)}
+                                                         disabled={acting[c._id]}
+                                                         className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white/50 text-[10px] font-black uppercase tracking-widest transition-all"
+                                                     >
+                                                         Cannot Transport
+                                                     </button>
+                                                 </div>
+                                             </div>
+                                         )}
+
+                                         {c.bill?.paidStatus === 'pending' && c.bill?.sentTo === 'ngo' && (
+                                             <div className="p-6 rounded-[2rem] bg-[#76d6d5]/10 border border-[#76d6d5]/30 shadow-[0_0_20px_rgba(118,214,213,0.1)] mb-6 space-y-4">
+                                                 <div className="flex items-center justify-between">
+                                                     <div className="flex items-center gap-2 font-bold text-[#76d6d5] text-sm">
+                                                         <span className="material-symbols-outlined">payments</span>
+                                                         Hospital Bill Pending
+                                                     </div>
+                                                     <span className="text-2xl font-headline font-black text-white">₹{c.bill.totalAmount}</span>
+                                                 </div>
+                                                 <p className="text-xs text-[#e5e2e1]/60">The hospital has submitted the estimated diagnosis and bill. Please pay to continue treatment.</p>
+                                                 <button
+                                                     onClick={() => handlePayBill(c._id)}
+                                                     disabled={acting[c._id]}
+                                                     className="w-full py-4 rounded-xl bg-[#76d6d5] shadow-[0_0_15px_rgba(118,214,213,0.3)] text-[#131313] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all"
+                                                 >
+                                                     {acting[c._id] ? 'Processing...' : 'Pay Bill from Wallet'}
+                                                 </button>
+                                             </div>
+                                         )}
+
+                                         {c.treatmentStatus === 'discharged' && c.status !== 'completed' && c.status !== 'ambulance_pinged' && c.status !== 'closed_unresolved' && (!c.bill || c.bill.paidStatus === 'paid') && (
+                                             <div className="p-6 rounded-[2rem] bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 mb-6 space-y-4">
+                                                 <div className="flex items-center gap-2 font-bold text-[#8b5cf6] text-sm">
+                                                     <span className="material-symbols-outlined">moving</span>
+                                                     Animal Discharged!
+                                                 </div>
+                                                 <p className="text-xs text-[#e5e2e1]/70">Treatment is complete. How would you like to return the animal?</p>
+                                                 <div className="flex flex-col sm:flex-row gap-3">
+                                                     <button
+                                                         onClick={() => handleReturnTransport(c._id, false)}
+                                                         disabled={acting[c._id]}
+                                                         className="flex-1 py-3 rounded-xl bg-[#8b5cf6] text-white text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all"
+                                                     >
+                                                         Request Return Ambulance
+                                                     </button>
+                                                     <button
+                                                         onClick={() => handleReturnTransport(c._id, true)}
+                                                         disabled={acting[c._id]}
+                                                         className="flex-1 py-3 rounded-xl border border-[#8b5cf6]/30 text-[#8b5cf6] hover:bg-[#8b5cf6]/10 text-[10px] font-black uppercase tracking-widest transition-all"
+                                                     >
+                                                         Take Manually & Complete
+                                                     </button>
+                                                 </div>
                                              </div>
                                          )}
 
@@ -864,7 +1149,61 @@ const NGODashboard = () => {
                             </>
                         )}
                     </div>
+                </div>
+            )}
 
+            {c.status === 'manual_transport_accepted' && (
+                <div className="mt-4 rounded-btn border border-amber-200 bg-amber-50 p-4">
+                    <div className="mb-2 flex items-center gap-2 font-bold text-amber-800">
+                         Manual Transport Required
+                    </div>
+                    <p className="text-sm text-amber-700 mb-3">
+                        No ambulance could be found. <strong>{c.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
+                    </p>
+                    <div className="flex gap-2">
+                        <button onClick={() => handleManualResponse(c._id, true)} disabled={acting[c._id]} className="flex-1 btn bg-amber-600 text-white hover:bg-amber-700 py-2 text-xs">
+                            I Will Transport
+                        </button>
+                        <button onClick={() => handleManualResponse(c._id, false)} disabled={acting[c._id]} className="flex-1 btn-outline border-amber-300 text-amber-700 hover:bg-amber-100 py-2 text-xs">
+                            Cannot Transport
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {c.bill?.paidStatus === 'pending' && c.bill?.sentTo === 'ngo' && (
+                <div className="mt-4 rounded-btn border border-teal-200 bg-teal-50 p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 font-bold text-teal-800">
+                            Hospital Bill Pending
+                        </div>
+                        <span className="text-lg font-black text-slate-800">₹{c.bill.totalAmount}</span>
+                    </div>
+                    <button onClick={() => handlePayBill(c._id)} disabled={acting[c._id]} className="w-full btn bg-teal-600 text-white hover:bg-teal-700 py-2.5 text-sm mt-2">
+                        {acting[c._id] ? 'Processing...' : 'Pay Bill from Wallet'}
+                    </button>
+                </div>
+            )}
+
+            {c.treatmentStatus === 'discharged' && c.status !== 'completed' && c.status !== 'ambulance_pinged' && c.status !== 'closed_unresolved' && (!c.bill || c.bill.paidStatus === 'paid') && (
+                <div className="mt-4 rounded-btn border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
+                    <div className="flex items-center gap-2 font-bold text-indigo-800 mb-2">
+                        Animal Discharged!
+                    </div>
+                    <p className="text-xs text-slate-600 mb-3">Treatment is complete. How would you like to return the animal?</p>
+                    <div className="flex gap-2">
+                        <button onClick={() => handleReturnTransport(c._id, false)} disabled={acting[c._id]} className="flex-1 btn bg-indigo-600 text-white hover:bg-indigo-700 py-2 text-xs">
+                            Return Ambulance
+                        </button>
+                        <button onClick={() => handleReturnTransport(c._id, true)} disabled={acting[c._id]} className="flex-1 btn-outline border-indigo-300 text-indigo-700 hover:bg-indigo-100 py-2 text-xs">
+                            Take Manually
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {!['completed', 'cancelled', 'closed_unresolved'].includes(c.status) && (
+                <div className="mt-4 space-y-3">
                     <div className="rounded-[20px] border border-primary-100 bg-gradient-to-r from-primary-50 to-white p-4">
                         <div className="mb-3 flex items-center gap-2">
                             <ArrowUpTrayIcon className="h-5 w-5 text-primary-600" />

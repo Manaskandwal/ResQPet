@@ -85,6 +85,7 @@ const rescueRequestSchema = new mongoose.Schema(
                 'fundraiser_active',    // Waiting for public donations to meet goal
                 'refunded',             // Deposit/payment refunded
                 'manual_transport_accepted', // Scenario 4B Fallback
+                'ready_for_return',     // Hospital discharged, awaiting return transport
             ],
             default: 'pending',
         },

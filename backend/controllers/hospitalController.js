@@ -300,10 +300,20 @@ const submitBill = async (req, res) => {
         const isGovt = req.user.isGovernment;
         const { items, prescriptionImageUrl, estimatedCost, totalAmount } = req.body;
 
-        // Determine whom to bill: NGO if involved, otherwise user
-        const hasNgo = !!rescue.assignedNGO;
-        const billRecipient = hasNgo ? 'ngo' : 'user';
-        const recipientUser = hasNgo ? rescue.assignedNGO : rescue.user;
+        // Determine whom to bill based on fundSource logic
+        let billRecipient = 'user';
+        let recipientUser = rescue.user;
+
+        if (rescue.assignedNGO) {
+            if (rescue.fundSource === 'user') {
+                billRecipient = 'user';
+                recipientUser = rescue.user;
+            } else {
+                // If fundSource is ngo or platform (handled by NGO's dashboard)
+                billRecipient = 'ngo';
+                recipientUser = rescue.assignedNGO;
+            }
+        }
 
         rescue.bill = {
             items: isGovt ? [] : (items || []),
@@ -372,6 +382,9 @@ const updateTreatmentStatus = async (req, res) => {
         }
 
         rescue.treatmentStatus = treatmentStatus;
+        if (treatmentStatus === 'discharged') {
+            rescue.status = 'ready_for_return';
+        }
         if (hospitalNote) rescue.hospitalNote = hospitalNote;
         pushStatusLog(rescue, treatmentStatus, `Hospital updated treatment: ${treatmentStatus}${hospitalNote ? ` — ${hospitalNote}` : ''}`);
         await rescue.save();

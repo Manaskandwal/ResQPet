@@ -29,6 +29,14 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
             api.get('/notifications?unreadOnly=true')
                 .then(res => setUnreadCount(res.data.unreadCount || 0))
                 .catch(err => console.error(err));
+                
+            const handleNewNotification = () => {
+                setUnreadCount(prev => prev + 1);
+            };
+            window.addEventListener('new-notification', handleNewNotification);
+            return () => window.removeEventListener('new-notification', handleNewNotification);
+        } else {
+            setUnreadCount(0);
         }
     }, [user]);
 

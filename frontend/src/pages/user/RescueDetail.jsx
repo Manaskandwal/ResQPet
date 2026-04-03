@@ -52,12 +52,19 @@ const RescueDetail = () => {
     const [estimatedCost, setEstimatedCost] = useState('');
     const [makingFundraiser, setMakingFundraiser] = useState(false);
     const [logsOpen, setLogsOpen] = useState(false);
+    
+    const [willingToPay, setWillingToPay] = useState(false);
+    const [willingToGo, setWillingToGo] = useState(false);
+    const [isUpdatingWillingness, setIsUpdatingWillingness] = useState(false);
+    const [isActing, setIsActing] = useState(false);
 
     useEffect(() => {
         const fetchRescue = async () => {
             try {
                 const { data } = await api.get(`/rescue/${id}`);
                 setRescue(data.rescue);
+                setWillingToPay(data.rescue.willingToPay || false);
+                setWillingToGo(data.rescue.willingToGo || false);
             } catch (error) {
                 toast.error('Failed to load rescue details.');
                 navigate('/user/dashboard');
@@ -123,6 +130,65 @@ const RescueDetail = () => {
     const canMakeFundraiser = isOwner && !rescue.isFundraiser && !['completed', 'cancelled', 'closed_unresolved'].includes(rescue.status);
     const showTreatmentResults = ['completed', 'resolved_on_spot'].includes(rescue.status) || rescue.outcome === 'on_spot_treated';
     const treatmentStory = getTreatmentStory(rescue);
+
+    const isAssignedNgo = user?._id === rescue?.assignedNGO?._id;
+    const canRespondManual = rescue.status === 'manual_transport_accepted' && ((isOwner && !rescue.assignedNGO) || isAssignedNgo);
+    const canPayBill = rescue.bill?.paidStatus === 'pending' && ((rescue.bill.sentTo === 'user' && isOwner) || (rescue.bill.sentTo === 'ngo' && isAssignedNgo));
+    const canRequestReturn = rescue.treatmentStatus === 'discharged' && rescue.status !== 'completed' && rescue.status !== 'ambulance_pinged' && rescue.status !== 'closed_unresolved' && (isOwner || isAssignedNgo) && (!rescue.bill || rescue.bill.paidStatus === 'paid');
+
+    const handleUpdateWillingness = async (field, value) => {
+        setIsUpdatingWillingness(true);
+        try {
+            const { data } = await api.patch(`/rescue/${id}/willingness`, { [field]: value });
+            setRescue(data.rescue);
+            if (field === 'willingToPay') setWillingToPay(data.rescue.willingToPay);
+            if (field === 'willingToGo') setWillingToGo(data.rescue.willingToGo);
+            toast.success('Preferences updated');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update preferences');
+        } finally {
+            setIsUpdatingWillingness(false);
+        }
+    };
+
+    const handleManualResponse = async (accept) => {
+        setIsActing(true);
+        try {
+            const { data } = await api.post(`/rescue/${id}/manual-transport-response`, { accept });
+            setRescue(data.rescue);
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Action failed');
+        } finally {
+            setIsActing(false);
+        }
+    };
+
+    const handlePayBill = async () => {
+        setIsActing(true);
+        try {
+            const { data } = await api.post(`/rescue/${id}/pay-bill`);
+            setRescue(data.rescue);
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Payment failed');
+        } finally {
+            setIsActing(false);
+        }
+    };
+
+    const handleReturnTransport = async (takeManually) => {
+        setIsActing(true);
+        try {
+            const { data } = await api.post(`/rescue/${id}/return-transport`, { takeManually });
+            setRescue(data.rescue);
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Request failed');
+        } finally {
+            setIsActing(false);
+        }
+    };
 
     // Shared modals (same for both UI modes)
     const modals = (
@@ -221,15 +287,78 @@ const RescueDetail = () => {
                     </div>
                     <StatusTimeline rescue={rescue} />
                     {rescue.status === 'manual_transport_accepted' && (
-                        <div className="rounded-2xl border border-[#ffb77d]/20 bg-[#ffb77d]/5 p-4 space-y-2">
+                        <div className="rounded-2xl border border-[#ffb77d]/20 bg-[#ffb77d]/5 p-4 space-y-3">
                             <div className="flex items-center gap-2 font-bold text-[#ffb77d] text-sm">
                                 <span className="material-symbols-outlined text-lg">hail</span> 
                                 Manual Transport Required
                             </div>
                             <p className="text-xs text-[#e5e2e1]/60">
                                 No ambulance could be found for this rescue. However, <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
-                                Please arrange manual transport to the hospital as soon as possible.
                             </p>
+                            {canRespondManual ? (
+                                <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                                    <button
+                                        onClick={() => handleManualResponse(true)}
+                                        disabled={isActing}
+                                        className="flex-1 rounded-xl bg-[#ffb77d]/20 hover:bg-[#ffb77d]/30 text-[#ffb77d] py-2 text-xs font-black uppercase tracking-widest transition-all"
+                                    >
+                                        I Will Transport
+                                    </button>
+                                    <button
+                                        onClick={() => handleManualResponse(false)}
+                                        disabled={isActing}
+                                        className="flex-1 rounded-xl border border-white/10 hover:bg-white/5 text-white/50 py-2 text-xs font-black uppercase tracking-widest transition-all"
+                                    >
+                                        Cannot Transport
+                                    </button>
+                                </div>
+                            ) : (
+                                <p className="text-xs text-[#ffb77d]/70 italic mt-1">Waiting for the assigned person to confirm manual transport.</p>
+                            )}
+                        </div>
+                    )}
+                    
+                    {canPayBill && (
+                        <div className="rounded-2xl border border-[#76d6d5]/30 bg-[#76d6d5]/10 p-5 space-y-3 shadow-[0_0_20px_rgba(118,214,213,0.1)]">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 font-bold text-[#76d6d5]">
+                                    <CurrencyRupeeIcon className="w-5 h-5" /> Hospital Bill Pending
+                                </div>
+                                <span className="text-lg font-black text-white">₹{rescue.bill.totalAmount}</span>
+                            </div>
+                            <p className="text-xs text-[#e5e2e1]/70">The hospital has submitted the estimated diagnosis and bill. Please pay to continue treatment.</p>
+                            <button
+                                onClick={handlePayBill}
+                                disabled={isActing}
+                                className="w-full py-3 rounded-2xl bg-[#76d6d5] shadow-[0_0_15px_rgba(118,214,213,0.3)] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50"
+                            >
+                                {isActing ? 'Processing...' : 'Pay Bill from Wallet'}
+                            </button>
+                        </div>
+                    )}
+
+                    {canRequestReturn && (
+                        <div className="rounded-2xl border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 p-5 space-y-3">
+                            <div className="flex items-center gap-2 font-bold text-[#8b5cf6]">
+                                <SparklesIcon className="w-5 h-5" /> Animal Discharged!
+                            </div>
+                            <p className="text-xs text-[#e5e2e1]/70">Treatment is complete. How would you like to return the animal?</p>
+                            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                                <button
+                                    onClick={() => handleReturnTransport(false)}
+                                    disabled={isActing}
+                                    className="flex-1 py-3 rounded-2xl bg-[#8b5cf6] text-white text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all"
+                                >
+                                    Request Return Ambulance (Free)
+                                </button>
+                                <button
+                                    onClick={() => handleReturnTransport(true)}
+                                    disabled={isActing}
+                                    className="flex-1 py-3 rounded-2xl border border-[#8b5cf6]/30 text-[#8b5cf6] hover:bg-[#8b5cf6]/10 text-[10px] font-black uppercase tracking-widest transition-all"
+                                >
+                                    Take Manually & Complete
+                                </button>
+                            </div>
                         </div>
                     )}
                     {rescue.isFundraiser && (
@@ -263,7 +392,34 @@ const RescueDetail = () => {
                             </div>
                         </div>
                     )}
-                    <button type="button" onClick={() => setLogsOpen(true)} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
+                    
+                    {isOwner && !['completed', 'cancelled', 'closed_unresolved'].includes(rescue.status) && (
+                        <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+                            <h4 className="text-sm font-bold text-white/70">Your Preferences</h4>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-white/50">Willing to Pay Hospital Bill?</span>
+                                <button 
+                                    onClick={() => handleUpdateWillingness('willingToPay', !willingToPay)}
+                                    disabled={isUpdatingWillingness}
+                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${willingToPay ? 'bg-[#76d6d5]' : 'bg-white/10'}`}
+                                >
+                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${willingToPay ? 'translate-x-5' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-white/50">Willing to Transport Manually?</span>
+                                <button 
+                                    onClick={() => handleUpdateWillingness('willingToGo', !willingToGo)}
+                                    disabled={isUpdatingWillingness}
+                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${willingToGo ? 'bg-[#76d6d5]' : 'bg-white/10'}`}
+                                >
+                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${willingToGo ? 'translate-x-5' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    <button type="button" onClick={() => setLogsOpen(true)} className="inline-flex mt-2 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
                         <ClipboardDocumentListIcon className="h-4 w-4" />View Detailed Status Log
                     </button>
                     <SocialShare rescue={rescue} />
@@ -358,14 +514,77 @@ const RescueDetail = () => {
                 <StatusTimeline rescue={rescue} />
 
                 {rescue.status === 'manual_transport_accepted' && (
-                    <div className="mt-4 rounded-btn border border-amber-200 bg-amber-50 p-3">
-                        <div className="mb-1 flex items-center gap-2 font-bold text-amber-800">
+                    <div className="mt-4 rounded-btn border border-amber-200 bg-amber-50 p-4">
+                        <div className="mb-2 flex items-center gap-2 font-bold text-amber-800">
                              Manual Transport Required
                         </div>
-                        <p className="text-xs text-amber-700">
+                        <p className="text-sm text-amber-700 mb-3">
                             No ambulance could be found. <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
-                            Please arrange manual transport to the hospital.
                         </p>
+                        {canRespondManual ? (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleManualResponse(true)}
+                                    disabled={isActing}
+                                    className="flex-1 btn bg-amber-600 text-white hover:bg-amber-700 py-2 text-xs"
+                                >
+                                    I Will Transport
+                                </button>
+                                <button
+                                    onClick={() => handleManualResponse(false)}
+                                    disabled={isActing}
+                                    className="flex-1 btn-outline border-amber-300 text-amber-700 hover:bg-amber-100 py-2 text-xs"
+                                >
+                                    Cannot Transport
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-xs text-amber-600 italic">Waiting for assigned person to arrange transport.</p>
+                        )}
+                    </div>
+                )}
+
+                {canPayBill && (
+                    <div className="mt-4 rounded-btn border border-teal-200 bg-teal-50 p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2 font-bold text-teal-800">
+                                <CurrencyRupeeIcon className="w-5 h-5" /> Hospital Bill Pending
+                            </div>
+                            <span className="text-lg font-black text-slate-800">₹{rescue.bill.totalAmount}</span>
+                        </div>
+                        <p className="text-xs text-slate-600 mb-3">The hospital has submitted the estimated diagnosis and bill.</p>
+                        <button
+                            onClick={handlePayBill}
+                            disabled={isActing}
+                            className="w-full btn bg-teal-600 text-white hover:bg-teal-700 py-2.5 text-sm"
+                        >
+                            {isActing ? 'Processing...' : 'Pay Bill from Wallet'}
+                        </button>
+                    </div>
+                )}
+
+                {canRequestReturn && (
+                    <div className="mt-4 rounded-btn border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
+                        <div className="flex items-center gap-2 font-bold text-indigo-800 mb-2">
+                            <SparklesIcon className="w-5 h-5" /> Animal Discharged!
+                        </div>
+                        <p className="text-xs text-slate-600 mb-3">Treatment is complete. How would you like to return the animal?</p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => handleReturnTransport(false)}
+                                disabled={isActing}
+                                className="flex-1 btn bg-indigo-600 text-white hover:bg-indigo-700 py-2 text-xs"
+                            >
+                                Request Return Ambulance
+                            </button>
+                            <button
+                                onClick={() => handleReturnTransport(true)}
+                                disabled={isActing}
+                                className="flex-1 btn-outline border-indigo-300 text-indigo-700 hover:bg-indigo-100 py-2 text-xs"
+                            >
+                                Take Manually
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -404,6 +623,33 @@ const RescueDetail = () => {
                 <p className="mt-1 text-xs text-surface-muted">
                     Reported: {formatIndianDateTime(rescue.createdAt)}
                 </p>
+
+                {isOwner && !['completed', 'cancelled', 'closed_unresolved'].includes(rescue.status) && (
+                    <div className="mt-4 pt-4 mb-2 border-t border-slate-100">
+                        <h4 className="text-sm font-bold text-slate-700 mb-3">Your Preferences</h4>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold text-slate-600">Willing to Pay Hospital Bill?</span>
+                            <button 
+                                onClick={() => handleUpdateWillingness('willingToPay', !willingToPay)}
+                                disabled={isUpdatingWillingness}
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${willingToPay ? 'bg-primary' : 'bg-slate-200'}`}
+                            >
+                                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${willingToPay ? 'translate-x-5' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-600">Willing to Transport Manually?</span>
+                            <button 
+                                onClick={() => handleUpdateWillingness('willingToGo', !willingToGo)}
+                                disabled={isUpdatingWillingness}
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${willingToGo ? 'bg-primary' : 'bg-slate-200'}`}
+                            >
+                                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${willingToGo ? 'translate-x-5' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <button
                     type="button"
                     onClick={() => setLogsOpen(true)}

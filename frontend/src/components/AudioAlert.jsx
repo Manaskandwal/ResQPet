@@ -24,6 +24,9 @@ const AudioAlert = () => {
 
         if (!socket) return;
 
+        socket.connect();
+        socket.emit('join', { userId: user._id, role: user.role });
+
         const playAlert = () => {
             if (audioRef.current && !isMutedRef.current) {
                 audioRef.current.play().catch(e => console.warn('[AudioAlert] Play blocked by browser:', e.message));
@@ -46,6 +49,7 @@ const AudioAlert = () => {
                 playAlert();
                 toast.success(`NEW RESCUE: ${data.description}`, { duration: 10000, icon: '🚨' });
                 showBrowserNotification("New Rescue Request Nearby!", data.description);
+                window.dispatchEvent(new Event('new-notification'));
             });
         }
 
@@ -55,6 +59,7 @@ const AudioAlert = () => {
                 playAlert();
                 toast.error(`NEW DISPATCH: ${data.hospitalName} is requesting transport.`, { duration: 15000, icon: '🚑' });
                 showBrowserNotification("New Ambulance Dispatch Request!", `${data.hospitalName} needs help with a ${data.description}`);
+                window.dispatchEvent(new Event('new-notification'));
             });
         }
 

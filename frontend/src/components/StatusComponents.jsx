@@ -23,6 +23,7 @@ const statusMap = {
     closed_unresolved: { label: 'Closed Unresolved', cls: 'badge-cancelled bg-slate-200 text-slate-700' },
     cancelled: { label: 'Cancelled', cls: 'badge-cancelled' },
     manual_transport_accepted: { label: 'Manual Transport', cls: 'badge-escalated bg-orange-100 text-orange-700' },
+    ready_for_return: { label: 'Ready for Return', cls: 'badge-completed bg-indigo-100 text-indigo-700' },
 };
 
 export const StatusBadge = ({ status }) => {

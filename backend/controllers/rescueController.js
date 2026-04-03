@@ -366,6 +366,251 @@ const addImpactComment = async (req, res) => {
     }
 };
 
+const updateWillingness = async (req, res) => {
+    try {
+        const { willingToPay, willingToGo } = req.body;
+        const rescue = await RescueRequest.findById(req.params.id);
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
+        if (rescue.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Only the reporter can update these fields.' });
+        }
+        if (['completed', 'cancelled', 'closed_unresolved'].includes(rescue.status)) {
+            return res.status(400).json({ success: false, message: 'Cannot update: case is already closed.' });
+        }
+
+        if (typeof willingToPay !== 'undefined') rescue.willingToPay = willingToPay === 'true' || willingToPay === true;
+        if (typeof willingToGo !== 'undefined') rescue.willingToGo = willingToGo === 'true' || willingToGo === true;
+
+        await rescue.save();
+        res.status(200).json({ success: true, message: 'Preferences updated.', rescue });
+    } catch (error) {
+        console.error('[Rescue Controller] updateWillingness error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const manualTransportResponse = async (req, res) => {
+    try {
+        const { accept } = req.body;
+        const rescue = await RescueRequest.findById(req.params.id);
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
+        if (rescue.status !== 'manual_transport_accepted') {
+            return res.status(400).json({ success: false, message: `Action not allowed for status: ${rescue.status}` });
+        }
+
+        const isNgo = req.user.role === 'ngo' && rescue.assignedNGO?.toString() === req.user._id.toString();
+        const isUser = req.user.role === 'user' && rescue.user.toString() === req.user._id.toString();
+        
+        if (!isNgo && !isUser) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to respond to this transport block.' });
+        }
+
+        if (accept) {
+            rescue.status = 'en_route';
+            rescue.transportType = 'self';
+            rescue.ngoTransporting = isNgo;
+            
+            rescue.statusLogs.push({
+                status: 'en_route',
+                message: `${req.user.name || req.user.orgName} has accepted to manually transport the animal.`,
+                timestamp: new Date()
+            });
+            emitRescueUpdate(rescue._id, 'en_route', { message: 'Manual transport started.' });
+        } else {
+            // Rejecting transport
+            rescue.status = 'closed_unresolved';
+            rescue.outcome = 'closed_unresolved';
+            rescue.closedAt = new Date();
+            
+            rescue.statusLogs.push({
+                status: 'closed_unresolved',
+                message: `${req.user.name || req.user.orgName} could not transport. Case closed as unresolved.`,
+                timestamp: new Date()
+            });
+
+            // Refund deposit since platform failed to transport the successfully accepted animal
+            if (rescue.depositDeducted && !rescue.depositRefunded) {
+                const rUser = await User.findById(rescue.user);
+                if (rUser) {
+                    rUser.walletBalance += DEPOSIT_AMOUNT;
+                    await rUser.save();
+                    rescue.depositRefunded = true;
+                    await WalletTransaction.create({
+                        user: rUser._id,
+                        amount: DEPOSIT_AMOUNT,
+                        type: 'credit',
+                        description: `Rs ${DEPOSIT_AMOUNT} service fee refunded as no transport was available for rescue request #${rescue._id}`,
+                        rescueRequest: rescue._id,
+                        balanceAfter: rUser.walletBalance,
+                    });
+                }
+            }
+
+            emitRescueUpdate(rescue._id, 'closed_unresolved', { message: 'Manual transport rejected. Case closed.' });
+        }
+
+        await rescue.save();
+        res.status(200).json({ success: true, message: accept ? 'Transport started manually.' : 'Case closed.', rescue });
+    } catch (error) {
+        console.error('[Rescue Controller] manualTransportResponse error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const payHospitalBill = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findById(req.params.id);
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
+        if (!rescue.bill || rescue.bill.paidStatus === 'paid') {
+            return res.status(400).json({ success: false, message: 'No pending bill associated with this case.' });
+        }
+
+        const user = await User.findById(req.user._id);
+        const amountToPay = rescue.bill.totalAmount;
+
+        if (user.walletBalance < amountToPay) {
+            return res.status(400).json({ success: false, message: `Insufficient wallet balance. You need ₹${amountToPay}.` });
+        }
+
+        // Deduct money
+        user.walletBalance -= amountToPay;
+        await user.save();
+
+        rescue.bill.paidStatus = 'paid';
+        
+        const txn = await WalletTransaction.create({
+            user: user._id,
+            amount: amountToPay,
+            type: 'debit',
+            description: `Payment to ${rescue.assignedHospital || 'Hospital'} for rescue request #${rescue._id}`,
+            rescueRequest: rescue._id,
+            balanceAfter: user.walletBalance,
+        });
+
+        rescue.bill.walletTransactionId = txn._id;
+        
+        rescue.statusLogs.push({
+            status: rescue.status,
+            message: `Hospital bill of ₹${amountToPay} was paid by ${user.orgName || user.name}.`,
+            timestamp: new Date()
+        });
+
+        await rescue.save();
+        
+        const Notification = require('../models/Notification');
+        // Notify Hospital
+        await Notification.create({
+            recipient: rescue.assignedHospital,
+            title: `Bill Paid`,
+            message: `The bill of ₹${amountToPay} for rescue case has been paid.`,
+            type: 'rescue_bill_paid',
+            rescueRequest: rescue._id,
+        });
+
+        emitRescueUpdate(rescue._id, 'bill_paid', { message: 'Hospital bill paid.' });
+        res.status(200).json({ success: true, message: 'Bill successfully paid.', walletBalance: user.walletBalance, rescue });
+    } catch (error) {
+        console.error('[Rescue Controller] payHospitalBill error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const requestReturnTransport = async (req, res) => {
+    try {
+        const { takeManually } = req.body;
+        const rescue = await RescueRequest.findById(req.params.id);
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found.' });
+        if (rescue.treatmentStatus !== 'discharged') {
+            return res.status(400).json({ success: false, message: 'Animal must be discharged before requesting return.' });
+        }
+
+        const isNgo = req.user.role === 'ngo' && rescue.assignedNGO?.toString() === req.user._id.toString();
+        const isUser = req.user.role === 'user' && rescue.user.toString() === req.user._id.toString();
+        
+        if (!isNgo && !isUser) {
+            return res.status(403).json({ success: false, message: 'You are not authorized.' });
+        }
+
+        if (takeManually) {
+            rescue.status = 'completed';
+            rescue.completedAt = new Date();
+            if (req.user.role === 'ngo') {
+                rescue.outcome = 'on_spot_treated';
+            } else {
+                rescue.outcome = 'hospital_treated';
+            }
+            rescue.statusLogs.push({
+                status: 'completed',
+                message: `${req.user.name || req.user.orgName} manually took the animal back. Case closed successfully.`,
+                timestamp: new Date()
+            });
+
+            // Handle ₹20 deposit refund logic
+            if (canRefundServiceFee(rescue) || rescue.depositDeducted) {
+                const requestingUser = await User.findById(rescue.user);
+                requestingUser.walletBalance += DEPOSIT_AMOUNT;
+                await requestingUser.save();
+                rescue.depositRefunded = true;
+                await WalletTransaction.create({
+                    user: requestingUser._id,
+                    amount: DEPOSIT_AMOUNT,
+                    type: 'credit',
+                    description: `Rs ${DEPOSIT_AMOUNT} deposit refunded for completed case #${rescue._id}`,
+                    rescueRequest: rescue._id,
+                    balanceAfter: requestingUser.walletBalance,
+                });
+            }
+
+            emitRescueUpdate(rescue._id, 'completed', { message: 'Case completed via manual return.' });
+        } else {
+            // Free return ambulance trip ping 
+            // We set status back to ambulance_pinged and clear the old ambulance
+            rescue.status = 'ambulance_pinged';
+            const oldAmbulance = rescue.assignedAmbulance;
+            if (oldAmbulance) {
+                await User.findByIdAndUpdate(oldAmbulance, { isAvailable: true });
+                rescue.assignedAmbulance = null;
+            }
+            
+            rescue.statusLogs.push({
+                status: 'ambulance_pinged',
+                message: 'Requested a free return ambulance to transport the animal back.',
+                timestamp: new Date()
+            });
+            emitRescueUpdate(rescue._id, 'ambulance_pinged', { message: 'Requested return ambulance ping.' });
+            
+            // Ping Hospital Fleet + Independent
+            const { emitAmbulanceDispatch } = require('../config/socket');
+            // Assuming hospital fleet:
+            const hospitalFleet = await User.find({
+                role: 'ambulance',
+                linkedHospital: rescue.assignedHospital,
+                isAvailable: true,
+                isApproved: true,
+            });
+            
+            rescue.activeAmbulancePings = hospitalFleet.map((amb) => ({
+                ambulanceId: amb._id,
+                pingedAt: new Date(),
+            }));
+            rescue.pingRejectors = [];
+
+            // Dispatch
+            const targetIds = hospitalFleet.map(a => a._id);
+            if (targetIds.length > 0) emitAmbulanceDispatch(rescue, targetIds);
+        }
+
+        await rescue.save();
+        res.status(200).json({ success: true, message: takeManually ? 'Case completed.' : 'Dispatching return ambulance.', rescue });
+    } catch (error) {
+        console.error('[Rescue Controller] requestReturnTransport error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     submitRescue,
     getMyRescues,
@@ -375,4 +620,8 @@ module.exports = {
     getImpactFeed,
     toggleImpactLike,
     addImpactComment,
+    updateWillingness,
+    manualTransportResponse,
+    payHospitalBill,
+    requestReturnTransport
 };

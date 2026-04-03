@@ -89,7 +89,7 @@ app.use(xss()); // Data sanitization against XSS
 // Global Rate Limiting
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 5000, // Limit each IP to 100 requests per windowMs -> Increased for dev/polling
     message: 'Too many requests from this IP, please try again after 15 minutes'
 });
 app.use('/api', globalLimiter);
