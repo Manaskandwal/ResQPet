@@ -53,14 +53,6 @@ const AuthDropdown = ({ options, value, onChange, label, icon: Icon }) => {
           ))}
         </div>
       )}
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes dropdown-in {
-            from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .animate-dropdown-in { animation: dropdown-in 0.2s ease-out; }
-      `}} />
     </div>
   );
 };

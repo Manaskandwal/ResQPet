@@ -42,7 +42,15 @@ const maybeRefundUnresolvedFee = async (rescue) => {
 const startEscalationCron = () => {
     console.log('[Cron] Starting escalation cron job (every minute check)...');
 
+    let isRunning = false;
+
     cron.schedule('* * * * *', async () => {
+        if (isRunning) {
+            console.warn('[Cron] Escalation job skipped - previous instance still running');
+            return;
+        }
+
+        isRunning = true;
         try {
             const now = Date.now();
             const twentyMinutesAgo = new Date(now - 20 * 60 * 1000);
@@ -128,6 +136,8 @@ const startEscalationCron = () => {
             }));
         } catch (error) {
             console.error('[Cron] Escalation cron job encountered an error:', error.message);
+        } finally {
+            isRunning = false;
         }
     });
 

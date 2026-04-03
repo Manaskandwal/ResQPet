@@ -4,6 +4,7 @@ const WalletTransaction = require('../models/WalletTransaction');
 const { uploadBufferToCloudinary } = require('../middleware/upload');
 const { SERVICE_FEE } = require('../config/constants');
 const { emitRescueUpdate, emitNewCaseToNgos } = require('../config/socket');
+const { onRescueNeedsAmbulance } = require('../services/ambulanceDispatchService');
 
 const DEPOSIT_AMOUNT = SERVICE_FEE;
 
@@ -601,6 +602,11 @@ const requestReturnTransport = async (req, res) => {
             // Dispatch
             const targetIds = hospitalFleet.map(a => a._id);
             if (targetIds.length > 0) emitAmbulanceDispatch(rescue, targetIds);
+
+            // Start event-driven dispatch service for return ambulance
+            onRescueNeedsAmbulance(rescue._id).catch(err =>
+                console.error(`[Rescue Controller] Failed to start return ambulance dispatch: ${err.message}`)
+            );
         }
 
         await rescue.save();

@@ -2,6 +2,7 @@ const RescueRequest = require('../models/RescueRequest');
 const User = require('../models/User');
 const { haversineDistance } = require('../utils/haversine');
 const { emitRescueUpdate, emitAmbulanceDispatch } = require('../config/socket');
+const { onRescueNeedsAmbulance } = require('../services/ambulanceDispatchService');
 
 const pushStatusLog = (rescue, status, message) => {
     rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
@@ -193,8 +194,13 @@ const acceptBroadcastedCase = async (req, res) => {
             // Emit the actual dispatch alert to the targeted ambulances
             const targetIds = targetAmbulances.map(a => a._id);
             emitAmbulanceDispatch(rescue, targetIds);
+
+            // Start event-driven dispatch service (replaces cron polling)
+            onRescueNeedsAmbulance(rescue._id).catch(err => 
+                console.error(`[Hospital Controller] Failed to start ambulance dispatch: ${err.message}`)
+            );
         }
-        
+
         await rescue.save();
         res.status(200).json({ success: true, message: isNgoSelfTransport ? 'Case claimed. NGO is bringing the animal.' : 'Case claimed. Ambulance dispatch started.', rescue });
     } catch (error) {

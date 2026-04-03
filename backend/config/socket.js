@@ -1,6 +1,30 @@
 const socketIo = require('socket.io');
+const jwt = require('jsonwebtoken');
 
 let io;
+
+// Socket.IO authentication middleware
+const authenticateSocket = async (socket, next) => {
+    try {
+        const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+
+        if (!token) {
+            console.warn(`[Socket Auth] Connection rejected: No token provided (${socket.id})`);
+            return next(new Error('Authentication error: No token provided'));
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.userId = decoded.id;
+        socket.userRole = decoded.role;
+        socket.isAdmin = decoded.isAdmin || false;
+
+        console.log(`[Socket Auth] User authenticated: ${decoded.id} (${decoded.role})`);
+        next();
+    } catch (error) {
+        console.error(`[Socket Auth] Authentication failed: ${error.message}`);
+        next(new Error('Authentication error: Invalid or expired token'));
+    }
+};
 
 const initSocket = (server) => {
     io = socketIo(server, {
@@ -27,17 +51,29 @@ const initSocket = (server) => {
         }
     });
 
+    // Apply authentication middleware to all socket connections
+    io.use(authenticateSocket);
+
     io.on('connection', (socket) => {
-        console.log(`[Socket] New client connected: ${socket.id}`);
+        console.log(`[Socket] New client connected: ${socket.id} (User: ${socket.userId})`);
 
         // Clients can join rooms based on their user ID or role to receive targeted pings
         socket.on('join', (data) => {
             if (data && data.userId) {
-                socket.join(data.userId); // Join room named after User ID
+                // Verify the user is joining their own room
+                if (data.userId !== socket.userId && !socket.isAdmin) {
+                    console.warn(`[Socket] User ${socket.userId} attempted to join room ${data.userId} without authorization`);
+                    return;
+                }
+                socket.join(data.userId);
                 console.log(`[Socket] Client ${socket.id} joined room: ${data.userId}`);
             }
             if (data && data.role) {
-                socket.join(`role_${data.role}`); // e.g. role_hospital, role_ambulance
+                if (data.role !== socket.userRole && !socket.isAdmin) {
+                    console.warn(`[Socket] User ${socket.userId} attempted to join role room ${data.role} without authorization`);
+                    return;
+                }
+                socket.join(`role_${data.role}`);
                 console.log(`[Socket] Client ${socket.id} joined role room: role_${data.role}`);
             }
         });
@@ -62,6 +98,14 @@ const initSocket = (server) => {
                 const roomName = `rescue_${data.rescueRequestId}`;
                 socket.join(roomName);
                 console.log(`[Socket] Client ${socket.id} joined rescue room: ${roomName}`);
+            }
+        });
+
+        socket.on('leave_rescue_room', (data) => {
+            if (data && data.rescueRequestId) {
+                const roomName = `rescue_${data.rescueRequestId}`;
+                socket.leave(roomName);
+                console.log(`[Socket] Client ${socket.id} left rescue room: ${roomName}`);
             }
         });
 

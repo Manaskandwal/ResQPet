@@ -26,7 +26,15 @@ const addBillingMonth = (dateLike) => {
 };
 
 const startRecurringEmergencyDeduction = () => {
+    let isRunning = false;
+
     cron.schedule('* * * * *', async () => {
+        if (isRunning) {
+            console.warn('[Recurring Job] Skipped - previous instance still running');
+            return;
+        }
+
+        isRunning = true;
         try {
             const subscribers = await User.find({
                 'monthlySubscription.isSubscribed': true,
@@ -107,6 +115,8 @@ const startRecurringEmergencyDeduction = () => {
             }
         } catch (error) {
             console.error('[Recurring Job] Emergency deduction error:', error.message);
+        } finally {
+            isRunning = false;
         }
     });
 };

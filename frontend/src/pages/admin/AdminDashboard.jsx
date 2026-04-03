@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { SkeletonStatCard, SkeletonRow } from '../../components/Skeleton';
@@ -318,6 +318,7 @@ const ApprovalCard = ({ user: u, acting, onApprove }) => {
 };
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
     const [roleFilter, setRoleFilter] = useState('all');
@@ -443,7 +444,7 @@ const AdminDashboard = () => {
             localStorage.setItem('vetscue_token', data.token);
             localStorage.setItem('isImpersonating', 'true');
             toast.success('Successfully impersonated user. Redirecting...');
-            setTimeout(() => window.location.href = '/', 1500);
+            setTimeout(() => navigate('/', { replace: true }), 1500);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Impersonation failed.');
         }

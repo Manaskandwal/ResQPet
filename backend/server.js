@@ -11,9 +11,12 @@ const connectDB = require('./config/db');
 const { connectCloudinary } = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/errorHandler');
 const { startEscalationCron } = require('./jobs/escalationCron');
-const { startAmbulanceDispatchCron } = require('./jobs/ambulanceDispatchCron');
 const { startRecurringEmergencyDeduction } = require('./jobs/recurringJobs');
 const { initSocket } = require('./config/socket'); // <-- Socket.io config
+const {
+    cleanup: cleanupAmbulanceDispatch,
+    initializeActiveDispatches,
+} = require('./services/ambulanceDispatchService');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
@@ -115,6 +118,27 @@ app.use('/api/payment/verify', paymentVerifyLimiter);
         await connectDB();
         connectCloudinary();
         console.log('[Server] All services connected successfully.');
+
+        // Use server.listen instead of app.listen for Socket.io
+        server.listen(PORT, () => {
+            console.log('');
+            console.log('============================================');
+            console.log(`  VetsCue API Server`);
+            console.log(`  Port    : ${PORT}`);
+            console.log(`  Mode    : ${process.env.NODE_ENV || 'development'}`);
+            console.log(`  Health  : http://localhost:${PORT}/health`);
+            console.log('============================================');
+            console.log('');
+
+            // Start the escalation cron job
+            startEscalationCron();
+            // Start recurring emergency fund deductions
+            startRecurringEmergencyDeduction();
+            // Note: Ambulance dispatch is now event-driven (no cron needed)
+            initializeActiveDispatches().catch((error) => {
+                console.error('[Server] Failed to rehydrate active ambulance dispatches:', error.message);
+            });
+        });
     } catch (error) {
         console.error('[Server] Critical startup error:', error.message);
         process.exit(1);
@@ -165,32 +189,31 @@ app.use((req, res) => {
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
-// Use server.listen instead of app.listen for Socket.io
-server.listen(PORT, () => {
-    console.log('');
-    console.log('============================================');
-    console.log(`  VetsCue API Server`);
-    console.log(`  Port    : ${PORT}`);
-    console.log(`  Mode    : ${process.env.NODE_ENV || 'development'}`);
-    console.log(`  Health  : http://localhost:${PORT}/health`);
-    console.log('============================================');
-    console.log('');
-
-    // Start the escalation cron job
-    startEscalationCron();
-    // Start ambulance sequential dispatch cron job
-    startAmbulanceDispatchCron();
-    // Start recurring emergency fund deductions
-    startRecurringEmergencyDeduction();
-});
-
 process.on('unhandledRejection', (reason) => {
     console.error('[Server] Unhandled promise rejection:', reason);
 });
 
 process.on('uncaughtException', (error) => {
     console.error('[Server] Uncaught exception:', error);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('[Server] SIGTERM received. Shutting down gracefully...');
+    cleanupAmbulanceDispatch();
+    server.close(() => {
+        console.log('[Server] Process terminated');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('[Server] SIGINT received. Shutting down gracefully...');
+    cleanupAmbulanceDispatch();
+    server.close(() => {
+        console.log('[Server] Process terminated');
+        process.exit(0);
+    });
 });
 
 module.exports = { app, server };

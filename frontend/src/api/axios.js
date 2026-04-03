@@ -37,7 +37,7 @@ api.interceptors.response.use(
             if (error.response?.status === 401) {
                 // 1. Check if this was an actual auth attempt (Login/Register)
                 const isAuthRequest = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
-                
+
                 // 2. Identify public routes that shouldn't force a redirect/reload on 401
                 const publicRoutes = ['/', '/login', '/register', '/fundraisers'];
                 const isPublicRoute = publicRoutes.includes(window.location.pathname);
@@ -46,7 +46,8 @@ api.interceptors.response.use(
                     console.warn('[Axios] session expired on protected route — redirecting to login.');
                     localStorage.removeItem('vetscue_token');
                     localStorage.removeItem('vetscue_admin_token');
-                    window.location.href = '/login';
+                    // Dispatch custom event for React Router to handle (set up in main.jsx)
+                    window.dispatchEvent(new CustomEvent('auth:session-expired'));
                 } else {
                     // For public routes or login attempts, we just want the state to update (handled in AuthContext/Component)
                     // and definitely don't want a full page reload or redirect.

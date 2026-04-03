@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const LOCATION_PING_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+const LOCATION_STATE_KEY = 'ambulance_location_sharing';
 
 const AMBULANCE_STATUS_LABELS = {
     ambulance_assigned: 'Assignment Accepted',
@@ -37,7 +38,24 @@ const AmbulanceDashboard = () => {
     const [pings, setPings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState({});
-    const [locationSharing, setLocationSharing] = useState(false);
+    const [locationSharing, setLocationSharing] = useState(() => {
+        // Restore state from localStorage on mount
+        try {
+            const saved = localStorage.getItem(LOCATION_STATE_KEY);
+            if (saved) {
+                const { isActive, startedAt } = JSON.parse(saved);
+                // If active and started less than 10 minutes ago, restore it
+                if (isActive && Date.now() - startedAt < 10 * 60 * 1000) {
+                    return true;
+                }
+                // Otherwise clean up stale state
+                localStorage.removeItem(LOCATION_STATE_KEY);
+            }
+        } catch (e) {
+            localStorage.removeItem(LOCATION_STATE_KEY);
+        }
+        return false;
+    });
     const [locationError, setLocationError] = useState('');
     const locationIntervalRef = useRef(null);
     const [error, setError] = useState(null);
@@ -82,18 +100,30 @@ const AmbulanceDashboard = () => {
         );
     }, []);
 
-    const startLocationSharing = () => {
+    const startLocationSharing = ({ silent = false } = {}) => {
         if (!navigator.geolocation) { toast.error('Geolocation not supported.'); return; }
+        
+        // Guard against duplicate intervals
+        if (locationIntervalRef.current) {
+            console.warn('[Location] Interval already running, not starting duplicate.');
+            setLocationSharing(true);
+            return;
+        }
+
         setLocationSharing(true);
+        localStorage.setItem(LOCATION_STATE_KEY, JSON.stringify({ isActive: true, startedAt: Date.now() }));
         pingLocation(); // immediate first ping
         locationIntervalRef.current = setInterval(pingLocation, LOCATION_PING_INTERVAL_MS);
-        toast.success('Location sharing started — pinging every 2 minutes.');
+        if (!silent) {
+            toast.success('Location sharing started — pinging every 2 minutes.');
+        }
     };
 
     const stopLocationSharing = () => {
         if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
         locationIntervalRef.current = null;
         setLocationSharing(false);
+        localStorage.removeItem(LOCATION_STATE_KEY);
         toast.success('Location sharing stopped.');
     };
 
@@ -105,8 +135,10 @@ const AmbulanceDashboard = () => {
             toast.success('Dispatch accepted!');
             setTask(data.rescue);
             setPings([]);
-            // Auto-start location sharing
-            startLocationSharing();
+            // Auto-start location sharing (will check for duplicates and persist state)
+            if (!locationIntervalRef.current) {
+                startLocationSharing();
+            }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to accept dispatch.');
         } finally {
@@ -146,6 +178,22 @@ const AmbulanceDashboard = () => {
     };
 
     useEffect(() => { fetchTask(); }, [fetchTask]);
+
+    useEffect(() => {
+        if (!loading && task && locationSharing && !locationIntervalRef.current) {
+            startLocationSharing({ silent: true });
+        }
+    }, [loading, task, locationSharing, pingLocation]);
+
+    // Cleanup interval on unmount
+    useEffect(() => {
+        return () => {
+            if (locationIntervalRef.current) {
+                clearInterval(locationIntervalRef.current);
+                // Don't clear localStorage here - state should persist across navigation
+            }
+        };
+    }, []);
 
     // ─── Awaiting Approval ───────────────────────────────────────────────────────
     if (!user.isApproved) return (

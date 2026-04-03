@@ -97,6 +97,12 @@ const verifyDonation = async (req, res) => {
                 if (rescue.status === 'fundraiser_active' && rescue.amountRaised >= rescue.estimatedCost) {
                     rescue.status = 'ambulance_pinged';
                     console.log(`[Donation Controller] Fundraiser goal met for rescue ${rescue._id}. Pushing to ambulance dispatch.`);
+
+                    // Start event-driven dispatch service
+                    const { onRescueNeedsAmbulance } = require('../services/ambulanceDispatchService');
+                    onRescueNeedsAmbulance(rescue._id).catch(err =>
+                        console.error(`[Donation Controller] Failed to start ambulance dispatch: ${err.message}`)
+                    );
                 }
 
                 await rescue.save();

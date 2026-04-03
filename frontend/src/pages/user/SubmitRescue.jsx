@@ -44,6 +44,7 @@ const SubmitRescue = () => {
     const galleryRef = useRef(null);
     const cameraRef = useRef(null);
     const hasDetected = useRef(false);
+    const previewUrlsRef = useRef(new Set());
     const [form, setForm] = useState({
         description: '',
         lat: null,
@@ -104,11 +105,14 @@ const SubmitRescue = () => {
                 imageCount += 1;
             }
 
+            const preview = URL.createObjectURL(file);
+            previewUrlsRef.current.add(preview);
+
             nextItems.push({
                 id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
                 file,
                 kind,
-                preview: URL.createObjectURL(file),
+                preview,
             });
         });
 
@@ -127,8 +131,23 @@ const SubmitRescue = () => {
     };
 
     const handleRemoveMedia = (id) => {
-        setMediaItems((current) => current.filter((item) => item.id !== id));
+        setMediaItems((current) => {
+            const item = current.find((i) => i.id === id);
+            if (item?.preview) {
+                URL.revokeObjectURL(item.preview);
+                previewUrlsRef.current.delete(item.preview);
+            }
+            return current.filter((item) => item.id !== id);
+        });
     };
+
+    // Cleanup all ObjectURLs on unmount
+    useEffect(() => {
+        return () => {
+            previewUrlsRef.current.forEach((preview) => URL.revokeObjectURL(preview));
+            previewUrlsRef.current.clear();
+        };
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

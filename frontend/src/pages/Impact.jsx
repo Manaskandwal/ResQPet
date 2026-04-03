@@ -137,7 +137,7 @@ const Impact = () => {
                                                 type="text" 
                                                 value={commentDrafts[item._id] || ''} 
                                                 onChange={(e) => setCommentDrafts((cur) => ({ ...cur, [item._id]: e.target.value }))} 
-                                                onKeyPress={(e) => e.key === 'Enter' && handleComment(item._id)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleComment(item._id)}
                                                 className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all placeholder:text-white/10" 
                                                 placeholder="Write a supportive comment..." 
                                             />

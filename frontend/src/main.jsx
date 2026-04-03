@@ -6,39 +6,44 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import ErrorBoundary from './components/ErrorBoundary';
+import SessionExpiryHandler from './components/SessionExpiryHandler';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy_client_id_for_placeholder'}>
-              <App />
-          </GoogleOAuthProvider>
-        </ThemeProvider>
-        {/* Global toast notifications */}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '10px',
-              padding: '12px 16px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-            },
-            success: {
-              iconTheme: { primary: '#0d9488', secondary: '#fff' },
-            },
-            error: {
-              iconTheme: { primary: '#ef4444', secondary: '#fff' },
-            },
-          }}
-        />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <SessionExpiryHandler />
+        <AuthProvider>
+          <ThemeProvider>
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy_client_id_for_placeholder'}>
+                <App />
+            </GoogleOAuthProvider>
+          </ThemeProvider>
+          {/* Global toast notifications */}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+              },
+              success: {
+                iconTheme: { primary: '#0d9488', secondary: '#fff' },
+              },
+              error: {
+                iconTheme: { primary: '#ef4444', secondary: '#fff' },
+              },
+            }}
+          />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );

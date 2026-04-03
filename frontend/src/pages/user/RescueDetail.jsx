@@ -13,7 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
-import socket from '../../socket';
+import socket, { connectSocket } from '../../socket';
 import { StatusBadge, StatusTimeline } from '../../components/StatusComponents';
 import { SkeletonCard } from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
@@ -74,12 +74,15 @@ const RescueDetail = () => {
         };
 
         fetchRescue();
-        socket.connect();
+        connectSocket();
         socket.emit('join_rescue_room', { rescueRequestId: id });
         socket.on('location_update', (data) => setLiveLocation(data));
 
         return () => {
             socket.off('location_update');
+            socket.emit('leave_rescue_room', { rescueRequestId: id });
+            // Don't disconnect socket here - it's a shared singleton
+            // Only disconnect on full page unload (handled by socket.js)
         };
     }, [id, navigate]);
 
