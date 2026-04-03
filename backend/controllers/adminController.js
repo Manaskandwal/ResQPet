@@ -3,6 +3,7 @@ const RescueRequest = require('../models/RescueRequest');
 const WalletTransaction = require('../models/WalletTransaction');
 const Donation = require('../models/Donation');
 const AuditLog = require('../models/AuditLog');
+const { emitRescueUpdate } = require('../config/socket');
 
 /**
  * @route   GET /api/admin/analytics
@@ -387,6 +388,90 @@ const updateUserMeta = async (req, res) => {
     }
 };
 
+/**
+ * @route   GET /api/admin/fundraisers
+ * @desc    Get all cases that have a requested or active fundraiser
+ * @access  Private (admin only)
+ */
+const getFundraisers = async (req, res) => {
+    try {
+        const { status } = req.query; // 'pending', 'approved', 'rejected'
+        const query = { 
+            'fundraiser.status': { $ne: 'none' } 
+        };
+        
+        if (status) {
+            query['fundraiser.status'] = status;
+        }
+
+        const fundraisers = await RescueRequest.find(query)
+            .sort({ 'fundraiser.requestedAt': -1 })
+            .populate('user', 'name email')
+            .populate('assignedNGO', 'name orgName');
+
+        res.status(200).json({ success: true, count: fundraisers.length, fundraisers });
+    } catch (error) {
+        console.error('[Admin Controller] getFundraisers error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @route   PUT /api/admin/rescue/:id/fundraiser/review
+ * @desc    Approve or reject a fundraiser request
+ * @access  Private (admin only)
+ */
+const reviewFundraiser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, adminNotes } = req.body; // 'approve' or 'reject'
+
+        const rescue = await RescueRequest.findById(id);
+        if (!rescue) return res.status(404).json({ success: false, message: 'Case not found' });
+
+        if (rescue.fundraiser.status !== 'pending') {
+            return res.status(400).json({ success: false, message: `Fundraiser is currently ${rescue.fundraiser.status}, cannot be reviewed.` });
+        }
+
+        if (action === 'approve') {
+            rescue.fundraiser.status = 'approved';
+            rescue.isFundraiser = true;
+            rescue.estimatedCost = rescue.fundraiser.requestedGoal; // Initialize actual tracking goal
+            rescue.fundraiser.adminNotes = adminNotes || '';
+            
+            rescue.statusLogs.push({
+                status: rescue.status,
+                message: `Fundraiser request for ₹${rescue.fundraiser.requestedGoal} was APPROVED by Admin.`,
+                timestamp: new Date()
+            });
+
+            await rescue.save();
+            emitRescueUpdate(rescue._id, rescue.status, { message: 'Your fundraiser request has been approved and is now live!' });
+            res.status(200).json({ success: true, message: 'Fundraiser approved.', rescue });
+
+        } else if (action === 'reject') {
+            rescue.fundraiser.status = 'rejected';
+            rescue.fundraiser.adminNotes = adminNotes || '';
+            
+            rescue.statusLogs.push({
+                status: rescue.status,
+                message: `Fundraiser request was REJECTED by Admin. Reason: ${adminNotes || 'Not provided'}.`,
+                timestamp: new Date()
+            });
+
+            await rescue.save();
+            emitRescueUpdate(rescue._id, rescue.status, { message: 'Your fundraiser request was rejected.' });
+            res.status(200).json({ success: true, message: 'Fundraiser rejected.', rescue });
+
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid action. Use approve or reject.' });
+        }
+    } catch (error) {
+        console.error('[Admin Controller] reviewFundraiser error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getAnalytics,
     getAllUsers,
@@ -398,4 +483,6 @@ module.exports = {
     setUserLocation,
     getAuditLogs,
     updateUserMeta,
+    getFundraisers,
+    reviewFundraiser,
 };

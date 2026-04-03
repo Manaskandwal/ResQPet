@@ -16,7 +16,7 @@ const canRefundServiceFee = (rescue) => !!(rescue.depositDeducted && !rescue.dep
  */
 const submitRescue = async (req, res) => {
     try {
-        const { description, lat, lng, address, animalType, animalTypeOther } = req.body;
+        const { description, lat, lng, address, animalType, animalTypeOther, willingToPay, willingToGo } = req.body;
 
         if (!description || !lat || !lng) {
             return res.status(400).json({ success: false, message: 'Description and location (lat/lng) are required.' });
@@ -68,6 +68,8 @@ const submitRescue = async (req, res) => {
                 lng: parseFloat(lng),
                 address: address || '',
             },
+            willingToPay: willingToPay === 'true' || willingToPay === true,
+            willingToGo: willingToGo === 'true' || willingToGo === true,
             depositDeducted: true,
             statusLogs: [
                 {

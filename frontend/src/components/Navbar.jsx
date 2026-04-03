@@ -253,10 +253,26 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                                             to="/user/payments"
                                                             className={`${active 
                                                                 ? (isNewUI ? 'bg-surface-hover text-on-background' : 'bg-emerald-50 text-emerald-700') 
-                                                                : (isNewUI ? 'text-on-background/70' : 'text-slate-600')} flex w-full items-center gap-2 rounded-btn px-3 py-2 text-sm font-medium transition-all`}
+                                                                : (isNewUI ? 'text-on-background/70' : 'text-slate-600')} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
                                                         >
                                                             <CreditCardIcon className="w-4 h-4" />
                                                             Payment History
+                                                        </Link>
+                                                    )}
+                                                </Menu.Item>
+                                            )}
+
+                                            {user?.role === 'ngo' && (
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <Link
+                                                            to="/ngo/fundraisers"
+                                                            className={`${active 
+                                                                ? (isNewUI ? 'bg-surface-hover text-[#76d6d4]' : 'bg-[#008080]/10 text-[#008080]') 
+                                                                : (isNewUI ? 'text-on-background/70' : 'text-slate-600')} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
+                                                        >
+                                                            <CreditCardIcon className="w-4 h-4" />
+                                                            Fundraisers
                                                         </Link>
                                                     )}
                                                 </Menu.Item>

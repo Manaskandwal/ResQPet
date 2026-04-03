@@ -220,6 +220,18 @@ const RescueDetail = () => {
                         )}
                     </div>
                     <StatusTimeline rescue={rescue} />
+                    {rescue.status === 'manual_transport_accepted' && (
+                        <div className="rounded-2xl border border-[#ffb77d]/20 bg-[#ffb77d]/5 p-4 space-y-2">
+                            <div className="flex items-center gap-2 font-bold text-[#ffb77d] text-sm">
+                                <span className="material-symbols-outlined text-lg">hail</span> 
+                                Manual Transport Required
+                            </div>
+                            <p className="text-xs text-[#e5e2e1]/60">
+                                No ambulance could be found for this rescue. However, <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
+                                Please arrange manual transport to the hospital as soon as possible.
+                            </p>
+                        </div>
+                    )}
                     {rescue.isFundraiser && (
                         <div className="rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-4 space-y-2">
                             <div className="flex items-center gap-2 font-bold text-[#76d6d5] text-sm"><HeartIcon className="h-5 w-5" /> Public Fundraiser Active</div>
@@ -227,7 +239,7 @@ const RescueDetail = () => {
                             <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden"><div className="h-1.5 rounded-full bg-[#76d6d5] transition-all" style={{ width: `${Math.min((rescue.amountRaised / rescue.estimatedCost) * 100, 100)}%` }} /></div>
                         </div>
                     )}
-                    {rescue.depositRefunded && <div className="rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-3 text-xs text-[#76d6d5]">Rs 30 service fee has been refunded because the rescue could not proceed.</div>}
+                    {rescue.depositRefunded && <div className="rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-3 text-xs text-[#76d6d5]">Your ₹20 deposit has been refunded because the rescue could not proceed.</div>}
                 </div>
 
                 {/* Description */}
@@ -345,6 +357,18 @@ const RescueDetail = () => {
                 </div>
                 <StatusTimeline rescue={rescue} />
 
+                {rescue.status === 'manual_transport_accepted' && (
+                    <div className="mt-4 rounded-btn border border-amber-200 bg-amber-50 p-3">
+                        <div className="mb-1 flex items-center gap-2 font-bold text-amber-800">
+                             Manual Transport Required
+                        </div>
+                        <p className="text-xs text-amber-700">
+                            No ambulance could be found. <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
+                            Please arrange manual transport to the hospital.
+                        </p>
+                    </div>
+                )}
+
                 {rescue.isFundraiser && (
                     <div className="mt-4 rounded-btn border border-teal-100 bg-teal-50 p-3">
                         <div className="mb-1 flex items-center gap-2 font-bold text-teal-800">
@@ -362,7 +386,7 @@ const RescueDetail = () => {
 
                 {rescue.depositRefunded && (
                     <div className="mt-4 rounded-btn border border-green-100 bg-green-50 p-3 text-xs font-medium text-green-700">
-                        Rs 30 service fee has been refunded because the rescue could not proceed.
+                        Your ₹20 deposit has been refunded because the rescue could not proceed.
                     </div>
                 )}
             </div>

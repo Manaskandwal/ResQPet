@@ -32,6 +32,37 @@ const server = http.createServer(app); // <-- Wrap app in HTTP server
 // Initialize Socket.io
 initSocket(server);
 
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+// In development: allow ANY localhost port (Vite may pick 5173, 5174, etc.)
+// In production:  allow only CLIENT_URL env var
+const isDev = (process.env.NODE_ENV || 'development') !== 'production';
+const productionOrigin = process.env.CLIENT_URL;
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow no-origin requests (Postman, curl, mobile apps)
+            if (!origin) return callback(null, true);
+
+            // Dev: allow any localhost or 127.0.0.1 on any port
+            if (isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+                return callback(null, true);
+            }
+
+            // Prod: only the explicit CLIENT_URL
+            if (productionOrigin && origin === productionOrigin) {
+                return callback(null, true);
+            }
+
+            console.warn(`[CORS] Blocked request from origin: ${origin}`);
+            callback(new Error(`CORS: Origin ${origin} not allowed.`));
+        },
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+);
+
 // ─── Environment Validation ──────────────────────────────────────────────────
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
     console.error('[Server] Critical Config Error: JWT_SECRET must be at least 32 characters long.');
@@ -90,36 +121,6 @@ app.use('/api/payment/verify', paymentVerifyLimiter);
     }
 })();
 
-// ─── CORS ─────────────────────────────────────────────────────────────────────
-// In development: allow ANY localhost port (Vite may pick 5173, 5174, etc.)
-// In production:  allow only CLIENT_URL env var
-const isDev = (process.env.NODE_ENV || 'development') !== 'production';
-const productionOrigin = process.env.CLIENT_URL;
-
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            // Allow no-origin requests (Postman, curl, mobile apps)
-            if (!origin) return callback(null, true);
-
-            // Dev: allow any localhost or 127.0.0.1 on any port
-            if (isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-                return callback(null, true);
-            }
-
-            // Prod: only the explicit CLIENT_URL
-            if (productionOrigin && origin === productionOrigin) {
-                return callback(null, true);
-            }
-
-            console.warn(`[CORS] Blocked request from origin: ${origin}`);
-            callback(new Error(`CORS: Origin ${origin} not allowed.`));
-        },
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-    })
-);
 
 // ─── Body Parsers ─────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));

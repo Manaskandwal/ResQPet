@@ -85,11 +85,30 @@ const Fundraisers = () => {
             return;
         }
 
+        if (isNgo) {
+            // General NGO simulation mode
+            setDonatingId(id);
+            setTimeout(() => {
+                toast.success(`Simulated payment of Rs ${amount} to NGO successful.`);
+                setDonationAmount('');
+                setDonatingId(null);
+            }, 1000);
+            return;
+        }
+
         setDonatingId(id);
         try {
-            toast.success(`Simulated payment of Rs ${amount} successful.`);
+            const { data } = await api.post('/donation/donate-wallet', {
+                rescueId: id,
+                amount: amount
+            });
+            
+            toast.success(data.message);
+            updateUser({ walletBalance: data.walletBalance });
             setDonationAmount('');
-            if (!isNgo) fetchFundraisers();
+            fetchFundraisers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to process donation.');
         } finally {
             setDonatingId(null);
         }

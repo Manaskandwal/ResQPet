@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { haversineDistance } = require('../utils/haversine');
 const { uploadBufferToCloudinary } = require('../middleware/upload');
 const { emitRescueUpdate } = require('../config/socket');
+const Donation = require('../models/Donation');
 
 const parseCoordinate = (value) => {
     const parsed = Number(value);
@@ -17,6 +18,48 @@ const pushStatusLog = (rescue, status, message, images = [], video = null) => {
         images,
         video,
     });
+};
+
+const processEscalationFallback = async (rescue, transportType, ngoCannotPay) => {
+    let fundSource = 'ngo';
+    let finalStatus = 'hospital_broadcasted';
+    let updateMessage = transportType === 'self'
+        ? 'NGO escalated the case and is bringing the animal to the hospital.'
+        : 'NGO escalated the case and requested an ambulance for hospital transport.';
+
+    if (ngoCannotPay) {
+        if (rescue.willingToPay) {
+            fundSource = 'user';
+            updateMessage += ' (Funded by User).';
+        } else {
+            const platformFundsAgg = await Donation.aggregate([
+                { $match: { isGeneral: true, status: { $in: ['successful', 'active'] } } },
+                { $group: { _id: null, total: { $sum: '$amount' } } }
+            ]);
+            const totalPlatformFunds = platformFundsAgg[0]?.total || 0;
+            if (totalPlatformFunds >= 20000) {
+                fundSource = 'platform';
+                updateMessage += ' (Supported by Platform Fund).';
+            } else {
+                finalStatus = 'closed_unresolved';
+                updateMessage = 'NGO escalated but no funds are available (User unable, Platform exhausted). Case closed.';
+            }
+        }
+    }
+
+    rescue.status = finalStatus;
+    if (finalStatus === 'hospital_broadcasted') {
+        rescue.escalatedAt = new Date();
+        rescue.fundSource = fundSource;
+        rescue.transportType = transportType || 'ambulance';
+        rescue.ngoTransporting = (transportType === 'self');
+    } else {
+        rescue.closedAt = new Date();
+        rescue.outcome = 'closed_unresolved';
+    }
+
+    pushStatusLog(rescue, finalStatus, updateMessage);
+    return updateMessage;
 };
 
 const getNearbyCases = async (req, res) => {
@@ -87,16 +130,7 @@ const acceptCase = async (req, res) => {
             updateMessage = `NGO scheduled the rescue for ${parsedScheduleDate.toLocaleString()}`;
             pushStatusLog(rescue, 'scheduled', `NGO scheduled the rescue for ${parsedScheduleDate.toISOString()}`);
         } else if (type === 'hospital') {
-            rescue.status = 'hospital_broadcasted';
-            rescue.escalatedAt = new Date();
-            rescue.transportType = transportType || 'ambulance';
-            rescue.ngoTransporting = (transportType === 'self');
-            
-            updateMessage = transportType === 'self' 
-                ? 'NGO accepted the case and is bringing the animal to the hospital themselves.'
-                : 'NGO accepted the case and requested an ambulance for hospital transport.';
-            
-            pushStatusLog(rescue, 'hospital_broadcasted', updateMessage);
+            updateMessage = await processEscalationFallback(rescue, transportType, req.body.ngoCannotPay);
         } else {
             rescue.status = 'accepted';
             updateMessage = 'NGO accepted the case for treatment.';
@@ -316,7 +350,7 @@ const addFollowUp = async (req, res) => {
 
 const escalateToHospital = async (req, res) => {
     try {
-        const { transportType } = req.body;
+        const { transportType, ngoCannotPay } = req.body;
         const rescue = await RescueRequest.findOne({ _id: req.params.id, assignedNGO: req.user._id });
         if (!rescue) return res.status(404).json({ success: false, message: 'Rescue request not found or not assigned to you.' });
 
@@ -324,17 +358,9 @@ const escalateToHospital = async (req, res) => {
             return res.status(400).json({ success: false, message: `Cannot escalate. Current status: ${rescue.status}` });
         }
 
-        rescue.status = 'hospital_broadcasted';
-        rescue.escalatedAt = new Date();
         rescue.workStartedAt = rescue.workStartedAt || new Date();
-        rescue.transportType = transportType || 'ambulance';
-        rescue.ngoTransporting = (transportType === 'self');
+        const updateMessage = await processEscalationFallback(rescue, transportType, ngoCannotPay);
 
-        const updateMessage = transportType === 'self'
-            ? 'NGO escalated the case and is bringing the animal to the hospital themselves.'
-            : 'NGO escalated the case and requested an ambulance for hospital transport.';
-
-        pushStatusLog(rescue, 'hospital_broadcasted', updateMessage);
         emitRescueUpdate(rescue._id, rescue.status, { 
             message: updateMessage,
             transportType: rescue.transportType,
@@ -344,6 +370,63 @@ const escalateToHospital = async (req, res) => {
 
         res.status(200).json({ success: true, message: 'Case escalated to hospitals.', rescue });
     } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const requestFundraiser = async (req, res) => {
+    try {
+        const { requestedGoal, billText } = req.body;
+        const rescueId = req.params.id;
+
+        const rescue = await RescueRequest.findOne({ _id: rescueId, assignedNGO: req.user._id });
+        if (!rescue) return res.status(404).json({ success: false, message: 'Case not found or not assigned to you.' });
+
+        // Only completed or treating cases can request a fundraiser
+        if (!['completed', 'treating', 'reached', 'resolved_on_spot', 'hospital_broadcasted'].includes(rescue.status)) {
+            return res.status(400).json({ success: false, message: `Cannot start a fundraiser from status: ${rescue.status}` });
+        }
+
+        if (rescue.fundraiser && ['pending', 'approved', 'completed'].includes(rescue.fundraiser.status)) {
+            return res.status(400).json({ success: false, message: `Fundraiser is already ${rescue.fundraiser.status}.` });
+        }
+
+        let billImage = null;
+        if (req.files && req.files.length > 0) {
+            try {
+                const result = await uploadBufferToCloudinary(req.files[0].buffer, {
+                    folder: `VetsCue/fundraiser/${rescue._id}`,
+                    resource_type: 'image',
+                });
+                billImage = result.secure_url;
+            } catch (err) {
+                console.error('[NGO Controller] Fundraiser bill upload error:', err.message);
+                return res.status(500).json({ success: false, message: 'Failed to upload bill image evidence.' });
+            }
+        }
+
+        if (!billImage) {
+            return res.status(400).json({ success: false, message: 'An image of the estimated/actual bill is required.' });
+        }
+        
+        if (!requestedGoal || requestedGoal < 100) {
+            return res.status(400).json({ success: false, message: 'Minimum requested goal is ₹100.' });
+        }
+
+        rescue.fundraiser = {
+            status: 'pending',
+            requestedGoal: Number(requestedGoal),
+            billText: billText || '',
+            billImage,
+            requestedAt: new Date(),
+        };
+
+        pushStatusLog(rescue, rescue.status, `NGO submitted a fundraiser request for ₹${requestedGoal}. Pending admin approval.`);
+        await rescue.save();
+
+        res.status(200).json({ success: true, message: 'Fundraiser requested. Awaiting Admin verification.', rescue });
+    } catch (error) {
+        console.error('[NGO Controller] requestFundraiser error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -359,4 +442,5 @@ module.exports = {
     updateNGOStatus,
     completeCase,
     addFollowUp,
+    requestFundraiser,
 };

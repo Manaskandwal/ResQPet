@@ -16,6 +16,7 @@ import {
     BellIcon,
     MoonIcon,
     SunIcon,
+    BanknotesIcon,
 } from '@heroicons/react/24/outline';
 import { useTheme } from '../context/ThemeContext';
 
@@ -45,6 +46,7 @@ const navConfig = {
     admin: [
         { to: '/admin/dashboard?tab=overview', label: 'Home', Icon: HomeIcon },
         { to: '/admin/dashboard?tab=approvals', label: 'Approvals', Icon: ShieldCheckIcon },
+        { to: '/admin/dashboard?tab=finances', label: 'Finances', Icon: BanknotesIcon },
         { to: '/admin/dashboard?tab=users', label: 'Users', Icon: UsersIcon },
         { to: '/admin/dashboard?tab=rescues', label: 'Rescues', Icon: ClipboardDocumentListIcon },
     ],

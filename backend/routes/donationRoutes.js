@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createDonationOrder, verifyDonation, createSubscription, verifySubscription, getPublicFundraisers } = require('../controllers/donationController');
+const { createDonationOrder, verifyDonation, createSubscription, verifySubscription, getPublicFundraisers, donateWithWallet } = require('../controllers/donationController');
 const { protect } = require('../middleware/auth');
 
 // Public endpoints
@@ -12,5 +12,7 @@ router.post('/verify', protect, verifyDonation);
 
 router.post('/subscribe', protect, createSubscription);
 router.post('/verify-subscription', protect, verifySubscription);
+
+router.post('/donate-wallet', protect, donateWithWallet);
 
 module.exports = router;

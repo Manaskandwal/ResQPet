@@ -17,6 +17,7 @@ const PaymentHistory = lazy(() => import('./pages/user/PaymentHistory'));
 const Impact = lazy(() => import('./pages/Impact'));
 const MyRescueReports = lazy(() => import('./pages/user/MyRescueReports'));
 const NGODashboard = lazy(() => import('./pages/ngo/NGODashboard'));
+const NgoFundraisers = lazy(() => import('./pages/ngo/Fundraisers'));
 const HospitalDashboard = lazy(() => import('./pages/hospital/HospitalDashboard'));
 const HospitalFleet = lazy(() => import('./pages/hospital/HospitalFleet'));
 const HospitalCases = lazy(() => import('./pages/hospital/HospitalCases'));
@@ -89,6 +90,7 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRoles={['ngo']} />}>
         <Route element={<Layout />}>
           <Route path="/ngo/dashboard" element={withSuspense(<NGODashboard />)} />
+          <Route path="/ngo/fundraisers" element={withSuspense(<NgoFundraisers />)} />
         </Route>
       </Route>
 

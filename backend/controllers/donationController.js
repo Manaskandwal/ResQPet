@@ -200,9 +200,11 @@ const getPublicFundraisers = async (req, res) => {
     try {
         const fundraisers = await RescueRequest.find({
             isFundraiser: true,
-            status: 'fundraiser_active'
+            'fundraiser.status': 'approved',
+            status: { $ne: 'completed' } 
         })
             .populate('user', 'name')
+            .populate('assignedNGO', 'orgName name')
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, count: fundraisers.length, fundraisers });
@@ -212,4 +214,65 @@ const getPublicFundraisers = async (req, res) => {
     }
 };
 
-module.exports = { createDonationOrder, verifyDonation, createSubscription, verifySubscription, getPublicFundraisers };
+/**
+ * @route   POST /api/donation/donate-wallet
+ * @desc    Donate to a fundraiser using wallet
+ * @access  Private
+ */
+const donateWithWallet = async (req, res) => {
+    try {
+        const { rescueId, amount } = req.body;
+        
+        if (!amount || amount < 10) {
+            return res.status(400).json({ success: false, message: 'Minimum donation is ₹10.' });
+        }
+
+        const user = req.user;
+        if (user.walletBalance < amount) {
+            return res.status(400).json({ success: false, message: 'Insufficient wallet balance.' });
+        }
+
+        const rescue = await RescueRequest.findById(rescueId);
+        if (!rescue || !rescue.isFundraiser || rescue.fundraiser.status !== 'approved') {
+            return res.status(404).json({ success: false, message: 'Active fundraiser not found.' });
+        }
+
+        // Atomic deduction and logging
+        user.walletBalance -= amount;
+        user.paymentHistory.push({
+            amount: amount,
+            type: 'deduction',
+            description: `Donation to Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+            timestamp: new Date()
+        });
+        await user.save();
+
+        rescue.amountRaised += amount;
+        
+        // If goal met
+        if (rescue.amountRaised >= rescue.fundraiser.requestedGoal) {
+            rescue.statusLogs.push({
+                status: rescue.status,
+                message: `Fundraiser goal achieved! Pushing case back to queue for ambulance assignment.`,
+                timestamp: new Date()
+            });
+            // Update the system to trigger dispatch
+            rescue.fundraiser.status = 'none';
+        }
+        
+        await rescue.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Successfully donated ₹${amount}!`,
+            walletBalance: user.walletBalance,
+            amountRaised: rescue.amountRaised
+        });
+
+    } catch (error) {
+        console.error('[Donation Controller] donateWithWallet error:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to process donation.' });
+    }
+};
+
+module.exports = { createDonationOrder, verifyDonation, createSubscription, verifySubscription, getPublicFundraisers, donateWithWallet };

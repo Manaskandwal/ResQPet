@@ -263,6 +263,7 @@ const onboardAmbulance = async (req, res) => {
             role: 'ambulance',
             ambulanceType: 'linked',
             linkedHospital: req.user._id,
+            isGovernment: req.user.isGovernment, // Inherit from hospital
             isApproved: true, // Auto-approved since onboarded by hospital
             isAvailable: true,
         });

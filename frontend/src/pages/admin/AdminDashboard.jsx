@@ -332,6 +332,20 @@ const AdminDashboard = () => {
     const [locationModal, setLocationModal] = useState(null);
     const [auditLogs, setAuditLogs] = useState([]);
     const [auditLoading, setAuditLoading] = useState(false);
+    const [fundraisers, setFundraisers] = useState([]);
+    const [fundraisersLoading, setFundraisersLoading] = useState(false);
+
+    const fetchFundraisers = useCallback(async () => {
+        try {
+            setFundraisersLoading(true);
+            const { data } = await api.get('/admin/fundraisers');
+            setFundraisers(data.fundraisers || []);
+        } catch (error) {
+            toast.error('Failed to load fundraisers.');
+        } finally {
+            setFundraisersLoading(false);
+        }
+    }, []);
 
     const fetchAll = useCallback(async () => {
         try {
@@ -358,7 +372,8 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchAll();
-    }, [fetchAll]);
+        fetchFundraisers();
+    }, [fetchAll, fetchFundraisers]);
 
     const fetchAuditLogs = useCallback(async () => {
         try {
@@ -480,7 +495,8 @@ const AdminDashboard = () => {
                                 { id: 'approvals', label: 'Approvals' },
                                 { id: 'users', label: 'Users' },
                                 { id: 'audit', label: 'Security Logs' },
-                                { id: 'rescues', label: 'Rescues' }
+                                { id: 'rescues', label: 'Rescues' },
+                                { id: 'finances', label: 'Finances' }
                             ].map((t) => (
                                 <button
                                     key={t.id}
@@ -920,6 +936,113 @@ const AdminDashboard = () => {
                         </div>
                             {rescues.filter(r => rescueFilter === 'all' || r.status === rescueFilter).length === 0 && (
                                 <div className="py-20 text-center text-[#e5e2e1]/30 uppercase tracking-[0.3em] font-black">No matching rescues found</div>
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'finances' && (
+                    <section className="space-y-6 w-full">
+                         <div className="flex items-center gap-3 px-2 mb-8">
+                            <h2 className="font-headline text-2xl font-bold">Fundraisers & Finances</h2>
+                            <span className="bg-[#ffb77d] text-[#131313] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{fundraisers.length} Total</span>
+                        </div>
+                        <div className="space-y-4">
+                            {fundraisersLoading ? (
+                                <div className="p-8 text-center text-[#e5e2e1]/40">Loading financial requests...</div>
+                            ) : fundraisers.length === 0 ? (
+                                <div className="glass-card rounded-[3rem] py-20 text-center border border-dashed border-white/10">
+                                    <span className="material-symbols-outlined text-[#76d6d4] text-6xl mb-4">account_balance_wallet</span>
+                                    <h3 className="text-xl font-bold">No active fundraisers</h3>
+                                    <p className="text-[#e5e2e1]/40">No organizations have requested case funding recently.</p>
+                                </div>
+                            ) : (
+                                fundraisers.map(r => (
+                                    <div key={r._id} className="glass-card rounded-[2rem] p-6 border border-white/5 bg-[#1c1b1b] flex flex-col lg:flex-row gap-6 hover:border-[#ffb77d]/30 transition-all">
+                                        <div className="flex-1 space-y-4">
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div>
+                                                    <h3 className="font-bold text-lg">{r.description}</h3>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-[#76d6d4] mt-1 line-clamp-1">
+                                                        Requested by: {r.assignedNGO?.orgName || r.assignedNGO?.name}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-sm border ${
+                                                        r.fundraiser.status === 'pending' ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' :
+                                                        r.fundraiser.status === 'approved' ? 'bg-green-500/10 border-green-500/30 text-green-500' :
+                                                        'bg-red-500/10 border-red-500/30 text-red-500'
+                                                    }`}>
+                                                        {r.fundraiser.status}
+                                                    </span>
+                                                    <p className="font-headline text-2xl font-black text-[#ffb77d] tracking-tighter mt-2">
+                                                        ₹{r.fundraiser.requestedGoal}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/40">Justification</p>
+                                                <p className="text-sm font-medium leading-relaxed">{r.fundraiser.billText || 'No justification provided.'}</p>
+                                            </div>
+
+                                        </div>
+
+                                        <div className="flex flex-col gap-4 min-w-[200px]">
+                                            <a 
+                                                href={r.fundraiser.billImage} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="h-24 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center relative group overflow-hidden"
+                                            >
+                                                <img src={r.fundraiser.billImage} alt="Bill Proof" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-100 group-hover:scale-105 transition-all" />
+                                                <span className="relative z-10 text-[10px] font-black uppercase tracking-widest drop-shadow-md">View Proof</span>
+                                            </a>
+                                            
+                                            {r.fundraiser.status === 'pending' && (
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        disabled={acting[r._id]}
+                                                        onClick={async () => {
+                                                            try {
+                                                                setActing(prev => ({ ...prev, [r._id]: true }));
+                                                                await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'reject' });
+                                                                toast.success('Rejected the request.');
+                                                                fetchFundraisers();
+                                                            } catch (err) {
+                                                                toast.error(err.response?.data?.message || 'Error occurred');
+                                                            } finally {
+                                                                setActing(prev => ({ ...prev, [r._id]: false }));
+                                                            }
+                                                        }}
+                                                        className="flex-1 py-3 rounded-xl border border-red-500/30 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 transition-colors"
+                                                    >
+                                                        {acting[r._id] ? '...' : 'Reject'}
+                                                    </button>
+                                                    
+                                                    <button
+                                                        disabled={acting[r._id]}
+                                                        onClick={async () => {
+                                                            try {
+                                                                setActing(prev => ({ ...prev, [r._id]: true }));
+                                                                await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'approve' });
+                                                                toast.success('Approved successfully.');
+                                                                fetchFundraisers();
+                                                            } catch (err) {
+                                                                toast.error(err.response?.data?.message || 'Error occurred');
+                                                            } finally {
+                                                                setActing(prev => ({ ...prev, [r._id]: false }));
+                                                            }
+                                                        }} 
+                                                        className="flex-[2] py-3 rounded-xl bg-[#ffb77d] text-[#131313] text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,183,125,0.2)]"
+                                                    >
+                                                        {acting[r._id] ? '...' : 'Approve'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
                             )}
                         </div>
                     </section>

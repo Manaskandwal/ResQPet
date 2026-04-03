@@ -84,6 +84,7 @@ const rescueRequestSchema = new mongoose.Schema(
                 'closed_unresolved',
                 'fundraiser_active',    // Waiting for public donations to meet goal
                 'refunded',             // Deposit/payment refunded
+                'manual_transport_accepted', // Scenario 4B Fallback
             ],
             default: 'pending',
         },
@@ -166,7 +167,6 @@ const rescueRequestSchema = new mongoose.Schema(
                 pingedAt: { type: Date, default: Date.now }
             }
         ],
-        // Transportation choices
         transportType: {
             type: String,
             enum: ['na', 'self', 'ambulance'],
@@ -176,10 +176,32 @@ const rescueRequestSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        // Pre-Rescue Fallback workflow fields
+        willingToPay: {
+            type: Boolean,
+            default: false,
+        },
+        willingToGo: {
+            type: Boolean,
+            default: false,
+        },
+        fundSource: {
+            type: String,
+            enum: ['ngo', 'user', 'platform', 'pending'],
+            default: 'pending',
+        },
         // Financial tracking for Fundraisers
         isFundraiser: {
             type: Boolean,
             default: false,
+        },
+        fundraiser: {
+            status: { type: String, enum: ['none', 'pending', 'approved', 'rejected', 'completed'], default: 'none' },
+            requestedGoal: { type: Number, default: 0 },
+            billImage: { type: String, default: null }, // Required evidence
+            billText: { type: String, default: '' },
+            requestedAt: { type: Date, default: null },
+            adminNotes: { type: String, default: '' }
         },
         estimatedCost: {
             type: Number,

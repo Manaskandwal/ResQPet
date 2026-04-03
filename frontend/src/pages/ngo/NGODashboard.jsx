@@ -88,11 +88,17 @@ const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = '
 };
 
 const TransportModal = ({ open, onClose, onConfirm, actionType }) => {
+    const [cannotPay, setCannotPay] = useState(false);
+    
+    useEffect(() => {
+        if (open) setCannotPay(false);
+    }, [open]);
+
     if (!open) return null;
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
     const handleConfirm = (transportType) => {
-        onConfirm(transportType);
+        onConfirm(transportType, cannotPay);
     };
 
     if (isNewUI) return (
@@ -132,6 +138,21 @@ const TransportModal = ({ open, onClose, onConfirm, actionType }) => {
                             <p className="text-[10px] text-[#e5e2e1]/30 uppercase font-black tracking-widest">Procedural Dispatch Flow</p>
                         </div>
                     </button>
+                    
+                    <label className="flex items-start gap-4 p-4 mt-2 rounded-2xl bg-[#fd8b00]/5 border border-[#fd8b00]/20 cursor-pointer group">
+                        <input 
+                            type="checkbox" 
+                            checked={cannotPay}
+                            onChange={(e) => setCannotPay(e.target.checked)}
+                            className="mt-1 w-5 h-5 rounded border-white/10 bg-black/50 text-[#fd8b00] focus:ring-[#fd8b00] focus:ring-offset-0"
+                        />
+                        <div className="flex-1 space-y-1">
+                            <div className="text-sm font-bold text-[#e5e2e1] group-hover:text-white transition-colors">I cannot cover hospital fees</div>
+                            <div className="text-[10px] text-[#e5e2e1]/50 font-medium leading-relaxed">
+                                Checking this lets the system know it needs to find alternative funding (User or Platform Fund) for the hospital bill.
+                            </div>
+                        </div>
+                    </label>
                 </div>
                 <button onClick={onClose} className="w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/20 hover:text-[#e5e2e1] transition-all">Cancel Request</button>
             </div>
@@ -144,6 +165,19 @@ const TransportModal = ({ open, onClose, onConfirm, actionType }) => {
                 <h3 className="mb-2 text-center text-xl font-bold text-slate-800">Hospital Transport</h3>
                 <p className="mb-6 text-center text-sm text-surface-muted">How will the animal reach the hospital?</p>
                 <div className="space-y-3">
+                    <label className="flex items-start gap-3 cursor-pointer p-2 mb-2 bg-amber-50 rounded">
+                        <input 
+                            type="checkbox" 
+                            checked={cannotPay}
+                            onChange={(e) => setCannotPay(e.target.checked)}
+                            className="mt-1 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-600"
+                        />
+                        <div className="text-sm">
+                            <span className="font-medium text-amber-800">I cannot cover hospital fees</span>
+                            <p className="text-xs text-amber-600">Checking this lets the system attempt to fund the case via User or Platform Fund.</p>
+                        </div>
+                    </label>
+
                     <button onClick={() => handleConfirm('self')} className="btn-primary w-full py-3">Take by Yourself</button>
                     <button onClick={() => handleConfirm('ambulance')} className="btn-outline w-full py-3">Request Ambulance</button>
                     <button onClick={onClose} className="btn-ghost w-full py-2 text-xs">Cancel</button>
@@ -206,9 +240,9 @@ const NGODashboard = () => {
         try { await action(); } finally { setActing((prev) => ({ ...prev, [id]: null })); }
     };
 
-    const handleAccept = async (id, type = 'immediate', scheduleDate = null, transportType = 'na') => {
+    const handleAccept = async (id, type = 'immediate', scheduleDate = null, transportType = 'na', ngoCannotPay = false) => {
         await withActing(id, 'accepting', async () => {
-            await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate, transportType });
+            await api.put(`/rescue/${id}/accept-ngo`, { type, scheduleDate, transportType, ngoCannotPay });
             toast.success(type === 'hospital' ? 'Escalated to Hospital.' : type === 'schedule' ? 'Case scheduled.' : 'Case accepted.');
             setScheduleCase(null);
             setTransportCase(null);
@@ -216,9 +250,9 @@ const NGODashboard = () => {
         }).catch((e) => toast.error(e.response?.data?.message || 'Failed.'));
     };
 
-    const handleEscalate = async (id, transportType = 'ambulance') => {
+    const handleEscalate = async (id, transportType = 'ambulance', ngoCannotPay = false) => {
         await withActing(id, 'escalating', async () => {
-            await api.put(`/rescue/${id}/escalate-ngo`, { transportType });
+            await api.put(`/rescue/${id}/escalate-ngo`, { transportType, ngoCannotPay });
             toast.success('Escalated to Hospital.');
             setTransportCase(null);
             fetchAll();
@@ -309,11 +343,11 @@ const NGODashboard = () => {
                 <TransportModal 
                     open={!!transportCase} 
                     onClose={() => setTransportCase(null)} 
-                    onConfirm={(transportType) => {
+                    onConfirm={(transportType, cannotPay) => {
                         if (transportCase.actionType === 'accept') {
-                            handleAccept(transportCase.id, 'hospital', null, transportType);
+                            handleAccept(transportCase.id, 'hospital', null, transportType, cannotPay);
                         } else {
-                            handleEscalate(transportCase.id, transportType);
+                            handleEscalate(transportCase.id, transportType, cannotPay);
                         }
                     }} 
                     actionType={transportCase?.actionType}
@@ -670,6 +704,19 @@ const NGODashboard = () => {
                                                  <div className="w-12 h-12 rounded-2xl bg-white/5 border-2 border-[#1c1b1b] flex items-center justify-center font-bold text-xs uppercase tracking-widest text-[#76d6d5]">{c.user?.name?.charAt(0) || 'A'}</div>
                                             </div>
                                          </div>
+
+                                         {c.status === 'manual_transport_accepted' && (
+                                             <div className="p-6 rounded-[2rem] bg-[#ffb77d]/10 border border-[#ffb77d]/20 space-y-2">
+                                                 <div className="flex items-center gap-2 font-bold text-[#ffb77d] text-sm">
+                                                     <span className="material-symbols-outlined">hail</span>
+                                                     Manual Transport Mode
+                                                 </div>
+                                                 <p className="text-xs text-[#e5e2e1]/60 leading-relaxed">
+                                                     No ambulance responded to this critical dispatch. The hospital has already accepted. 
+                                                     Please coordinate manual transport for the subject to <strong>{c.assignedHospital?.name || 'Assigned Hospital'}</strong> immediately.
+                                                 </p>
+                                             </div>
+                                         )}
 
                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                              <div className="p-6 rounded-[2rem] bg-white/5 border border-white/5 space-y-4">

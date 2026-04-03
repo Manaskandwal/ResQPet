@@ -51,12 +51,50 @@ const startAmbulanceDispatchCron = () => {
                     console.log(`[Cron] Expired ${expiredPings.length} pings for rescue ${rescue._id} (20 min passed)`);
                 }
 
-                // --- 1.5 Timeout / Refund Logic ---
+                // --- 1.5 Timeout / Scenario 4B Fallback / Refund Logic ---
                 const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
                 if (rescue.pingRejectors.length >= 3 || rescue.createdAt <= thirtyMinutesAgo) {
-                    console.log(`[Cron] Rescue ${rescue._id} stalled (3+ rejects or 30min passed). Cancelling and Refunding.`);
+                    console.log(`[Cron] Rescue ${rescue._id} stalled (3+ rejects or 30min passed). Checking for Manual Fallback.`);
                     
                     // Refund the deposit if not already refunded - ATOMIC IDEMPOTENCY GUARD
+                    // (Note: If moving to manual_transport, we still refund the search fee if applicable, 
+                    // or keep it if it was a booking fee. In Phase 1, it's a deposit that we refund on success. 
+                    // If no ambulance found, we keep the case open but inform user/NGO).
+                    
+                    // Check if a hospital is already assigned (Scenario 4B)
+                    if (rescue.assignedHospital) {
+                        console.log(`[Cron] Hospital ${rescue.assignedHospital} is assigned. Falling back to Manual Transport.`);
+                        
+                        rescue.status = 'manual_transport_accepted';
+                        rescue.adminNotes = (rescue.adminNotes || '') + '\n[System] Automatically changed to Manual Transport: No ambulance responded.';
+                        
+                        rescue.statusLogs.push({
+                            status: 'manual_transport_accepted',
+                            message: 'No ambulance available. Hospital has already accepted the case. Please arrange manual transport to the hospital.',
+                            timestamp: new Date()
+                        });
+
+                        await rescue.save();
+                        emitRescueUpdate(rescue._id, 'manual_transport_accepted', { 
+                            message: 'No ambulance available. Please arrange manual transport to the assigned hospital.' 
+                        });
+
+                        // Create notification for NGO/User
+                        const targetUser = rescue.assignedNGO || rescue.user;
+                        await Notification.create({
+                            recipient: targetUser,
+                            title: 'Manual Transport Required',
+                            message: `No ambulance was found for your rescue. Please transport the animal manually to the assigned hospital.`,
+                            type: 'status_update',
+                            rescueRequest: rescue._id
+                        });
+
+                        continue;
+                    }
+
+                    // Otherwise, if no hospital either or coordination refused, close it (Scenario 4C)
+                    console.log(`[Cron] No hospital or no transport available. Closing case ${rescue._id}.`);
+
                     if (rescue.depositDeducted && !rescue.depositRefunded) {
                         const updatedRescue = await RescueRequest.findOneAndUpdate(
                             { _id: rescue._id, depositDeducted: true, depositRefunded: false },
@@ -99,7 +137,6 @@ const startAmbulanceDispatchCron = () => {
                     rescue.closedAt = new Date();
                     rescue.adminNotes = (rescue.adminNotes || '') + '\n[System] Automatically closed: No ambulance responded.';
                     
-                    // Add to log
                     rescue.statusLogs.push({
                         status: 'closed_unresolved',
                         message: 'System timeout: No ambulance accepted the request within the SLA period.',
@@ -108,7 +145,7 @@ const startAmbulanceDispatchCron = () => {
 
                     await rescue.save();
                     emitRescueUpdate(rescue._id, 'closed_unresolved', { message: 'System timeout: No ambulance accepted the request.' });
-                    continue; // Skip the rest of the loop for this case
+                    continue; 
                 }
 
                 // 2. Decide if we need to ping a NEW ambulance

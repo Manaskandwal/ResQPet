@@ -11,6 +11,8 @@ const {
     setUserLocation,
     getAuditLogs,
     updateUserMeta,
+    getFundraisers,
+    reviewFundraiser
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/auth');
 const { allowRoles } = require('../middleware/roleGuard');
@@ -47,5 +49,11 @@ router.get('/audit-logs', getAuditLogs);
 
 // @route  PATCH /api/admin/users/:userId/meta  — admin updates isGovernment, isAvailable
 router.patch('/users/:userId/meta', updateUserMeta);
+
+// @route  GET /api/admin/fundraisers
+router.get('/fundraisers', getFundraisers);
+
+// @route  PUT /api/admin/rescue/:id/fundraiser/review
+router.put('/rescue/:id/fundraiser/review', reviewFundraiser);
 
 module.exports = router;

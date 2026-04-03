@@ -22,6 +22,7 @@ const statusMap = {
     completed: { label: 'Completed', cls: 'badge-completed' },
     closed_unresolved: { label: 'Closed Unresolved', cls: 'badge-cancelled bg-slate-200 text-slate-700' },
     cancelled: { label: 'Cancelled', cls: 'badge-cancelled' },
+    manual_transport_accepted: { label: 'Manual Transport', cls: 'badge-escalated bg-orange-100 text-orange-700' },
 };
 
 export const StatusBadge = ({ status }) => {
@@ -81,6 +82,7 @@ const timelineDefinitions = {
             picked_up: 'picked_up',
             delivered: 'completed',
             completed: 'completed',
+            manual_transport_accepted: 'ambulance_pinged', // Show it at the dispatch step
         },
     },
 };
@@ -103,6 +105,7 @@ const getTimelineConfig = (rescueOrStatus) => {
         'delivered',
         'completed',
         'fundraiser_active',
+        'manual_transport_accepted',
     ]);
 
     const isOnSpotCompletion = status === 'completed' && rescue.outcome === 'on_spot_treated' && !rescue.assignedHospital && !rescue.assignedAmbulance;

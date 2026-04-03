@@ -78,7 +78,10 @@ const register = asyncHandler(async (req, res) => {
         regNumber: regNumber || '', address: address || '',
         vehicleNumber: vehicleNumber || '',
         ambulanceType: role === 'ambulance' ? 'independent' : 'na',
-        // Set isGovernment for hospital registrations
+        // Set isGovernment:
+        // 1. Hospital: based on selected hospitalType
+        // 2. NGO: always false (private)
+        // 3. Independent Ambulance: always false (private)
         isGovernment: role === 'hospital' ? hospitalType === 'government' : false,
     });
 

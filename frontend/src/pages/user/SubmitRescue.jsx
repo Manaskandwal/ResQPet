@@ -51,6 +51,8 @@ const SubmitRescue = () => {
         address: '',
         animalType: 'dog',
         animalTypeOther: '',
+        willingToPay: false,
+        willingToGo: false,
     });
     const [mediaItems, setMediaItems] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -153,6 +155,8 @@ const SubmitRescue = () => {
             formData.append('lat', form.lat);
             formData.append('lng', form.lng);
             formData.append('address', form.address);
+            formData.append('willingToPay', form.willingToPay);
+            formData.append('willingToGo', form.willingToGo);
             mediaItems.forEach((item) => formData.append('media', item.file));
 
             await api.post('/rescue', formData, {
@@ -377,6 +381,38 @@ const SubmitRescue = () => {
                             </div>
 
                             <div className="space-y-4 pt-4 border-t border-white/5">
+                                <label className="flex items-start gap-4 p-4 rounded-2xl bg-[#fd8b00]/5 border border-[#fd8b00]/20 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={form.willingToPay}
+                                        onChange={(e) => setForm(c => ({ ...c, willingToPay: e.target.checked }))}
+                                        className="mt-1 w-5 h-5 rounded border-white/10 bg-black/50 text-[#fd8b00] focus:ring-[#fd8b00] focus:ring-offset-0"
+                                    />
+                                    <div className="flex-1 space-y-1">
+                                        <div className="text-sm font-bold text-[#e5e2e1] group-hover:text-white transition-colors">I can cover hospital costs</div>
+                                        <div className="text-[10px] text-[#e5e2e1]/50 font-medium leading-relaxed">
+                                            If no free NGO can take the case, checking this allows us to immediately send a private ambulance and admit to a paid hospital at your expense.
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-start gap-4 p-4 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/20 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={form.willingToGo}
+                                        onChange={(e) => setForm(c => ({ ...c, willingToGo: e.target.checked }))}
+                                        className="mt-1 w-5 h-5 rounded border-white/10 bg-black/50 text-[#76d6d5] focus:ring-[#76d6d5] focus:ring-offset-0"
+                                    />
+                                    <div className="flex-1 space-y-1">
+                                        <div className="text-sm font-bold text-[#e5e2e1] group-hover:text-white transition-colors">I can escort the animal</div>
+                                        <div className="text-[10px] text-[#e5e2e1]/50 font-medium leading-relaxed">
+                                            If an ambulance is dispatched but no NGO agent is available to coordinate, checking this indicates you will travel in the ambulance with the animal.
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-white/5">
                                 <button
                                     type="submit"
                                     disabled={loading}
@@ -548,6 +584,37 @@ const SubmitRescue = () => {
                                     ))}
                                 </div>
                             )}
+                        </div>
+
+                        <div className="card animate-fade-in space-y-4 bg-slate-50 border-slate-200">
+                            <h3 className="font-semibold text-slate-800">Coordination & Costs Fallback</h3>
+                            <p className="text-xs text-surface-muted mb-4">In case free NGO assistance is not immediately available, let us know your preferences:</p>
+
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={form.willingToPay}
+                                    onChange={(e) => setForm(c => ({ ...c, willingToPay: e.target.checked }))}
+                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-600"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-slate-700">I am willing to cover paid hospital and ambulance changes</span>
+                                    <p className="text-xs text-slate-500">Allows us to dispatch a private service if NGOs decline.</p>
+                                </div>
+                            </label>
+
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={form.willingToGo}
+                                    onChange={(e) => setForm(c => ({ ...c, willingToGo: e.target.checked }))}
+                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-600"
+                                />
+                                <div>
+                                    <span className="text-sm font-medium text-slate-700">I am available to travel to the hospital with the animal</span>
+                                    <p className="text-xs text-slate-500">If no NGO is available, someone must be present to accompany the animal in the ambulance.</p>
+                                </div>
+                            </label>
                         </div>
 
                         <button type="submit" disabled={loading} className="btn-accent btn-lg w-full">
