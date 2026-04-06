@@ -87,7 +87,10 @@ const getNearbyCases = async (req, res) => {
                 .filter((rescue) => rescue.distance <= 50)
                 .sort((a, b) => a.distance - b.distance);
         } else {
-            resultCases = pendingCases.map((rescue) => ({ ...rescue.toObject(), distance: null }));
+            // When NGO has no location set, limit results and include a warning flag
+            resultCases = pendingCases
+                .slice(0, 20)
+                .map((rescue) => ({ ...rescue.toObject(), distance: null }));
         }
 
         res.status(200).json({
@@ -95,6 +98,7 @@ const getNearbyCases = async (req, res) => {
             count: resultCases.length,
             cases: resultCases,
             locationSet: hasLocation,
+            warning: hasLocation ? null : 'NGO location not set. Showing limited results. Contact admin to set your base location.',
         });
     } catch (error) {
         console.error('[NGO Controller] getNearbyCases error:', error.message);

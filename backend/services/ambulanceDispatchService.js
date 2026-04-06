@@ -202,7 +202,7 @@ const handleStalledRescue = async (rescue) => {
             recipient: targetUser,
             title: 'Manual Transport Required',
             message: `No ambulance was found for your rescue. Please transport the animal manually to the assigned hospital.`,
-            type: 'status_update',
+            type: 'ambulance_update',
             rescueRequest: rescue._id
         });
         return;

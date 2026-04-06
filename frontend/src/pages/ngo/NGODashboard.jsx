@@ -480,7 +480,7 @@ const NGODashboard = () => {
 
                         <div className="fixed inset-0 flex items-center justify-center p-4">
                             <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                                <Dialog.Panel className="w-full max-w-lg rounded-[3rem] bg-[#1c1b1b] p-6 md:p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh]">
+                                <Dialog.Panel className="w-full max-w-lg bg-[#1c1b1b] p-6 md:p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh]">
                                     <div className="flex items-center justify-between mb-8">
                                         <Dialog.Title className="text-2xl font-headline font-extrabold text-[#e5e2e1] flex items-center gap-3">
                                             <WalletIcon className="w-8 h-8 text-[#76d6d5]" />
@@ -491,7 +491,7 @@ const NGODashboard = () => {
                                         </button>
                                     </div>
 
-                                    <div className="glass-card bg-gradient-to-br from-[#76d6d5]/20 to-[#008080]/20 rounded-[2.5rem] border border-[#76d6d5]/30 p-8 mb-8 relative overflow-hidden group">
+                                    <div className="glass-card bg-gradient-to-br from-[#76d6d5]/20 to-[#008080]/20 border border-[#76d6d5]/30 p-8 mb-8 relative overflow-hidden group">
                                         <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#76d6d5]/10 rounded-full blur-3xl" />
                                         <div className="relative z-10 text-center py-4">
                                             <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Available Balance</span>
@@ -539,7 +539,7 @@ const NGODashboard = () => {
                                                     View All
                                                 </button>
                                             </div>
-                                            <div className="overflow-hidden rounded-[1.5rem]">
+                                            <div className="overflow-hidden">
                                                 <div className="space-y-4 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
                                                     {wallet?.transactions?.length === 0 ? (
                                                         <p className="text-[#e5e2e1]/20 text-xs text-center py-4">No history available</p>

@@ -20,5 +20,7 @@ router.get('/me', protect, getMe);
 
 // @route  POST /api/auth/impersonate (protected, isAdmin only)
 router.post('/impersonate', protect, impersonateUser);
+// Alias for frontend compatibility
+router.post('/impersonate-start', protect, impersonateUser);
 
 module.exports = router;

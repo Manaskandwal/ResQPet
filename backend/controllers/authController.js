@@ -31,14 +31,14 @@ const logout = asyncHandler(async (req, res) => {
         // Log impersonation end if applicable
         if (req.user && req.user.impersonating) {
             await AuditLog.create({
-                adminId: req.user._id,
+                adminId: req.user.impersonating.adminId || req.user._id,
                 targetId: req.user.impersonating.userId,
                 action: 'impersonation_stop',
                 ipAddress: req.ip,
                 userAgent: req.get('User-Agent'),
                 details: { targetEmail: req.user.impersonating.email }
             });
-            console.log(`[Auth] Admin ${req.user.email} stopped impersonating: ${req.user.impersonating.email}`);
+            console.log(`[Auth] Admin ${req.user.impersonating.adminEmail || req.user.email} stopped impersonating: ${req.user.impersonating.email}`);
         }
     }
 
@@ -207,18 +207,27 @@ const impersonateUser = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, message: 'Target user not found in database.' });
     }
 
-    const token = generateToken({
-        _id: req.user._id,
-        email: req.user.email,
+    // Build a token where the _id is the TARGET user's ID so backend queries
+    // (assignedNGO, wallet, etc.) resolve correctly for the impersonated account.
+    // The admin's identity is preserved via the impersonating field for audit.
+    const tokenPayload = {
+        _id: target._id,
+        id: target._id,
+        email: target.email,
+        name: target.name,
         role: target.role,
-        isAdmin: true,
+        isAdmin: req.user.isAdmin,
         impersonating: {
+            adminId: req.user._id,
+            adminEmail: req.user.email,
             userId: target._id,
             name: target.name,
             email: target.email,
             role: target.role,
         },
-    });
+    };
+
+    const token = generateToken(tokenPayload);
 
     // Log the audit event
     await AuditLog.create({
@@ -237,11 +246,12 @@ const impersonateUser = asyncHandler(async (req, res) => {
         message: `Account switched to ${target.name} (${target.role})`,
         token,
         user: {
-            _id: req.user._id, name: req.user.name, email: req.user.email,
-            role: target.role, isAdmin: true, isApproved: true,
-            walletBalance: req.user.walletBalance,
+            _id: target._id, name: target.name, email: target.email,
+            role: target.role, isAdmin: req.user.isAdmin, isApproved: target.isApproved,
+            walletBalance: target.walletBalance,
             orgName: target.orgName, phone: target.phone, location: target.location,
             impersonating: {
+                adminId: req.user._id,
                 userId: target._id, name: target.name,
                 email: target.email, role: target.role,
             },

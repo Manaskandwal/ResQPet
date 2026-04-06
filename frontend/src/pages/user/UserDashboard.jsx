@@ -530,7 +530,7 @@ const UserDashboard = () => {
 
                     <div className="fixed inset-0 flex items-center justify-center p-4">
                         <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                            <Dialog.Panel className="w-full max-w-md rounded-[32px] bg-white p-6 shadow-2xl">
+                            <Dialog.Panel className="w-full max-w-md bg-white p-6 shadow-2xl">
                                 <div className="flex items-center justify-between mb-6">
                                     <Dialog.Title className="text-xl font-bold text-on-background flex items-center gap-2">
                                         <WalletIcon className="w-6 h-6 text-primary-600" />
@@ -541,7 +541,7 @@ const UserDashboard = () => {
                                     </button>
                                 </div>
 
-                                <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-[24px] overflow-hidden relative p-6 mb-6">
+                                <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white overflow-hidden relative p-6 mb-6">
                                     <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full" />
                                     <div className="absolute -right-4 top-8 w-20 h-20 bg-white/5 rounded-full" />
                                     <div className="relative z-10">
