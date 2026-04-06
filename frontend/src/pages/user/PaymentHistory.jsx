@@ -22,7 +22,7 @@ const PaymentHistory = () => {
     });
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState(false);
-    const activeTab = searchParams.get('tab') || 'subscription';
+    const activeTab = searchParams.get('tab') || 'all';
 
     const loadHistory = async () => {
         try {
@@ -107,7 +107,7 @@ const PaymentHistory = () => {
                     {/* Transactions panel */}
                     <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-6">
                         <div className="flex gap-2 rounded-2xl bg-white/5 p-1 overflow-x-auto no-scrollbar">
-                            {[['subscription','Subscription'],['wallet','Wallet'],['rescues', 'Hospital Bills'],['all','All']].map(([id, label]) => (
+                            {[['all','All'],['subscription','Subscription'],['wallet','Wallet'],['rescues', 'Hospital Bills']].map(([id, label]) => (
                                 <button key={id} onClick={() => setSearchParams({ tab: id })} className={`flex-1 min-w-max rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all ${activeTab === id ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>{label}</button>
                             ))}
                         </div>
@@ -172,9 +172,9 @@ const PaymentHistory = () => {
                             <div className="space-y-3">
                                 {allTransactions.map((item) => (
                                     <div key={`${item.kind}-${item._id}`} className="rounded-2xl bg-white/5 border border-white/5 p-4 space-y-2">
-                                        <div className="flex justify-between">
-                                            <p className="font-bold text-[#e5e2e1]">{item.title}</p>
-                                            <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${item.kind === 'wallet' ? 'bg-white/5 text-white/40' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>{item.kind}</span>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <p className="font-bold text-[#e5e2e1] flex-1 min-w-0 break-words">{item.title}</p>
+                                            <span className={`rounded-md px-2.5 py-1 text-[10px] font-black uppercase flex-shrink-0 whitespace-nowrap ${item.kind === 'wallet' ? 'bg-white/5 text-white/40' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>{item.kind}</span>
                                         </div>
                                         <p className="text-xs text-white/30">{formatIndianDateTime(item.occurredAt)}</p>
                                         <p className="text-sm font-bold text-[#e5e2e1]/70">{item.amountLabel}</p>
@@ -265,9 +265,9 @@ const PaymentHistory = () => {
                 <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                     <div className="mb-5 flex gap-2 rounded-full bg-slate-100 p-1">
                         {[
+                            ['all', 'All Transactions'],
                             ['subscription', 'Subscription History'],
                             ['wallet', 'Wallet History'],
-                            ['all', 'All Transactions'],
                         ].map(([id, label]) => (
                             <button key={id} onClick={() => setSearchParams({ tab: id })} className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold ${activeTab === id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>{label}</button>
                         ))}
@@ -311,11 +311,11 @@ const PaymentHistory = () => {
                             {allTransactions.map((item) => (
                                 <div key={`${item.kind}-${item._id}`} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                                     <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <p className="font-semibold text-slate-800">{item.title}</p>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-semibold text-slate-800 break-words">{item.title}</p>
                                             <p className="mt-1 text-xs text-slate-500">{formatIndianDateTime(item.occurredAt)}</p>
                                         </div>
-                                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase ${item.kind === 'wallet' ? 'bg-slate-200 text-slate-700' : 'bg-emerald-100 text-emerald-700'}`}>{item.kind}</span>
+                                        <span className={`rounded-md px-2.5 py-1 text-[11px] font-bold uppercase flex-shrink-0 whitespace-nowrap ${item.kind === 'wallet' ? 'bg-slate-200 text-slate-700' : 'bg-emerald-100 text-emerald-700'}`}>{item.kind}</span>
                                     </div>
                                     <p className="mt-2 text-sm font-semibold text-slate-700">{item.amountLabel}</p>
                                 </div>
