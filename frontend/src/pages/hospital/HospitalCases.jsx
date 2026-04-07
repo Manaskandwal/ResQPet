@@ -37,6 +37,7 @@ const HospitalCases = () => {
     const [hospitalNote, setHospitalNote] = useState('');
     const [treatmentSaving, setTreatmentSaving] = useState(false);
     const [billModal, setBillModal] = useState(null); // rescue object
+    const [editMode, setEditMode] = useState(false);
     const [billItems, setBillItems] = useState([{ name: '', amount: '' }]);
     const [billImage, setBillImage] = useState(null);
     const [billImagePreview, setBillImagePreview] = useState('');
@@ -92,10 +93,19 @@ const HospitalCases = () => {
     // ─── Billing ────────────────────────────────────────────────────────────────
     const openBillModal = (c) => {
         setBillModal(c);
-        setBillItems([{ name: '', amount: '' }]);
-        setBillImage(null);
-        setBillImagePreview('');
-        setEstimatedCost('');
+        if (c.bill?.createdAt) {
+            setEditMode(true);
+            setBillItems(c.bill.items?.length > 0 ? c.bill.items.map(i => ({ name: i.name, amount: i.amount.toString() })) : [{ name: '', amount: '' }]);
+            setBillImage(c.bill.prescriptionImageUrl || null);
+            setBillImagePreview(c.bill.prescriptionImageUrl || '');
+            setEstimatedCost(c.bill.totalAmount?.toString() || '');
+        } else {
+            setEditMode(false);
+            setBillItems([{ name: '', amount: '' }]);
+            setBillImage(null);
+            setBillImagePreview('');
+            setEstimatedCost('');
+        }
     };
 
     const addBillItem = () => setBillItems((p) => [...p, { name: '', amount: '' }]);
@@ -138,12 +148,17 @@ const HospitalCases = () => {
                 ? { estimatedCost: parseFloat(estimatedCost), prescriptionImageUrl: billImage }
                 : { items: billItems.filter((i) => i.name && i.amount).map((i) => ({ name: i.name, amount: parseFloat(i.amount) })), totalAmount: totalBill, prescriptionImageUrl: billImage };
 
-            await api.post(`/hospital/rescue/${billModal._id}/bill`, payload);
-            toast.success('Bill submitted and notification sent.');
+            if (editMode) {
+                await api.put(`/hospital/rescue/${billModal._id}/bill`, payload);
+                toast.success('Bill updated and notification sent.');
+            } else {
+                await api.post(`/hospital/rescue/${billModal._id}/bill`, payload);
+                toast.success('Bill submitted and notification sent.');
+            }
             setBillModal(null);
             fetchCases();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to submit bill.');
+            toast.error(error.response?.data?.message || `Failed to ${editMode ? 'update' : 'submit'} bill.`);
         } finally {
             setBillSubmitting(false);
         }
@@ -258,11 +273,15 @@ const HospitalCases = () => {
                                     <ClipboardDocumentCheckIcon className="w-4 h-4" />
                                     Update Treatment
                                 </button>
-                                {!c.bill?.createdAt && (
+                                {(!c.bill?.createdAt || c.bill?.paidStatus === 'pending') && (
                                     <button onClick={() => openBillModal(c)}
-                                        className="flex-1 min-w-[120px] py-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all flex items-center justify-center gap-2">
+                                        className={`flex-1 min-w-[120px] py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                            c.bill?.createdAt 
+                                            ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20' 
+                                            : 'bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20'
+                                        }`}>
                                         <BanknotesIcon className="w-4 h-4" />
-                                        Send Bill
+                                        {c.bill?.createdAt ? 'Edit Bill' : 'Send Bill'}
                                     </button>
                                 )}
                             </div>
@@ -274,7 +293,7 @@ const HospitalCases = () => {
             {/* ─── Treatment Status Modal ─────────────────────────────────── */}
             {treatmentModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setTreatmentModal(null)}>
-                    <div className="w-full max-w-sm rounded-[2rem] border border-white/10 bg-[#1c1b1b] shadow-2xl p-7 space-y-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-sm rounded-[2rem] border border-white/10 bg-[#1c1b1b] shadow-2xl p-7 space-y-6" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                             <h3 className="font-headline text-xl font-bold text-[#e5e2e1]">Update Treatment Status</h3>
                             <button onClick={() => setTreatmentModal(null)} className="p-1.5 rounded-xl hover:bg-white/5 text-white/30 hover:text-[#e5e2e1] transition">
@@ -311,7 +330,7 @@ const HospitalCases = () => {
                     <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#1c1b1b] shadow-2xl p-7 space-y-6 my-8" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-headline text-xl font-bold text-[#e5e2e1]">{isGovt ? 'Upload Bill' : 'Create Bill'}</h3>
+                                <h3 className="font-headline text-xl font-bold text-[#e5e2e1]">{isGovt ? (editMode ? 'Edit Bill' : 'Upload Bill') : (editMode ? 'Edit Bill' : 'Create Bill')}</h3>
                                 <p className="text-xs text-[#e5e2e1]/30 mt-1">{billModal.description}</p>
                             </div>
                             <button onClick={() => setBillModal(null)} className="p-1.5 rounded-xl hover:bg-white/5 text-white/30 hover:text-[#e5e2e1] transition">
@@ -384,8 +403,8 @@ const HospitalCases = () => {
                         <div className="flex gap-3">
                             <button onClick={() => setBillModal(null)} className="flex-1 py-3 rounded-2xl border border-white/10 text-white/30 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all">Cancel</button>
                             <button onClick={handleSubmitBill} disabled={billSubmitting || uploading}
-                                className="flex-[2] py-3 rounded-2xl bg-amber-500 text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">
-                                {billSubmitting ? 'Sending...' : 'Send Bill'}
+                                className={`flex-[2] py-3 rounded-2xl text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50 ${editMode ? 'bg-blue-500' : 'bg-amber-500'}`}>
+                                {billSubmitting ? 'Sending...' : (editMode ? 'Update Bill' : 'Send Bill')}
                             </button>
                         </div>
                     </div>

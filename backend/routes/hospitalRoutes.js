@@ -8,6 +8,7 @@ const {
     rejectBroadcastedCase,
     onboardAmbulance,
     submitBill,
+    editBill,
     getBill,
     updateTreatmentStatus,
 } = require('../controllers/hospitalController');
@@ -34,6 +35,9 @@ router.put('/rescue/:id/reject-broadcast', protect, allowRoles('hospital'), reje
 
 // @route  POST /api/hospital/rescue/:id/bill   — submit bill
 router.post('/rescue/:id/bill', protect, allowRoles('hospital'), submitBill);
+
+// @route  PUT /api/hospital/rescue/:id/bill    — edit bill
+router.put('/rescue/:id/bill', protect, allowRoles('hospital'), editBill);
 
 // @route  GET /api/hospital/rescue/:id/bill    — get bill for a case
 router.get('/rescue/:id/bill', protect, allowRoles('hospital', 'admin'), getBill);

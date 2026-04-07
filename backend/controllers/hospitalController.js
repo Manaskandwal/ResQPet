@@ -323,7 +323,7 @@ const submitBill = async (req, res) => {
 
         rescue.bill = {
             items: isGovt ? [] : (items || []),
-            prescriptionImageUrl: isGovt ? (prescriptionImageUrl || null) : null,
+            prescriptionImageUrl: isGovt ? (prescriptionImageUrl || null) : (prescriptionImageUrl || null),
             totalAmount: isGovt ? (estimatedCost || 0) : (totalAmount || 0),
             sentTo: billRecipient,
             paidStatus: 'pending',
@@ -352,6 +352,67 @@ const submitBill = async (req, res) => {
         res.status(200).json({ success: true, message: 'Bill submitted and notification sent.', bill: rescue.bill });
     } catch (error) {
         console.error('[Hospital Controller] submitBill error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const editBill = async (req, res) => {
+    try {
+        const rescue = await RescueRequest.findById(req.params.id)
+            .populate('user', 'name phone email')
+            .populate('assignedNGO', 'name email');
+
+        if (!rescue) return res.status(404).json({ success: false, message: 'Rescue not found.' });
+        if (!rescue.assignedHospital || rescue.assignedHospital.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to bill this case.' });
+        }
+
+        if (!rescue.bill || !rescue.bill.createdAt) {
+            return res.status(400).json({ success: false, message: 'No bill found to edit. Please create a bill first.' });
+        }
+
+        if (rescue.bill.paidStatus !== 'pending') {
+            return res.status(400).json({ success: false, message: `Cannot edit bill: Status is already ${rescue.bill.paidStatus}.` });
+        }
+
+        const isGovt = req.user.isGovernment;
+        const { items, prescriptionImageUrl, estimatedCost, totalAmount } = req.body;
+
+        // Update bill fields
+        rescue.bill.items = isGovt ? [] : (items || rescue.bill.items);
+        rescue.bill.prescriptionImageUrl = prescriptionImageUrl || rescue.bill.prescriptionImageUrl;
+        rescue.bill.totalAmount = isGovt ? (estimatedCost || rescue.bill.totalAmount) : (totalAmount || rescue.bill.totalAmount);
+        rescue.bill.updatedAt = new Date();
+
+        await rescue.save();
+
+        // Determine whom to notify
+        let recipientUser = rescue.user;
+        if (rescue.bill.sentTo === 'ngo' && rescue.assignedNGO) {
+            recipientUser = rescue.assignedNGO;
+        }
+
+        // Create notification for bill recipient about the update
+        const Notification = require('../models/Notification');
+        await Notification.create({
+            recipient: recipientUser._id,
+            title: `Updated Bill from ${req.user.orgName || req.user.name}`,
+            message: `The hospital has updated your bill for rescue case. New total: ₹${rescue.bill.totalAmount}. Please review and pay via your wallet.`,
+            type: 'rescue_bill_sent', // reuse type for UI handling
+            rescueRequest: rescue._id,
+        });
+
+        // Emit socket notification
+        emitRescueUpdate(rescue._id, 'bill_updated', {
+            message: `Hospital updated the bill to ₹${rescue.bill.totalAmount}`,
+            billTotal: rescue.bill.totalAmount,
+            sentTo: rescue.bill.sentTo,
+        });
+
+        console.log(`[Hospital Controller] Bill edited for rescue ${rescue._id}. New amount: ₹${rescue.bill.totalAmount}`);
+        res.status(200).json({ success: true, message: 'Bill updated and notification sent.', bill: rescue.bill });
+    } catch (error) {
+        console.error('[Hospital Controller] editBill error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -442,6 +503,7 @@ module.exports = {
     rejectBroadcastedCase,
     onboardAmbulance,
     submitBill,
+    editBill,
     getBill,
     updateTreatmentStatus,
 };

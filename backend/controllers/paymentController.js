@@ -40,7 +40,7 @@ const mockTopup = async (req, res) => {
             user: user._id,
             amount: creditAmount,
             type: 'credit',
-            description: `[TEST] Mock wallet top-up of ₹${creditAmount}`,
+            description: `Wallet top-up of ₹${creditAmount}`,
             razorpayOrderId: `mock_order_${Date.now()}`,
             razorpayPaymentId: `mock_pay_${Date.now()}`,
             balanceAfter: user.walletBalance,
@@ -50,7 +50,7 @@ const mockTopup = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: `[TEST MODE] ₹${creditAmount} added to wallet (mock payment).`,
+            message: `₹${creditAmount} added to your wallet successfully!`,
             walletBalance: user.walletBalance,
             transaction: txn,
         });
@@ -110,7 +110,21 @@ const createOrder = async (req, res) => {
         });
     } catch (error) {
         console.error('[Payment] createOrder error:', error.message);
-        res.status(500).json({ success: false, message: error.message || 'Failed to create payment order.' });
+        console.error('[Payment] Error details:', error);
+        
+        // Handle Razorpay-specific errors
+        if (error.error) {
+            return res.status(500).json({
+                success: false,
+                message: error.error.description || 'Failed to create payment order with Razorpay.',
+                error: error.error
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to create payment order.'
+        });
     }
 };
 
@@ -187,8 +201,11 @@ const verifyPayment = async (req, res) => {
             transaction: txn,
         });
     } catch (error) {
-        console.error('[Payment] verifyPayment error:', error.message);
-        res.status(500).json({ success: false, message: error.message || 'Payment verification failed.' });
+        console.error('[Payment] verifyPayment error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || (error.error && error.error.description) || 'Payment verification failed.' 
+        });
     }
 };
 

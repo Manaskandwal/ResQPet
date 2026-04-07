@@ -81,58 +81,89 @@ const UserDashboard = () => {
     const handleTopup = async () => {
         const amount = parseFloat(topupAmt);
         if (!amount || amount < 10) { toast.error('Minimum top-up is ₹10.'); return; }
+        if (amount > 100000) { toast.error('Maximum top-up amount is ₹1,00,000.'); return; }
 
         setPaying(true);
         try {
-            console.log('[UserDashboard] Initiating Razorpay top-up for ₹', amount);
-            const loaded = await loadRazorpay();
-            if (!loaded) { toast.error('Failed to load Razorpay. Check your internet connection.'); return; }
-
-            const { data } = await api.post('/payment/create-order', { amount });
-
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || data.keyId,
-                amount: data.order.amount,
-                currency: 'INR',
-                name: 'VetsCue',
-                description: 'Wallet Top-up',
-                order_id: data.order.id,
-                handler: async (response) => {
-                    try {
-                        console.log('[UserDashboard] Razorpay payment successful, verifying...');
-                        const verifyRes = await api.post('/payment/verify', {
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            amount,
-                        });
-                        toast.success(`₹${amount} added to wallet! 🎉`);
-                        updateUser({ walletBalance: verifyRes.data.walletBalance });
-                        setWallet((p) => ({ ...p, walletBalance: verifyRes.data.walletBalance }));
-                        setTopupAmt('');
-                        fetchData();
-                    } catch (verifyErr) {
-                        console.error('[UserDashboard] Payment verification failed:', verifyErr.message);
-                        toast.error('Payment verification failed. Contact support.');
-                    }
-                },
-                prefill: { name: user?.name, email: user?.email },
-                theme: { color: '#0d9488' },
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', (resp) => {
-                console.error('[UserDashboard] Razorpay payment failed:', resp.error);
-                toast.error(`Payment failed: ${resp.error.description}`);
-            });
-            rzp.open();
+            // Use mock payment since Razorpay keys are not configured yet
+            console.log('[UserDashboard] Mock top-up for ₹', amount);
+            const { data } = await api.post('/payment/mock-topup', { amount });
+            toast.success(data.message);
+            updateUser({ walletBalance: data.walletBalance });
+            setWallet((p) => ({ ...p, walletBalance: data.walletBalance }));
+            setTopupAmt('');
+            fetchData();
         } catch (error) {
-            console.error('[UserDashboard] Top-up error:', error.message);
-            toast.error(error.response?.data?.message || 'Failed to initiate payment.');
+            console.error('[UserDashboard] Top-up error:', error);
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to add amount to wallet.';
+            toast.error(errorMsg);
         } finally {
             setPaying(false);
         }
     };
+
+    // NOTE: Real Razorpay payment function (use when keys are configured)
+    // const handleRealTopup = async () => {
+    //     const amount = parseFloat(topupAmt);
+    //     if (!amount || amount < 10) { toast.error('Minimum top-up is ₹10.'); return; }
+    //     if (amount > 100000) { toast.error('Maximum top-up amount is ₹1,00,000.'); return; }
+    //
+    //     setPaying(true);
+    //     try {
+    //         console.log('[UserDashboard] Initiating Razorpay top-up for ₹', amount);
+    //         const loaded = await loadRazorpay();
+    //         if (!loaded) { toast.error('Failed to load Razorpay. Check your internet connection.'); return; }
+    //
+    //         const { data } = await api.post('/payment/create-order', { amount });
+    //         
+    //         if (!data.success || !data.order) {
+    //             throw new Error(data.message || 'Failed to create payment order');
+    //         }
+    //
+    //         const options = {
+    //             key: import.meta.env.VITE_RAZORPAY_KEY_ID || data.keyId,
+    //             amount: data.order.amount,
+    //             currency: 'INR',
+    //             name: 'VetsCue',
+    //             description: 'Wallet Top-up',
+    //             order_id: data.order.id,
+    //             handler: async (response) => {
+    //                 try {
+    //                     console.log('[UserDashboard] Razorpay payment successful, verifying...');
+    //                     const verifyRes = await api.post('/payment/verify', {
+    //                         razorpay_order_id: response.razorpay_order_id,
+    //                         razorpay_payment_id: response.razorpay_payment_id,
+    //                         razorpay_signature: response.razorpay_signature,
+    //                         amount,
+    //                     });
+    //                     toast.success(`₹${amount} added to wallet! 🎉`);
+    //                     updateUser({ walletBalance: verifyRes.data.walletBalance });
+    //                     setWallet((p) => ({ ...p, walletBalance: verifyRes.data.walletBalance }));
+    //                     setTopupAmt('');
+    //                     fetchData();
+    //                 } catch (verifyErr) {
+    //                     console.error('[UserDashboard] Payment verification failed:', verifyErr.message);
+    //                     toast.error('Payment verification failed. Contact support.');
+    //                 }
+    //             },
+    //             prefill: { name: user?.name, email: user?.email },
+    //             theme: { color: '#0d9488' },
+    //         };
+    //
+    //         const rzp = new window.Razorpay(options);
+    //         rzp.on('payment.failed', (resp) => {
+    //             console.error('[UserDashboard] Razorpay payment failed:', resp.error);
+    //             toast.error(`Payment failed: ${resp.error.description}`);
+    //         });
+    //         rzp.open();
+    //     } catch (error) {
+    //         console.error('[UserDashboard] Top-up error:', error);
+    //         const errorMsg = error.response?.data?.message || error.message || 'Failed to initiate payment.';
+    //         toast.error(errorMsg);
+    //     } finally {
+    //         setPaying(false);
+    //     }
+    // };
 
     // ── MOCK PAYMENT (testing without Razorpay) ───────────────────────────────
     const handleMockTopup = async (amount) => {
@@ -377,8 +408,9 @@ const UserDashboard = () => {
                                                 />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#e5e2e1]/20">INR</span>
                                             </div>
-                                            <button onClick={handleTopup} disabled={paying} className="h-14 px-10 bg-[#e5e2e1] text-[#131313] rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-[#e5e2e1]/5 disabled:opacity-50">
-                                                {paying ? '...' : 'Top Up'}
+                                            <button onClick={handleTopup} disabled={paying || mockPaying}
+                                                className="h-14 px-10 bg-[#e5e2e1] text-[#131313] rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-[#e5e2e1]/5 disabled:opacity-50">
+                                                {paying || mockPaying ? 'Processing...' : 'Top Up'}
                                             </button>
                                         </div>
 
