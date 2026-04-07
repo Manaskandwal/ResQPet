@@ -5,6 +5,7 @@ const { uploadBufferToCloudinary } = require('../middleware/upload');
 const { SERVICE_FEE } = require('../config/constants');
 const { emitRescueUpdate, emitNewCaseToNgos } = require('../config/socket');
 const { onRescueNeedsAmbulance } = require('../services/ambulanceDispatchService');
+const { scheduleRescueEscalation, cancelRescueEscalation } = require('../jobs/rescueEscalationScheduler');
 
 const DEPOSIT_AMOUNT = SERVICE_FEE;
 
@@ -93,6 +94,9 @@ const submitRescue = async (req, res) => {
 
         // Emit real-time alert to all NGOs
         emitNewCaseToNgos(rescueRequest);
+
+        // Schedule escalation timers (20-min + 45-min)
+        scheduleRescueEscalation(rescueRequest._id, rescueRequest.createdAt);
 
         res.status(201).json({
             success: true,
@@ -191,6 +195,9 @@ const cancelRescue = async (req, res) => {
         if (rescue.assignedAmbulance) {
             await User.findByIdAndUpdate(rescue.assignedAmbulance, { isAvailable: true });
         }
+
+        // Stop any pending escalation timers.
+        cancelRescueEscalation(rescue._id);
 
         await rescue.save();
         emitRescueUpdate(rescue._id, 'cancelled', { message: 'Case cancelled by user' });

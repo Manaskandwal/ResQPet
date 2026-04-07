@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { haversineDistance } = require('../utils/haversine');
 const { emitRescueUpdate, emitAmbulanceDispatch } = require('../config/socket');
 const { onRescueNeedsAmbulance } = require('../services/ambulanceDispatchService');
+const { cancelRescueEscalation } = require('../jobs/rescueEscalationScheduler');
 
 const pushStatusLog = (rescue, status, message) => {
     rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
@@ -151,6 +152,9 @@ const acceptBroadcastedCase = async (req, res) => {
 
         pushStatusLog(rescue, newStatus, `${req.user.orgName || req.user.name} accepted the escalated rescue.`);
 
+        // Cancel escalation timers — rescue is no longer pending/broadcasted
+        cancelRescueEscalation(rescue._id);
+
         if (isNgoSelfTransport) {
             pushStatusLog(rescue, 'hospital_accepted', 'NGO is transporting the animal themselves. Hospital is ready for arrival.');
             emitRescueUpdate(rescue._id, 'hospital_accepted', { message: 'Hospital accepted the case. NGO is bringing the animal themselves.' });
@@ -237,6 +241,9 @@ const rejectBroadcastedCase = async (req, res) => {
             rescue.outcome = 'closed_unresolved';
             pushStatusLog(rescue, 'closed_unresolved', 'All nearby hospitals rejected the case. Case closed unresolved.');
             emitRescueUpdate(rescue._id, rescue.status, { message: 'All nearby hospitals rejected the case. Case closed unresolved.' });
+            
+            // Cancel escalation timers — case is closed
+            cancelRescueEscalation(rescue._id);
         }
 
         await rescue.save();

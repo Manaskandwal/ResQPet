@@ -10,7 +10,7 @@ const http = require('http'); // <-- Added for Socket.io
 const connectDB = require('./config/db');
 const { connectCloudinary } = require('./config/cloudinary');
 const { errorHandler } = require('./middleware/errorHandler');
-const { startEscalationCron } = require('./jobs/escalationCron');
+const { rehydrateEscalationJobs } = require('./jobs/rescueEscalationScheduler');
 const { startRecurringEmergencyDeduction } = require('./jobs/recurringJobs');
 const { initSocket } = require('./config/socket'); // <-- Socket.io config
 const {
@@ -130,8 +130,8 @@ app.use('/api/payment/verify', paymentVerifyLimiter);
             console.log('============================================');
             console.log('');
 
-            // Start the escalation cron job
-            startEscalationCron();
+            // Start the escalation scheduler (rehydrate from DB)
+            rehydrateEscalationJobs();
             // Start recurring emergency fund deductions
             startRecurringEmergencyDeduction();
             // Note: Ambulance dispatch is now event-driven (no cron needed)

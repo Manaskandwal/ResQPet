@@ -4,6 +4,7 @@ const { haversineDistance } = require('../utils/haversine');
 const { uploadBufferToCloudinary } = require('../middleware/upload');
 const { emitRescueUpdate } = require('../config/socket');
 const Donation = require('../models/Donation');
+const { cancelRescueEscalation } = require('../jobs/rescueEscalationScheduler');
 
 const parseCoordinate = (value) => {
     const parsed = Number(value);
@@ -122,6 +123,8 @@ const acceptCase = async (req, res) => {
         let updateMessage = '';
 
         if (type === 'schedule') {
+            // Rescue is no longer in escalation flow.
+            cancelRescueEscalation(rescue._id);
             if (!scheduleDate) {
                 return res.status(400).json({ success: false, message: 'Please select a valid schedule date and time.' });
             }
@@ -134,8 +137,11 @@ const acceptCase = async (req, res) => {
             updateMessage = `NGO scheduled the rescue for ${parsedScheduleDate.toLocaleString()}`;
             pushStatusLog(rescue, 'scheduled', `NGO scheduled the rescue for ${parsedScheduleDate.toISOString()}`);
         } else if (type === 'hospital') {
+            // Keep 45-min hard-close protection active for hospital broadcast flow.
             updateMessage = await processEscalationFallback(rescue, transportType, req.body.ngoCannotPay);
         } else {
+            // Rescue is now actively accepted by NGO.
+            cancelRescueEscalation(rescue._id);
             rescue.status = 'accepted';
             updateMessage = 'NGO accepted the case for treatment.';
             pushStatusLog(rescue, 'accepted', updateMessage);
