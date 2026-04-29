@@ -173,6 +173,20 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                             </button>
                         )}
 
+                        {/* Theme Toggle Button */}
+                        <button 
+                            onClick={toggleTheme}
+                            className={`p-2 rounded-full transition-all ${
+                                isNewUI ? 'hover:bg-on-surface/10 text-on-background/70' : 'hover:bg-surface-hover text-slate-600'
+                            }`}
+                        >
+                            {theme === 'dark' ? (
+                                <SunIcon className="w-5 h-5" />
+                            ) : (
+                                <MoonIcon className="w-5 h-5" />
+                            )}
+                        </button>
+
                         {/* Profile dropdown */}
                         <div className="relative flex items-center gap-1">
 

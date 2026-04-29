@@ -3,22 +3,32 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // Always default to obsidian dark theme
-  const [theme] = useState('dark');
+  const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.add('dark');
-    localStorage.setItem('theme', 'dark');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+    
+    // Apply the saved theme
+    if (savedTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
   }, []);
 
   const toggleTheme = () => {
-    // No-op to prevent theme switching
-    console.log('Theme switching is disabled. Platform locked to Obsidian theme.');
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.classList.toggle('dark');
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    setTheme(newTheme);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme: () => {}, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

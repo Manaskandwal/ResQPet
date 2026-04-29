@@ -1,7 +1,7 @@
-# Graph Report - /home/manas/Desktop/extrawork/ResQPet  (2026-04-21)
+# Graph Report - /home/manas/Desktop/extrawork/ResQPet  (2026-04-29)
 
 ## Corpus Check
-- 103 files · ~148,278 words
+- 103 files · ~145,160 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -166,12 +166,12 @@
   PROJECT_OVERVIEW.md → Draw.io/pawSaarthi (1).drawio.pdf
 - `PawSaarthi Workflow Diagram` --conceptually_related_to--> `Payment Flow & Refunds`  [EXTRACTED]
   Draw.io/pawSaarthi (1).drawio.pdf → README.md
+- `Sidebar()` --calls--> `useTheme()`  [INFERRED]
+  frontend/src/components/Sidebar.jsx → /home/manas/Desktop/extrawork/ResQPet/frontend/src/context/ThemeContext.jsx
+- `Navbar()` --calls--> `useAuth()`  [INFERRED]
+  /home/manas/Desktop/extrawork/ResQPet/frontend/src/components/Navbar.jsx → frontend/src/context/AuthContext.jsx
 - `onRescueNeedsAmbulance()` --calls--> `verifyDonation()`  [INFERRED]
   backend/services/ambulanceDispatchService.js → backend/controllers/donationController.js
-- `emitRescueUpdate()` --calls--> `reviewFundraiser()`  [INFERRED]
-  backend/config/socket.js → backend/controllers/adminController.js
-- `emitRescueUpdate()` --calls--> `updateStatus()`  [INFERRED]
-  backend/config/socket.js → backend/controllers/ambulanceController.js
 
 ## Hyperedges (group relationships)
 - **Rescue Escalation & Hand-off Flow** — module_hospital_controller, module_ngo_controller, module_ambulance_controller, module_rescue_controller, module_rescue_escalation_scheduler, concept_escalation_pipeline [INFERRED 0.90]

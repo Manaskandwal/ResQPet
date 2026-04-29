@@ -18,6 +18,21 @@
   --shadow-card-hover: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
 }
 
+[data-theme="light"] {
+  --bg-main: #f5f8f8;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f0f4f4;
+  --text-main: #1a1d1d;
+  --text-on-surface: #1a1d1d;
+  --text-muted: #647372;
+  --text-muted-on-surface: #647372;
+  --border-main: rgba(0, 0, 0, 0.08);
+  --border-surface: rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
