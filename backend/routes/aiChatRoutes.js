@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const { protect } = require('../middleware/auth');
-const { handleChat } = require('../controllers/aiChatController');
+const { handleChat, getChatHistory, clearChatHistory } = require('../controllers/aiChatController');
 
 // ─── Rate Limiting Configuration ──────────────────────────────────────────────
 
@@ -34,6 +34,12 @@ const dailyLimiter = rateLimit({
 });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
+
+// Get chat history
+router.get('/history', protect, getChatHistory);
+
+// Clear chat history
+router.delete('/history', protect, clearChatHistory);
 
 // Protected route: user must be authenticated.
 // Applied both rate limiters.
