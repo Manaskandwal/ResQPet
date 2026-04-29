@@ -13,9 +13,7 @@ import {
   MessageCircle, 
   AlertTriangle,
   RefreshCcw,
-  Sparkles,
-  ChevronRight,
-  History
+  ChevronRight
 } from 'lucide-react';
 
 const ChatbotWidget = () => {
@@ -30,7 +28,28 @@ const ChatbotWidget = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
   const chatScrollRef = useRef(null);
+  const widgetRef = useRef(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (widgetRef.current && !widgetRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const fetchHistory = async () => {
     if (!user) return;
@@ -190,6 +209,7 @@ const ChatbotWidget = () => {
       <AnimatePresence mode="wait">
         {isOpen && (
           <motion.div 
+            ref={widgetRef}
             initial={{ opacity: 0, y: 100, scale: 0.9, originX: '90%', originY: '90%' }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
@@ -327,16 +347,15 @@ const ChatbotWidget = () => {
                 </form>
               )}
               <div className="flex justify-between items-center mt-4 px-2">
-                <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">Pet Care Engine 2.2</span>
+                <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">Pet Care Engine 1.0</span>
                 <div className="flex gap-4">
-                  <button onClick={fetchHistory} title="Sync Sessions">
-                    <History size={12} className="text-slate-300 hover:text-blue-400 cursor-pointer transition-colors" />
-                  </button>
-                  <button onClick={handleClearHistory} title="Clear Session Memory">
-                    <RefreshCcw size={12} className="text-slate-300 hover:text-red-400 cursor-pointer transition-colors" />
-                  </button>
-                  <button onClick={() => toast('Focusing on pet health insights! 🐾')} title="Health Guard">
-                    <Sparkles size={12} className="text-slate-300 hover:text-yellow-400 cursor-pointer transition-colors" />
+                  <button 
+                    onClick={handleClearHistory} 
+                    className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors group"
+                    title="Clear Session Memory"
+                  >
+                    <RefreshCcw size={14} className="group-active:rotate-180 transition-transform duration-500" />
+                    <span>Clear Chat</span>
                   </button>
                 </div>
               </div>
