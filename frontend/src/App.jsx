@@ -27,6 +27,7 @@ const AmbulanceHistory = lazy(() => import('./pages/ambulance/AmbulanceHistory')
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const AudioAlert = lazy(() => import('./components/AudioAlert'));
+const ChatbotWidget = lazy(() => import('./components/ChatbotWidget'));
 
 // New Design Previews (landing only - other pages use isNewUI flag internally)
 const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign'));
@@ -64,6 +65,7 @@ const DashboardRedirect = () => {
 
 export default function App() {
   return (
+    <>
     <Routes>
       <Route path="/" element={isNewUI ? withSuspense(<LandingUIDesign />) : <Home />} />
       <Route path="/login" element={withSuspense(<Login />)} />
@@ -119,5 +121,7 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    {withSuspense(<ChatbotWidget />)}
+    </>
   );
 }

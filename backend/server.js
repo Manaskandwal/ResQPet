@@ -28,6 +28,7 @@ const hospitalRoutes = require('./routes/hospitalRoutes');
 const ambulanceRoutes = require('./routes/ambulanceRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const donationRoutes = require('./routes/donationRoutes');
+const aiChatRoutes = require('./routes/aiChatRoutes'); // <-- AI Chat Agent
 
 // ─── App Initialization ───────────────────────────────────────────────────────
 const app = express();
@@ -177,6 +178,7 @@ app.use('/api/hospital', hospitalRoutes);
 app.use('/api/ambulance', ambulanceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/donation', donationRoutes);
+app.use('/api/chat', aiChatRoutes); // <-- Mount AI Chat
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/public', require('./routes/publicRoutes'));
 

@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "graphify": {
-      "command": "python3 -m graphify.serve graphify-out/graph.json",
+      "command": "graphify mcp serve",
       "args": []
     }
   }

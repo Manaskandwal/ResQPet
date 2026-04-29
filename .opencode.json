@@ -1,0 +1,10 @@
+{
+  "mcp": {
+    "graphify": {
+      "type": "local",
+      "command": "/home/manas/.local/bin/graphify",
+      "args": ["mcp", "serve"],
+      "enabled": true
+    }
+  }
+}
