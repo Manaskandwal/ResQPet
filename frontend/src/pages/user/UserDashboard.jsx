@@ -207,7 +207,7 @@ const UserDashboard = () => {
 
     if (isNewUI) {
         return (
-            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-12">
+            <div className="resqpet-obsidian-theme w-full text-on-surface space-y-12">
                 {/* Header Section */}
                 <section>
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -215,14 +215,14 @@ const UserDashboard = () => {
                             <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">
                                 Hello, <span className="text-[#76d6d5]">{user?.name?.split(' ')[0]}</span>
                             </h1>
-                            <p className="text-[10px] text-[#e5e2e1]/30 font-black uppercase tracking-[0.2em] leading-relaxed">
+                            <p className="text-[10px] text-on-surface/30 font-black uppercase tracking-[0.2em] leading-relaxed">
                                 Your help saves lives. Ready to help an animal today?
                             </p>
                         </div>
                         {/* Wallet Summary Card */}
                         <div 
                             onClick={() => setWalletModalOpen(true)}
-                            className="glass-card rounded-[2rem] p-6 flex items-center gap-4 min-w-[280px] border border-white/5 bg-[#1c1b1b]/50 cursor-pointer hover:bg-[#1c1b1b] transition-all group"
+                            className="glass-card rounded-[2rem] p-6 flex items-center gap-4 min-w-[280px] border border-surface-border bg-surface/50 cursor-pointer hover:bg-surface transition-all group"
                         >
                             <div className="w-12 h-12 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
                                 <WalletIcon className="w-6 h-6" />
@@ -237,7 +237,7 @@ const UserDashboard = () => {
 
                 {/* Main Hero: Report CTA & Stats */}
                 <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-                    <div className="lg:col-span-8 relative rounded-[2.5rem] overflow-hidden group min-h-[400px] border border-white/5 bg-[#1c1b1b]">
+                    <div className="lg:col-span-8 relative rounded-[2.5rem] overflow-hidden group min-h-[400px] border border-surface-border bg-surface">
                         <div className="absolute inset-0 opacity-20 grayscale bg-[url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')] bg-cover bg-center">
                             <div className="absolute inset-0 bg-gradient-to-r from-[#131313] via-[#131313]/40 to-transparent"></div>
                         </div>
@@ -247,7 +247,7 @@ const UserDashboard = () => {
                                 Citizen Guardian
                             </div>
                             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4 leading-tight">Spot an animal in distress?</h2>
-                            <p className="text-[#e5e2e1]/70 mb-8 text-lg">Pin the location and upload a photo. Our rapid response team is on standby 24/7.</p>
+                            <p className="text-on-surface/70 mb-8 text-lg">Pin the location and upload a photo. Our rapid response team is on standby 24/7.</p>
                             <button 
                                 onClick={() => navigate('/user/submit-rescue')}
                                 className="w-fit flex items-center gap-3 px-8 py-4 bg-gradient-to-br from-[#76d6d5] to-[#008080] text-[#131313] font-bold rounded-full hover:scale-105 transition-all shadow-xl active:scale-95"
@@ -260,13 +260,13 @@ const UserDashboard = () => {
 
                     <div className="lg:col-span-4 flex flex-col gap-6">
                         {stats.map(({ label, value, Icon, color }) => (
-                            <div key={label} className="glass-card rounded-[2rem] p-6 border border-white/5 bg-[#1c1b1b]/30 flex items-center gap-5 group hover:bg-[#1c1b1b]/50 transition-all">
-                                <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
+                            <div key={label} className="glass-card rounded-[2rem] p-6 border border-surface-border bg-surface/30 flex items-center gap-5 group hover:bg-surface/50 transition-all">
+                                <div className={`w-14 h-14 rounded-2xl bg-surface-hover flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
                                     <Icon className="w-7 h-7" />
                                 </div>
                                 <div>
-                                    <p className="text-3xl font-headline font-black text-[#e5e2e1]">{value}</p>
-                                    <p className="text-xs font-bold text-[#e5e2e1]/40 uppercase tracking-widest">{label}</p>
+                                    <p className="text-3xl font-headline font-black text-on-surface">{value}</p>
+                                    <p className="text-xs font-bold text-on-surface/40 uppercase tracking-widest">{label}</p>
                                 </div>
                             </div>
                         ))}
@@ -276,20 +276,20 @@ const UserDashboard = () => {
                 {/* Recent Reports Section */}
                 <section className="space-y-8">
                     <div className="flex items-center justify-between">
-                        <h2 className="font-headline text-2xl font-bold tracking-tight text-[#e5e2e1]">Your Recent Reports</h2>
+                        <h2 className="font-headline text-2xl font-bold tracking-tight text-on-surface">Your Recent Reports</h2>
                         <Link to="/user/reports" className="text-sm font-bold text-[#76d6d5] hover:underline flex items-center gap-2 group">
                             View All <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
                     {rescues.length === 0 ? (
-                        <div className="glass-card rounded-[2.5rem] border-2 border-dashed border-white/10 p-12 text-center flex flex-col items-center">
-                            <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-primary/30 mb-4">
+                        <div className="glass-card rounded-[2.5rem] border-2 border-dashed border-surface-border p-12 text-center flex flex-col items-center">
+                            <div className="w-20 h-20 rounded-full bg-surface-hover flex items-center justify-center text-primary/30 mb-4">
                                 <PlusCircleIcon className="w-10 h-10" />
                             </div>
                             <h3 className="text-xl font-bold mb-2">No rescue reports yet</h3>
-                            <p className="text-[#e5e2e1]/40 mb-8 max-w-sm">Every report matters. Start by submitting your first animal rescue report today.</p>
-                            <Link to="/user/submit-rescue" className="px-8 py-3 bg-white/5 border border-white/10 rounded-full font-bold hover:bg-white/10 transition-all">
+                            <p className="text-on-surface/40 mb-8 max-w-sm">Every report matters. Start by submitting your first animal rescue report today.</p>
+                            <Link to="/user/submit-rescue" className="px-8 py-3 bg-surface-hover border border-surface-border rounded-full font-bold hover:bg-surface-hover transition-all">
                                 Get Started
                             </Link>
                         </div>
@@ -299,7 +299,7 @@ const UserDashboard = () => {
                                 <Link 
                                     key={rescue._id} 
                                     to={`/user/rescue/${rescue._id}`}
-                                    className="glass-card rounded-[2.5rem] overflow-hidden group border border-white/5 bg-[#1c1b1b] flex flex-col hover:-translate-y-2 transition-all duration-300"
+                                    className="glass-card rounded-[2.5rem] overflow-hidden group border border-surface-border bg-surface flex flex-col hover:-translate-y-2 transition-all duration-300"
                                 >
                                     <div className="h-56 relative overflow-hidden">
                                         <img 
@@ -314,36 +314,36 @@ const UserDashboard = () => {
                                             <p className="text-xs text-[#76d6d5] font-black uppercase tracking-widest mb-1">
                                                 {formatIndianDate(rescue.createdAt)}
                                             </p>
-                                            <h4 className="font-headline font-bold text-lg truncate text-[#e5e2e1]">{rescue.description}</h4>
+                                            <h4 className="font-headline font-bold text-lg truncate text-on-surface">{rescue.description}</h4>
                                         </div>
                                     </div>
                                     <div className="p-6 pt-2 space-y-4">
-                                        <div className="flex items-center gap-2 text-xs text-[#e5e2e1]/50">
+                                        <div className="flex items-center gap-2 text-xs text-on-surface/50">
                                             <span className="material-symbols-outlined">location_on</span>
                                             <span className="truncate">{rescue.location.address || 'Unknown Location'}</span>
                                         </div>
-                                         <div className="pt-4 border-t border-white/5 space-y-3">
+                                         <div className="pt-4 border-t border-surface-border space-y-3">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-widest leading-none mb-1">Current Milestone</span>
+                                                    <span className="text-[10px] font-black text-on-surface/30 uppercase tracking-widest leading-none mb-1">Current Milestone</span>
                                                     <span className="text-sm font-bold text-[#76d6d5]">
                                                         {rescue.status === 'hospital_broadcasted' || rescue.status === 'ambulance_pinged' ? 'Help in Progress' : rescue.status.replace(/_/g, ' ').toUpperCase()}
                                                     </span>
                                                 </div>
                                                 <button 
                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/user/rescue/${rescue._id}`); }}
-                                                    className="p-2 rounded-xl bg-white/5 border border-white/5 text-[#e5e2e1]/40 hover:text-[#76d6d5] transition-all"
+                                                    className="p-2 rounded-xl bg-surface-hover border border-surface-border text-on-surface/40 hover:text-[#76d6d5] transition-all"
                                                 >
                                                     <ArrowRightIcon className="w-4 h-4" />
                                                 </button>
                                             </div>
                                             
                                             <div className="group/timeline relative cursor-help">
-                                                <div className="flex items-center gap-1 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                                                <div className="flex items-center gap-1 h-1.5 w-full rounded-full bg-surface-hover overflow-hidden">
                                                     <div className="h-full bg-[#76d6d5] shadow-[0_0_10px_rgba(118,214,213,0.5)] transition-all duration-500" style={{ width: rescue.status === 'completed' ? '100%' : '40%' }} />
                                                 </div>
                                                 {/* Tooltip hint */}
-                                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#131313] border border-white/10 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-[#76d6d5] opacity-0 group-hover/timeline:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-background border border-surface-border px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-[#76d6d5] opacity-0 group-hover/timeline:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                                                     Click for Full Progress
                                                 </div>
                                             </div>
@@ -359,18 +359,18 @@ const UserDashboard = () => {
                 <Transition appear show={walletModalOpen} as={Fragment}>
                     <Dialog as="div" className="relative z-50 resqpet-obsidian-theme" onClose={() => setWalletModalOpen(false)}>
                         <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-                            <div className="fixed inset-0 bg-[#131313]/90 backdrop-blur-xl" />
+                            <div className="fixed inset-0 bg-background/90 backdrop-blur-xl" />
                         </Transition.Child>
 
                         <div className="fixed inset-0 flex items-center justify-center p-4">
                             <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                                <Dialog.Panel className="w-full max-w-lg bg-[#1c1b1b] p-6 md:p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh]">
+                                <Dialog.Panel className="w-full max-w-lg bg-surface p-6 md:p-8 border border-surface-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh]">
                                     <div className="flex items-center justify-between mb-8">
-                                        <Dialog.Title className="text-2xl font-headline font-extrabold text-[#e5e2e1] flex items-center gap-3">
+                                        <Dialog.Title className="text-2xl font-headline font-extrabold text-on-surface flex items-center gap-3">
                                             <WalletIcon className="w-8 h-8 text-[#76d6d5]" />
                                             Unified Wallet
                                         </Dialog.Title>
-                                        <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-[#e5e2e1]/40">
+                                        <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-surface-hover rounded-full transition-colors text-on-surface/40">
                                             <XMarkIcon className="w-6 h-6" />
                                         </button>
                                     </div>
@@ -379,18 +379,18 @@ const UserDashboard = () => {
                                         <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#76d6d5]/10 rounded-full blur-3xl" />
                                         <div className="relative z-10 text-center py-4">
                                             <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Available Balance</span>
-                                            <p className="text-5xl font-headline font-black mt-2 mb-2 text-[#e5e2e1]">₹{wallet.walletBalance.toFixed(2)}</p>
+                                            <p className="text-5xl font-headline font-black mt-2 mb-2 text-on-surface">₹{wallet.walletBalance.toFixed(2)}</p>
                                         </div>
                                     </div>
 
                                     <div className="space-y-6">
                                         <div>
-                                            <label className="block text-xs font-black text-[#e5e2e1]/40 uppercase tracking-widest mb-3 px-2">Quick Top-up</label>
+                                            <label className="block text-xs font-black text-on-surface/40 uppercase tracking-widest mb-3 px-2">Quick Top-up</label>
                                             <div className="flex gap-2">
                                                 {[50, 100, 200, 500].map((amt) => (
                                                     <button key={amt} onClick={() => handleMockTopup(amt)}
                                                         disabled={mockPaying}
-                                                        className="flex-1 py-3 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-xs font-bold hover:bg-[#76d6d5]/10 hover:border-[#76d6d5]/30 transition-all active:scale-95 disabled:opacity-50">
+                                                        className="flex-1 py-3 rounded-2xl bg-surface-hover border border-surface-border text-on-surface text-xs font-bold hover:bg-[#76d6d5]/10 hover:border-[#76d6d5]/30 transition-all active:scale-95 disabled:opacity-50">
                                                         +₹{amt}
                                                     </button>
                                                 ))}
@@ -404,9 +404,9 @@ const UserDashboard = () => {
                                                     type="number" min="10" placeholder="Custom"
                                                     value={topupAmt}
                                                     onChange={(e) => setTopupAmt(e.target.value)}
-                                                    className="w-full h-14 px-6 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-sm focus:outline-none focus:ring-2 focus:ring-[#76d6d5]/20 focus:border-[#76d6d5]/50 transition-all font-bold placeholder:text-[#e5e2e1]/20"
+                                                    className="w-full h-14 px-6 rounded-2xl bg-surface-hover border border-surface-border text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-[#76d6d5]/20 focus:border-[#76d6d5]/50 transition-all font-bold placeholder:text-on-surface/20"
                                                 />
-                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#e5e2e1]/20">INR</span>
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-on-surface/20">INR</span>
                                             </div>
                                             <button onClick={handleTopup} disabled={paying || mockPaying}
                                                 className="h-14 px-10 bg-[#e5e2e1] text-[#131313] rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-[#e5e2e1]/5 disabled:opacity-50">
@@ -414,9 +414,9 @@ const UserDashboard = () => {
                                             </button>
                                         </div>
 
-                                        <div className="pt-6 border-t border-white/5">
+                                        <div className="pt-6 border-t border-surface-border">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h3 className="font-bold text-[#e5e2e1]/40 text-xs uppercase tracking-widest px-2">Transactions</h3>
+                                                <h3 className="font-bold text-on-surface/40 text-xs uppercase tracking-widest px-2">Transactions</h3>
                                                 <button
                                                     onClick={() => { setWalletModalOpen(false); navigate('/user/payments?tab=all'); }}
                                                     className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:underline"
@@ -427,17 +427,17 @@ const UserDashboard = () => {
                                             <div className="overflow-hidden">
                                                 <div className="space-y-4 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
                                                     {wallet.transactions.length === 0 ? (
-                                                        <p className="text-[#e5e2e1]/20 text-xs text-center py-4">No history available</p>
+                                                        <p className="text-on-surface/20 text-xs text-center py-4">No history available</p>
                                                     ) : (
                                                         wallet.transactions.slice(0, 10).map((txn) => (
-                                                            <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
+                                                            <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-surface-hover transition-colors">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] ${txn.type === 'debit' ? 'bg-red-500/10 text-red-400' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>
                                                                         <span className="material-symbols-outlined text-sm">{txn.type === 'debit' ? 'arrow_downward' : 'arrow_upward'}</span>
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-xs font-bold text-[#e5e2e1] truncate max-w-[200px]">{txn.description}</p>
-                                                                        <p className="text-[10px] text-[#e5e2e1]/40">{formatIndianDate(txn.createdAt)}</p>
+                                                                        <p className="text-xs font-bold text-on-surface truncate max-w-[200px]">{txn.description}</p>
+                                                                        <p className="text-[10px] text-on-surface/40">{formatIndianDate(txn.createdAt)}</p>
                                                                     </div>
                                                                 </div>
                                                                 <span className={`text-sm font-black ${txn.type === 'credit' || txn.type === 'refund' ? 'text-[#76d6d5]' : 'text-red-400'}`}>
@@ -574,8 +574,8 @@ const UserDashboard = () => {
                                 </div>
 
                                 <div className="card bg-gradient-to-br from-primary-600 to-primary-800 text-white overflow-hidden relative p-6 mb-6">
-                                    <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full" />
-                                    <div className="absolute -right-4 top-8 w-20 h-20 bg-white/5 rounded-full" />
+                                    <div className="absolute -right-8 -top-8 w-32 h-32 bg-surface-hover rounded-full" />
+                                    <div className="absolute -right-4 top-8 w-20 h-20 bg-surface-hover rounded-full" />
                                     <div className="relative z-10">
                                         <span className="text-primary-100 text-xs font-bold uppercase tracking-widest opacity-80">Available Balance</span>
                                         <p className="text-4xl font-black mt-2 mb-2">₹{wallet.walletBalance.toFixed(2)}</p>

@@ -175,16 +175,16 @@ const SocialShare = ({ rescue }) => {
     };
 
     return (
-        <div className="mt-8 overflow-hidden rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] shadow-2xl w-full">
+        <div className="mt-8 overflow-hidden rounded-[2.5rem] border border-surface-border bg-surface shadow-2xl w-full">
             <div className="flex flex-col lg:grid lg:grid-cols-[1.2fr_0.8fr] gap-8 p-6 md:p-10 lg:items-center">
                 <div className="space-y-6">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#76d6d4]">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-surface-hover border border-surface-border px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-brand">
                         <ShareIcon className="h-4 w-4" />
                         Spread the Word
                     </div>
                     <div>
-                        <h4 className="text-2xl font-headline font-bold text-[#e5e2e1]">Share the journey</h4>
-                        <p className="mt-2 text-sm text-[#e5e2e1]/50 leading-relaxed max-w-sm">Native sharing attaches a beautiful story card image with automatically included case details.</p>
+                        <h4 className="text-2xl font-headline font-bold text-on-surface">Share the journey</h4>
+                        <p className="mt-2 text-sm text-on-surface/50 leading-relaxed max-w-sm">Native sharing attaches a beautiful story card image with automatically included case details.</p>
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-3">
@@ -201,32 +201,32 @@ const SocialShare = ({ rescue }) => {
                         <button 
                             onClick={handleNativeShare} 
                             title="Native Share" 
-                            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#76d6d4] text-[#131313] shadow-xl transition-all hover:-translate-y-1 active:scale-95"
+                            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-background shadow-xl transition-all hover:-translate-y-1 active:scale-95"
                         >
                             <ShareIcon className="h-5 w-5" />
                         </button>
                         <button 
                             onClick={handleDownloadPoster} 
                             title="Download Poster" 
-                            className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-[#e5e2e1] shadow-xl transition-all hover:-translate-y-1 active:scale-95"
+                            className="flex h-14 w-14 items-center justify-center rounded-2xl border border-surface-border bg-surface-hover text-on-surface shadow-xl transition-all hover:-translate-y-1 active:scale-95"
                         >
                             <ArrowDownTrayIcon className="h-5 w-5" />
                         </button>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#131313] p-6 text-white shadow-2xl group w-full max-w-[320px] mx-auto lg:max-w-none">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#76d6d4]/10 via-transparent to-transparent opacity-50" />
+                <div className="relative overflow-hidden rounded-[2.5rem] border border-surface-border bg-background p-6 text-white shadow-2xl group w-full max-w-[320px] mx-auto lg:max-w-none">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-transparent to-transparent opacity-50" />
                     <div className="relative z-10 space-y-4">
-                        <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-[0.3em] text-[#76d6d4]/70">
+                        <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-[0.3em] text-brand/70">
                             <span>VetsCue Official Story</span>
                             <span>{rescue.status.replaceAll('_', ' ')}</span>
                         </div>
                         <div className="grid grid-cols-2 gap-3 aspect-square max-h-[160px] md:max-h-[180px] w-full">
-                            <div className="h-full w-full rounded-2xl overflow-hidden bg-white/5 border border-white/5">
+                            <div className="h-full w-full rounded-2xl overflow-hidden bg-surface-hover border border-surface-border">
                                 {rescue.images?.[0] ? <img src={rescue.images[0]} alt="before" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[10px] text-white/20">Before</div>}
                             </div>
-                            <div className="h-full w-full rounded-2xl overflow-hidden bg-white/5 border border-white/5">
+                            <div className="h-full w-full rounded-2xl overflow-hidden bg-surface-hover border border-surface-border">
                                 {[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0]) ? 
                                     <img src={[...(rescue.images || [])].reverse().find((image) => image && image !== rescue.images?.[0])} alt="after" className="h-full w-full object-cover" /> : 
                                     <div className="flex h-full items-center justify-center text-[10px] text-white/20">After</div>
@@ -234,7 +234,7 @@ const SocialShare = ({ rescue }) => {
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <p className="line-clamp-1 text-sm font-bold text-[#e5e2e1]">{rescue.description}</p>
+                            <p className="line-clamp-1 text-sm font-bold text-on-surface">{rescue.description}</p>
                             <p className="line-clamp-1 text-[10px] text-white/20 uppercase tracking-widest">{rescue.location?.address || 'Verified Rescue'}</p>
                         </div>
                     </div>

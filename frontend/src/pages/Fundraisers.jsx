@@ -115,7 +115,7 @@ const Fundraisers = () => {
     };
 
     if (loading) {
-        if (isNewUI) return <div className="resqpet-obsidian-theme space-y-4">{[1,2].map(i => <div key={i} className="h-48 rounded-[2rem] bg-white/5 animate-pulse" />)}</div>;
+        if (isNewUI) return <div className="resqpet-obsidian-theme space-y-4">{[1,2].map(i => <div key={i} className="h-48 rounded-[2rem] bg-surface-hover animate-pulse" />)}</div>;
         return (
             <div className="space-y-6">
                 <h1 className="page-title">Fundraisers</h1>
@@ -126,71 +126,71 @@ const Fundraisers = () => {
 
     if (isNewUI) {
         return (
-            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8">
+            <div className="resqpet-obsidian-theme w-full text-on-surface space-y-8">
                 {/* Header & Tabs */}
                 <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-2">
-                        <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Community</span>
-                        <h1 className="font-headline text-4xl font-extrabold tracking-tight">Fund<span className="text-[#76d6d5]">raisers</span></h1>
-                        <p className="text-[#e5e2e1]/50">Your contribution saves lives every single day.</p>
+                        <span className="text-brand text-[10px] font-black uppercase tracking-[0.3em]">Community</span>
+                        <h1 className="font-headline text-4xl font-extrabold tracking-tight">Fund<span className="text-brand">raisers</span></h1>
+                        <p className="text-on-surface/50">Your contribution saves lives every single day.</p>
                     </div>
                     
                     <div className="flex flex-col md:items-end gap-4">
-                        <div className="flex gap-1 rounded-2xl bg-white/5 p-1 w-full md:w-fit">
-                            <button onClick={() => setActiveTab('cases')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>Active Cases</button>
-                            <button onClick={() => setActiveTab('ngos')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ngos' ? 'bg-[#76d6d5] text-[#131313]' : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'}`}>NGO-wise</button>
+                        <div className="flex gap-1 rounded-2xl bg-surface-hover p-1 w-full md:w-fit">
+                            <button onClick={() => setActiveTab('cases')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>Active Cases</button>
+                            <button onClick={() => setActiveTab('ngos')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ngos' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>NGO-wise</button>
                         </div>
                         
                         {!user?.monthlySubscription?.isSubscribed ? (
-                            <button onClick={() => setSupportModalOpen(true)} className="flex items-center gap-2 rounded-full bg-gradient-to-br from-[#76d6d5] to-[#008080] text-[#131313] px-6 py-3 text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
+                            <button onClick={() => setSupportModalOpen(true)} className="flex items-center gap-2 rounded-full bg-gradient-to-br from-brand to-brand-dark text-background px-6 py-3 text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
                                 <HeartIcon className="h-4 w-4" /> Monthly Support
                             </button>
                         ) : (
-                            <div className="flex items-center gap-2 rounded-full border border-[#76d6d5]/20 bg-[#76d6d5]/10 px-4 py-2 text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">
-                                <span className="h-2 w-2 animate-pulse rounded-full bg-[#76d6d5]" /> Active Subscriber
+                            <div className="flex items-center gap-2 rounded-full border border-brand/20 bg-brand/10 px-4 py-2 text-[10px] font-black text-brand uppercase tracking-widest">
+                                <span className="h-2 w-2 animate-pulse rounded-full bg-brand" /> Active Subscriber
                             </div>
                         )}
                     </div>
                 </section>
 
                 {/* Mode notice */}
-                <div className="glass-card rounded-2xl border border-white/5 bg-[#1c1b1b] px-6 py-4">
-                    <p className="text-xs text-white/30 font-medium">Current testing flow uses wallet balance for recurring emergency contributions.</p>
-                    {paymentHistoryMessage && <p className="mt-2 text-xs text-[#76d6d5] font-bold">{paymentHistoryMessage}</p>}
+                <div className="glass-card rounded-2xl border border-surface-border bg-surface px-6 py-4">
+                    <p className="text-xs text-on-surface/30 font-medium">Current testing flow uses wallet balance for recurring emergency contributions.</p>
+                    {paymentHistoryMessage && <p className="mt-2 text-xs text-brand font-bold">{paymentHistoryMessage}</p>}
                 </div>
 
                 {/* Content */}
                 {activeTab === 'cases' ? (
                     fundraisers.length === 0 ? (
-                        <div className="glass-card rounded-[3rem] border border-dashed border-white/10 p-16 text-center space-y-4">
-                            <HeartIcon className="mx-auto h-12 w-12 text-white/10" />
-                            <p className="text-xs font-black uppercase tracking-widest text-white/20">No active fundraisers.</p>
+                        <div className="glass-card rounded-[3rem] border border-dashed border-surface-border p-16 text-center space-y-4">
+                            <HeartIcon className="mx-auto h-12 w-12 text-on-surface/10" />
+                            <p className="text-xs font-black uppercase tracking-widest text-on-surface/20">No active fundraisers.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             {fundraisers.map((rescue) => {
                                 const progress = Math.min(((rescue.amountRaised || 0) / (rescue.estimatedCost || 1)) * 100, 100);
                                 return (
-                                    <div key={rescue._id} className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] overflow-hidden flex flex-col group hover:-translate-y-1 transition-all duration-300">
+                                    <div key={rescue._id} className="glass-card rounded-[2rem] border border-surface-border bg-surface overflow-hidden flex flex-col group hover:-translate-y-1 transition-all duration-300">
                                         <div className="relative overflow-hidden">
-                                            {rescue.images?.[0] ? <img src={rescue.images[0]} alt="Animal" className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70" /> : <div className="flex h-48 w-full items-center justify-center bg-white/5 text-white/20 text-sm">No Image Available</div>}
+                                            {rescue.images?.[0] ? <img src={rescue.images[0]} alt="Animal" className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70" /> : <div className="flex h-48 w-full items-center justify-center bg-surface-hover text-on-surface/20 text-sm">No Image Available</div>}
                                             <div className="absolute left-3 top-3 rounded-full bg-black/50 backdrop-blur-sm px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">Case #{rescue._id.slice(-6).toUpperCase()}</div>
                                         </div>
                                         <div className="p-6 flex-1 flex flex-col space-y-4">
-                                            <p className="font-bold text-[#e5e2e1] line-clamp-2">{rescue.description}</p>
-                                            <p className="text-xs text-white/30">{rescue.location.address || 'Location provided'}</p>
+                                            <p className="font-bold text-on-surface line-clamp-2">{rescue.description}</p>
+                                            <p className="text-xs text-on-surface/30">{rescue.location.address || 'Location provided'}</p>
                                             <div className="mt-auto space-y-3">
                                                 <div className="flex justify-between text-xs font-black">
-                                                    <span className="text-[#76d6d5]">Raised: ₹{rescue.amountRaised || 0}</span>
+                                                    <span className="text-brand">Raised: ₹{rescue.amountRaised || 0}</span>
                                                     <span className="text-[#ffb77d]">Goal: ₹{rescue.estimatedCost}</span>
                                                 </div>
-                                                <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
-                                                    <div className="h-full rounded-full bg-gradient-to-r from-[#76d6d5] to-[#008080] transition-all duration-1000 shadow-[0_0_8px_rgba(118,214,213,0.4)]" style={{ width: `${progress}%` }} />
+                                                <div className="h-2 w-full rounded-full bg-surface-hover overflow-hidden">
+                                                    <div className="h-full rounded-full bg-gradient-to-r from-brand to-brand-dark transition-all duration-1000 shadow-[0_0_8px_rgba(var(--brand-primary-rgb),0.4)]" style={{ width: `${progress}%` }} />
                                                 </div>
-                                                <p className="text-right text-[10px] font-black text-white/20">{Number(progress || 0).toFixed(0)}% FUNDED</p>
+                                                <p className="text-right text-[10px] font-black text-on-surface/20">{Number(progress || 0).toFixed(0)}% FUNDED</p>
                                                 <div className="flex gap-2">
-                                                    <input type="number" min="10" placeholder="Amount" className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-2.5 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 transition-all" onChange={(e) => setDonationAmount(e.target.value)} />
-                                                    <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="rounded-2xl bg-[#76d6d5] text-[#131313] px-5 py-2.5 text-xs font-black uppercase disabled:opacity-50 hover:scale-105 transition-all">{donatingId === rescue._id ? '...' : 'Help'}</button>
+                                                    <input type="number" min="10" placeholder="Amount" className="flex-1 rounded-2xl bg-surface-hover border border-surface-border px-4 py-2.5 text-sm text-on-surface outline-none focus:border-brand/30 transition-all" onChange={(e) => setDonationAmount(e.target.value)} />
+                                                    <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="rounded-2xl bg-brand text-background px-5 py-2.5 text-xs font-black uppercase disabled:opacity-50 hover:scale-105 transition-all">{donatingId === rescue._id ? '...' : 'Help'}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -202,22 +202,22 @@ const Fundraisers = () => {
                 ) : (
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         {ngos.filter((ngo) => ngo.paymentDetails?.upiId).map((ngo) => (
-                            <div key={ngo._id} className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-6 space-y-5">
+                            <div key={ngo._id} className="glass-card rounded-[2rem] border border-surface-border bg-surface p-6 space-y-5">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-2xl font-black text-[#76d6d5]">{ngo.orgName?.charAt(0) || 'N'}</div>
+                                    <div className="w-16 h-16 rounded-2xl bg-brand/10 flex items-center justify-center text-2xl font-black text-brand">{ngo.orgName?.charAt(0) || 'N'}</div>
                                     <div>
-                                        <p className="font-headline font-bold text-lg text-[#e5e2e1]">{ngo.orgName}</p>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Registered NGO</p>
+                                        <p className="font-headline font-bold text-lg text-on-surface">{ngo.orgName}</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-on-surface/30">Registered NGO</p>
                                     </div>
                                 </div>
-                                <p className="text-sm text-white/40 line-clamp-2">{ngo.address || 'No address provided'}</p>
-                                <div className="rounded-2xl bg-white/5 border border-white/5 p-4 space-y-2 text-xs">
-                                    <div className="flex justify-between"><span className="text-white/30">UPI ID</span><span className="font-bold text-[#e5e2e1]">{ngo.paymentDetails.upiId}</span></div>
-                                    <div className="flex justify-between"><span className="text-white/30">Bank</span><span className="font-bold text-[#e5e2e1]">{ngo.paymentDetails.bankName || 'HDFC Bank'}</span></div>
+                                <p className="text-sm text-on-surface/40 line-clamp-2">{ngo.address || 'No address provided'}</p>
+                                <div className="rounded-2xl bg-surface-hover border border-surface-border p-4 space-y-2 text-xs">
+                                    <div className="flex justify-between"><span className="text-on-surface/30">UPI ID</span><span className="font-bold text-on-surface">{ngo.paymentDetails.upiId}</span></div>
+                                    <div className="flex justify-between"><span className="text-on-surface/30">Bank</span><span className="font-bold text-on-surface">{ngo.paymentDetails.bankName || 'HDFC Bank'}</span></div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <input type="number" placeholder="Amount" className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-2.5 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 transition-all" onChange={(e) => setDonationAmount(e.target.value)} />
-                                    <button onClick={() => handleDonate(ngo._id, true)} className="rounded-2xl bg-[#76d6d5] text-[#131313] px-5 py-2.5 text-xs font-black uppercase hover:scale-105 transition-all">Donate</button>
+                                    <input type="number" placeholder="Amount" className="flex-1 rounded-2xl bg-surface-hover border border-surface-border px-4 py-2.5 text-sm text-on-surface outline-none focus:border-brand/30 transition-all" onChange={(e) => setDonationAmount(e.target.value)} />
+                                    <button onClick={() => handleDonate(ngo._id, true)} className="rounded-2xl bg-brand text-background px-5 py-2.5 text-xs font-black uppercase hover:scale-105 transition-all">Donate</button>
                                 </div>
                             </div>
                         ))}
@@ -227,24 +227,24 @@ const Fundraisers = () => {
                 {/* Monthly Support Modal */}
                 {supportModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-                        <div className="w-full max-w-md rounded-[2rem] border border-white/5 bg-[#1c1b1b] shadow-2xl">
-                            <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+                        <div className="w-full max-w-md rounded-[2rem] border border-surface-border bg-surface shadow-2xl">
+                            <div className="flex items-center justify-between border-b border-surface-border px-6 py-5">
                                 <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]/60">Monthly Support</span>
-                                    <h3 className="font-headline font-bold text-xl text-[#e5e2e1]">Join Emergency Fund</h3>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-brand/60">Monthly Support</span>
+                                    <h3 className="font-headline font-bold text-xl text-on-surface">Join Emergency Fund</h3>
                                 </div>
-                                <button onClick={() => setSupportModalOpen(false)} className="p-2 hover:bg-white/5 rounded-xl text-white/30 hover:text-white transition-all">
+                                <button onClick={() => setSupportModalOpen(false)} className="p-2 hover:bg-surface-hover rounded-xl text-on-surface/30 hover:text-white transition-all">
                                     <XMarkIcon className="h-5 w-5" />
                                 </button>
                             </div>
                             <div className="p-6 space-y-5">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Monthly amount (₹)</label>
-                                    <input className="w-full rounded-2xl bg-white/5 border border-white/5 px-4 py-3 text-[#e5e2e1] text-sm outline-none focus:border-[#76d6d5]/30 transition-all" type="number" min="10" placeholder="Enter monthly amount" value={supportForm.amount} onChange={(e) => setSupportForm((cur) => ({ ...cur, amount: e.target.value }))} />
-                                    <p className="text-xs text-white/20">Amount charged monthly from wallet in test mode.</p>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-on-surface/30">Monthly amount (₹)</label>
+                                    <input className="w-full rounded-2xl bg-surface-hover border border-surface-border px-4 py-3 text-on-surface text-sm outline-none focus:border-brand/30 transition-all" type="number" min="10" placeholder="Enter monthly amount" value={supportForm.amount} onChange={(e) => setSupportForm((cur) => ({ ...cur, amount: e.target.value }))} />
+                                    <p className="text-xs text-on-surface/20">Amount charged monthly from wallet in test mode.</p>
                                 </div>
                                 <div className="rounded-2xl border border-[#ffb77d]/20 bg-[#ffb77d]/5 p-4 text-xs text-[#ffb77d]/70">This is a test mode payment. Amount is deducted from wallet balance.</div>
-                                <button onClick={handleJoinEmergencyFund} disabled={subscribing} className="w-full py-4 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">{subscribing ? 'Processing...' : 'Complete & Join Monthly Support'}</button>
+                                <button onClick={handleJoinEmergencyFund} disabled={subscribing} className="w-full py-4 rounded-2xl bg-brand text-background text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">{subscribing ? 'Processing...' : 'Complete & Join Monthly Support'}</button>
                             </div>
                         </div>
                     </div>

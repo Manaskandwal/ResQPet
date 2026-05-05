@@ -7,26 +7,26 @@ const PawLoader = ({ message = "Loading VetsCue..." }) => {
         {/* Animated Paws */}
         <div className="absolute inset-0 flex items-center justify-center">
             {/* Paw 1 */}
-            <span className="material-symbols-outlined text-[#76d6d5] text-4xl animate-paw-1 absolute -translate-x-6 -translate-y-6 opacity-0" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+            <span className="material-symbols-outlined text-brand text-4xl animate-paw-1 absolute -translate-x-6 -translate-y-6 opacity-0" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
             {/* Paw 2 */}
             <span className="material-symbols-outlined text-[#ffb77d] text-4xl animate-paw-2 absolute translate-x-6 -translate-y-2 opacity-0" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
             {/* Paw 3 */}
-            <span className="material-symbols-outlined text-[#76d6d5] text-4xl animate-paw-3 absolute -translate-x-4 translate-y-6 opacity-0" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+            <span className="material-symbols-outlined text-brand text-4xl animate-paw-3 absolute -translate-x-4 translate-y-6 opacity-0" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
             {/* Paw 4 */}
             <span className="material-symbols-outlined text-[#ffb77d] text-4xl animate-paw-4 absolute translate-x-4 translate-y-2 opacity-0" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
         </div>
         {/* Central Pulse */}
-        <div className="w-4 h-4 rounded-full bg-[#76d6d5]/20 animate-ping" />
+        <div className="w-4 h-4 rounded-full bg-brand/20 animate-ping" />
       </div>
 
       <div className="text-center space-y-2">
-        <p className="text-sm font-black uppercase tracking-[0.3em] text-[#76d6d5] animate-pulse">
+        <p className="text-sm font-black uppercase tracking-[0.3em] text-brand animate-pulse">
             {message}
         </p>
         <div className="flex gap-1 justify-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#76d6d5] animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#76d6d5] animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#76d6d5] animate-bounce" />
+            <div className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-brand animate-bounce" />
         </div>
       </div>
     </div>

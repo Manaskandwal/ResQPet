@@ -58,92 +58,92 @@ const Impact = () => {
     };
 
     if (loading) {
-        if (isNewUI) return <div className="resqpet-obsidian-theme space-y-4">{[1,2].map(i => <div key={i} className="h-64 rounded-[2rem] bg-white/5 animate-pulse" />)}</div>;
+        if (isNewUI) return <div className="resqpet-obsidian-theme space-y-4">{[1,2].map(i => <div key={i} className="h-64 rounded-[2rem] bg-surface-hover animate-pulse" />)}</div>;
         return <p className="text-sm text-slate-500">Loading impact feed...</p>;
     }
 
     if (isNewUI) {
         return (
-            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-10">
+            <div className="resqpet-obsidian-theme w-full text-on-surface space-y-10">
                 <section className="space-y-2">
-                    <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Community Impact</span>
-                    <h1 className="font-headline text-4xl font-extrabold tracking-tight">Successful <span className="text-[#76d6d5]">Rescues</span></h1>
-                    <p className="text-[#e5e2e1]/50 max-w-xl">This feed highlights completed rescue stories, before-and-after progress, and community reactions.</p>
+                    <span className="text-brand text-[10px] font-black uppercase tracking-[0.3em]">Community Impact</span>
+                    <h1 className="font-headline text-4xl font-extrabold tracking-tight">Successful <span className="text-brand">Rescues</span></h1>
+                    <p className="text-on-surface/50 max-w-xl">This feed highlights completed rescue stories, before-and-after progress, and community reactions.</p>
                 </section>
 
                 <div className="space-y-8">
                     {feed.length === 0 ? (
-                        <div className="glass-card rounded-[3rem] border border-dashed border-white/5 p-16 text-center space-y-4">
-                            <span className="material-symbols-outlined text-5xl text-white/10">volunteer_activism</span>
-                            <p className="text-xs font-black uppercase tracking-widest text-white/20">No completed rescue stories yet.</p>
+                        <div className="glass-card rounded-[3rem] border border-dashed border-surface-border p-16 text-center space-y-4">
+                            <span className="material-symbols-outlined text-5xl text-on-surface/10">volunteer_activism</span>
+                            <p className="text-xs font-black uppercase tracking-widest text-on-surface/20">No completed rescue stories yet.</p>
                         </div>
                     ) : feed.map((item) => (
-                        <div key={item._id} className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden">
+                        <div key={item._id} className="glass-card rounded-[2.5rem] border border-surface-border bg-surface overflow-hidden">
                             <div className="grid gap-8 p-6 md:p-10 grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]">
                                 <div className="space-y-6">
                                     <div className="space-y-2">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">{item.status.replaceAll('_', ' ')}</span>
-                                        <h2 className="font-headline text-2xl font-bold text-[#e5e2e1] leading-tight">{item.description}</h2>
-                                        <p className="text-xs text-[#e5e2e1]/40">Completed {item.completedAt ? formatIndianDateTime(item.completedAt) : formatIndianDateTime(item.createdAt)}</p>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-brand">{item.status.replaceAll('_', ' ')}</span>
+                                        <h2 className="font-headline text-2xl font-bold text-on-surface leading-tight">{item.description}</h2>
+                                        <p className="text-xs text-on-surface/40">Completed {item.completedAt ? formatIndianDateTime(item.completedAt) : formatIndianDateTime(item.createdAt)}</p>
                                     </div>
                                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                                         <div className="rounded-[1.5rem] border border-red-500/10 bg-red-500/5 p-4 space-y-3">
                                             <p className="text-[10px] font-black uppercase tracking-widest text-red-400">Before</p>
-                                            <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white/5">
-                                                {item.beforeImage ? <img src={item.beforeImage} alt="Before" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-sm text-white/20">No image uploaded.</div>}
+                                            <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface-hover">
+                                                {item.beforeImage ? <img src={item.beforeImage} alt="Before" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-sm text-on-surface/20">No image uploaded.</div>}
                                             </div>
                                         </div>
-                                        <div className="rounded-[1.5rem] border border-[#76d6d5]/10 bg-[#76d6d5]/5 p-4 space-y-3">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]">After</p>
-                                            <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white/5">
-                                                {item.afterImage ? <img src={item.afterImage} alt="After" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-center text-sm text-white/20">No media yet.</div>}
+                                        <div className="rounded-[1.5rem] border border-brand/10 bg-brand/5 p-4 space-y-3">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-brand">After</p>
+                                            <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface-hover">
+                                                {item.afterImage ? <img src={item.afterImage} alt="After" className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-center text-sm text-on-surface/20">No media yet.</div>}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col rounded-[2rem] bg-white/5 border border-white/5 p-5 md:p-8 space-y-6 min-w-0">
-                                    <p className="text-sm text-[#e5e2e1]/60 leading-relaxed italic">"{item.afterSummary}"</p>
+                                <div className="flex flex-col rounded-[2rem] bg-surface-hover border border-surface-border p-5 md:p-8 space-y-6 min-w-0">
+                                    <p className="text-sm text-on-surface/60 leading-relaxed italic">"{item.afterSummary}"</p>
                                     <div className="flex flex-wrap items-center gap-3">
-                                        <button onClick={() => handleLike(item._id)} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all ${item.liked ? 'bg-red-500/20 text-red-400 border border-red-400/20' : 'bg-white/5 border border-white/5 text-[#e5e2e1]/50 hover:text-red-400'}`}>
+                                        <button onClick={() => handleLike(item._id)} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all ${item.liked ? 'bg-red-500/20 text-red-400 border border-red-400/20' : 'bg-surface-hover border border-surface-border text-on-surface/50 hover:text-red-400'}`}>
                                             {item.liked ? <HeartSolidIcon className="h-4 w-4" /> : <HeartIcon className="h-4 w-4" />}
                                             {item.likesCount}
                                         </button>
-                                        <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/5 px-4 py-2 text-sm font-bold text-[#e5e2e1]/50">
+                                        <div className="inline-flex items-center gap-2 rounded-full bg-surface-hover border border-surface-border px-4 py-2 text-sm font-bold text-on-surface/50">
                                             <ChatBubbleLeftRightIcon className="h-4 w-4" />{item.commentsCount}
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] md:ml-auto">{item.helperName}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-brand md:ml-auto">{item.helperName}</span>
                                     </div>
                                     
                                     <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                         {(item.comments || []).length === 0 ? (
-                                            <p className="text-center py-4 text-[10px] font-black uppercase tracking-widest text-white/10">No messages yet</p>
+                                            <p className="text-center py-4 text-[10px] font-black uppercase tracking-widest text-on-surface/10">No messages yet</p>
                                         ) : (
                                             item.comments.map((comment, idx) => (
-                                                <div key={`${comment.createdAt}-${idx}`} className="rounded-2xl bg-white/5 p-4 border border-white/5">
+                                                <div key={`${comment.createdAt}-${idx}`} className="rounded-2xl bg-surface-hover p-4 border border-surface-border">
                                                     <div className="flex items-center justify-between gap-3 mb-2">
-                                                        <p className="text-[10px] font-bold text-[#76d6d5] uppercase tracking-wider">{comment.name || 'Guardian'}</p>
-                                                        <p className="text-[9px] text-white/20 font-medium">{formatIndianDateTime(comment.createdAt)}</p>
+                                                        <p className="text-[10px] font-bold text-brand uppercase tracking-wider">{comment.name || 'Guardian'}</p>
+                                                        <p className="text-[9px] text-on-surface/20 font-medium">{formatIndianDateTime(comment.createdAt)}</p>
                                                     </div>
-                                                    <p className="text-xs text-[#e5e2e1]/70 leading-relaxed">{comment.message}</p>
+                                                    <p className="text-xs text-on-surface/70 leading-relaxed">{comment.message}</p>
                                                 </div>
                                             ))
                                         )}
                                     </div>
                                     
-                                    <div className="pt-4 border-t border-white/5">
+                                    <div className="pt-4 border-t border-surface-border">
                                         <div className="flex gap-2">
                                             <input 
                                                 type="text" 
                                                 value={commentDrafts[item._id] || ''} 
                                                 onChange={(e) => setCommentDrafts((cur) => ({ ...cur, [item._id]: e.target.value }))} 
                                                 onKeyDown={(e) => e.key === 'Enter' && handleComment(item._id)}
-                                                className="flex-1 rounded-2xl bg-white/5 border border-white/5 px-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all placeholder:text-white/10" 
+                                                className="flex-1 rounded-2xl bg-surface-hover border border-surface-border px-4 py-3 text-sm text-on-surface outline-none focus:border-brand/30 focus:ring-2 focus:ring-brand/10 transition-all placeholder:text-on-surface/10" 
                                                 placeholder="Write a supportive comment..." 
                                             />
                                             <button 
                                                 onClick={() => handleComment(item._id)} 
-                                                className="rounded-2xl bg-[#76d6d5] text-[#131313] px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg active:scale-95"
+                                                className="rounded-2xl bg-brand text-background px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg active:scale-95"
                                             >
                                                 Post
                                             </button>

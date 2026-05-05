@@ -200,14 +200,14 @@ const AmbulanceDashboard = () => {
         <div className="resqpet-obsidian-theme flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
             <div className="w-20 h-20 rounded-[2rem] bg-[#ffb77d]/10 flex items-center justify-center text-4xl">⏳</div>
             <div className="space-y-2">
-                <h2 className="font-headline text-3xl font-extrabold text-[#e5e2e1]">Awaiting Approval</h2>
-                <p className="text-[#e5e2e1]/40 max-w-sm">Your ambulance account is under admin review. You'll be notified once approved.</p>
+                <h2 className="font-headline text-3xl font-extrabold text-on-surface">Awaiting Approval</h2>
+                <p className="text-on-surface/40 max-w-sm">Your ambulance account is under admin review. You'll be notified once approved.</p>
             </div>
         </div>
     );
 
     return (
-        <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-8">
+        <div className="resqpet-obsidian-theme w-full text-on-surface space-y-8">
             {/* Header */}
             <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="space-y-1">
@@ -216,33 +216,33 @@ const AmbulanceDashboard = () => {
                         <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border ${user.ambulanceType === 'linked' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
                             {user.ambulanceType === 'linked' ? 'Fleet Unit' : 'Independent'}
                         </span>
-                        {user.vehicleNumber && <span className="text-[10px] font-mono text-[#e5e2e1]/30">{user.vehicleNumber}</span>}
+                        {user.vehicleNumber && <span className="text-[10px] font-mono text-on-surface/30">{user.vehicleNumber}</span>}
                     </div>
                     <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">
                         Dispatch <span className="text-[#76d6d5]">Control</span>
                     </h1>
-                    <p className="text-[#e5e2e1]/40 text-sm">Manage assigned dispatches and share live location.</p>
+                    <p className="text-on-surface/40 text-sm">Manage assigned dispatches and share live location.</p>
                 </div>
-                <button onClick={fetchTask} className="h-11 w-11 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 transition-all self-start md:self-auto">
+                <button onClick={fetchTask} className="h-11 w-11 rounded-2xl bg-surface-hover border border-surface-border flex items-center justify-center hover:bg-surface-hover transition-all self-start md:self-auto">
                     <ArrowPathIcon className="w-4 h-4 text-[#76d6d5]" />
                 </button>
             </section>
 
             {/* Location Sharing Toggle */}
-            <div className={`glass-card rounded-[2rem] border p-6 transition-all ${locationSharing ? 'border-[#76d6d5]/30 bg-[#76d6d5]/5' : 'border-white/5 bg-[#1c1b1b]'}`}>
+            <div className={`glass-card rounded-[2rem] border p-6 transition-all ${locationSharing ? 'border-[#76d6d5]/30 bg-[#76d6d5]/5' : 'border-surface-border bg-surface'}`}>
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center ${locationSharing ? 'bg-[#76d6d5]/20' : 'bg-white/5'}`}>
+                        <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center ${locationSharing ? 'bg-[#76d6d5]/20' : 'bg-surface-hover'}`}>
                             <MapPinIcon className={`w-6 h-6 ${locationSharing ? 'text-[#76d6d5]' : 'text-white/20'}`} />
                             {locationSharing && (
                                 <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#76d6d5] border-2 border-[#131313] animate-pulse" />
                             )}
                         </div>
                         <div>
-                            <p className="font-bold text-sm text-[#e5e2e1]">
+                            <p className="font-bold text-sm text-on-surface">
                                 {locationSharing ? 'Location Sharing Active' : 'Location Sharing Off'}
                             </p>
-                            <p className="text-[10px] text-[#e5e2e1]/40 mt-0.5">
+                            <p className="text-[10px] text-on-surface/40 mt-0.5">
                                 {locationSharing ? 'Pinging hospital every 2 minutes' : 'Turn on when on an active dispatch'}
                             </p>
                             {locationError && <p className="text-[10px] text-red-400 mt-0.5">{locationError}</p>}
@@ -260,19 +260,19 @@ const AmbulanceDashboard = () => {
 
             {/* Quick Link: History */}
             <Link to="/ambulance/history"
-                className="glass-card rounded-2xl border border-white/5 bg-[#1c1b1b] p-4 flex items-center gap-3 hover:border-white/10 transition-all group">
+                className="glass-card rounded-2xl border border-surface-border bg-surface p-4 flex items-center gap-3 hover:border-surface-border transition-all group">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
                     <CheckCircleIcon className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                    <span className="text-xs font-black uppercase tracking-wider text-[#e5e2e1]/60 group-hover:text-[#e5e2e1] transition-colors">My Trip History</span>
+                    <span className="text-xs font-black uppercase tracking-wider text-on-surface/60 group-hover:text-on-surface transition-colors">My Trip History</span>
                     <p className="text-[9px] text-white/30 mt-0.5">View past completed dispatches and stats.</p>
                 </div>
                 <span className="text-white/20 text-lg">›</span>
             </Link>
 
             {loading ? (
-                <div className="space-y-4">{[1, 2].map(i => <div key={i} className="h-40 rounded-[2rem] bg-white/5 animate-pulse" />)}</div>
+                <div className="space-y-4">{[1, 2].map(i => <div key={i} className="h-40 rounded-[2rem] bg-surface-hover animate-pulse" />)}</div>
             ) : (
                 <>
                     {/* Active Assignment */}
@@ -282,8 +282,8 @@ const AmbulanceDashboard = () => {
                             <div className="glass-card rounded-[2rem] border border-[#76d6d5]/20 bg-[#76d6d5]/5 p-6 space-y-5">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="space-y-1.5 min-w-0 flex-1">
-                                        <p className="font-bold text-[#e5e2e1]">{task.description}</p>
-                                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#e5e2e1]/40">
+                                        <p className="font-bold text-on-surface">{task.description}</p>
+                                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-on-surface/40">
                                             <span>👤 {task.user?.name}</span>
                                             {task.user?.phone && <span>📞 {task.user.phone}</span>}
                                         </div>
@@ -305,8 +305,8 @@ const AmbulanceDashboard = () => {
                                         const done = idx <= currentIdx;
                                         return (
                                             <div key={step} className="flex items-center gap-2 flex-1">
-                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${done ? 'bg-[#76d6d5]' : 'bg-white/10'}`} />
-                                                {idx < 3 && <div className={`h-px flex-1 ${idx < currentIdx ? 'bg-[#76d6d5]/50' : 'bg-white/10'}`} />}
+                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${done ? 'bg-[#76d6d5]' : 'bg-surface-hover'}`} />
+                                                {idx < 3 && <div className={`h-px flex-1 ${idx < currentIdx ? 'bg-[#76d6d5]/50' : 'bg-surface-hover'}`} />}
                                             </div>
                                         );
                                     })}
@@ -338,8 +338,8 @@ const AmbulanceDashboard = () => {
                                 <div key={ping._id} className="glass-card rounded-[2rem] border border-amber-500/20 bg-amber-500/5 p-6 space-y-4">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0 flex-1">
-                                            <p className="font-bold text-[#e5e2e1]">{ping.description}</p>
-                                            <p className="text-xs text-[#e5e2e1]/40 mt-1">{ping.user?.name}</p>
+                                            <p className="font-bold text-on-surface">{ping.description}</p>
+                                            <p className="text-xs text-on-surface/40 mt-1">{ping.user?.name}</p>
                                             <div className="flex items-center gap-1.5 text-[10px] text-amber-400/60 mt-1">
                                                 <span className="material-symbols-outlined text-sm">local_hospital</span>
                                                 {ping.assignedHospital?.orgName || ping.assignedHospital?.name}
@@ -360,7 +360,7 @@ const AmbulanceDashboard = () => {
                                         <button
                                             onClick={() => handleRejectPing(ping._id)}
                                             disabled={!!acting[ping._id]}
-                                            className="flex-1 py-3 rounded-2xl border border-white/10 text-[#e5e2e1]/40 text-xs font-black uppercase tracking-widest hover:border-red-400/30 hover:text-red-400 transition-all disabled:opacity-50"
+                                            className="flex-1 py-3 rounded-2xl border border-surface-border text-on-surface/40 text-xs font-black uppercase tracking-widest hover:border-red-400/30 hover:text-red-400 transition-all disabled:opacity-50"
                                         >
                                             {acting[ping._id] === 'reject' ? '...' : 'Skip'}
                                         </button>
@@ -372,13 +372,13 @@ const AmbulanceDashboard = () => {
 
                     {/* Idle State */}
                     {!task && pings.length === 0 && (
-                        <div className="glass-card rounded-[2.5rem] border border-dashed border-white/10 p-16 text-center space-y-4">
+                        <div className="glass-card rounded-[2.5rem] border border-dashed border-surface-border p-16 text-center space-y-4">
                             <div className="w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center mx-auto">
                                 <TruckIcon className="w-8 h-8 text-[#76d6d5]" />
                             </div>
                             <p className="text-xs font-black uppercase tracking-widest text-white/20">Standing By</p>
                             <p className="text-xs text-white/20">No active assignment or incoming dispatches right now.</p>
-                            <button onClick={fetchTask} className="rounded-2xl border border-white/10 px-6 py-2.5 text-xs font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
+                            <button onClick={fetchTask} className="rounded-2xl border border-surface-border px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-surface/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
                                 Refresh
                             </button>
                         </div>

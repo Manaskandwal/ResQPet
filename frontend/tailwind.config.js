@@ -34,6 +34,11 @@ export default {
                     900: '#7c2d12',
                 },
                 // Semantic & New Obsidian System (Flat structure for reliable build)
+                'brand': {
+                    DEFAULT: 'var(--brand-primary)',
+                    dark: 'var(--brand-primary-dark)',
+                    rgb: 'var(--brand-primary-rgb)',
+                },
                 'surface-card': 'var(--bg-surface)',
                 'surface-hover': 'var(--bg-surface-hover)',
                 'surface-border': 'var(--border-surface)',

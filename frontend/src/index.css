@@ -3,6 +3,7 @@
 :root {
   --brand-primary: #76d6d5;
   --brand-primary-rgb: 118, 214, 213;
+  --brand-primary-dark: #008080;
   --bg-main: #0e0e0e;
   --bg-surface: #1c1b1b;
   --bg-surface-hover: #2a2a2a;
@@ -19,18 +20,21 @@
 }
 
 [data-theme="light"] {
-  --bg-main: #f5f8f8;
+  --brand-primary: #008080;
+  --brand-primary-rgb: 0, 128, 128;
+  --brand-primary-dark: #004d4d;
+  --bg-main: #f8fafc;
   --bg-surface: #ffffff;
-  --bg-surface-hover: #f0f4f4;
-  --text-main: #1a1d1d;
-  --text-on-surface: #1a1d1d;
-  --text-muted: #647372;
-  --text-muted-on-surface: #647372;
+  --bg-surface-hover: #f1f5f9;
+  --text-main: #0f172a;
+  --text-on-surface: #1e293b;
+  --text-muted: #64748b;
+  --text-muted-on-surface: #475569;
   --border-main: rgba(0, 0, 0, 0.08);
-  --border-surface: rgba(0, 0, 0, 0.08);
-  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --shadow-card: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
-  --shadow-card-hover: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+  --border-surface: rgba(0, 0, 0, 0.12);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 @tailwind base;

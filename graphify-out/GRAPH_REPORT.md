@@ -1,7 +1,7 @@
 # Graph Report - /home/manas/Desktop/extrawork/ResQPet  (2026-05-05)
 
 ## Corpus Check
-- 109 files · ~148,417 words
+- 109 files · ~148,466 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -174,8 +174,8 @@
   PROJECT_OVERVIEW.md → Draw.io/pawSaarthi (1).drawio.pdf
 - `PawSaarthi Workflow Diagram` --conceptually_related_to--> `Payment Flow & Refunds`  [EXTRACTED]
   Draw.io/pawSaarthi (1).drawio.pdf → README.md
-- `Sidebar()` --calls--> `useTheme()`  [INFERRED]
-  frontend/src/components/Sidebar.jsx → /home/manas/Desktop/extrawork/ResQPet/frontend/src/context/ThemeContext.jsx
+- `toDateInputValue()` --calls--> `ScheduleModal()`  [INFERRED]
+  frontend/src/utils/dateTime.js → /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/ngo/NGODashboard.jsx
 
 ## Hyperedges (group relationships)
 - **Rescue Escalation & Hand-off Flow** — module_hospital_controller, module_ngo_controller, module_ambulance_controller, module_rescue_controller, module_rescue_escalation_scheduler, concept_escalation_pipeline [INFERRED 0.90]

@@ -44,23 +44,23 @@ const ScheduleModal = ({ rescue, open, onClose, onConfirm, submitting, title = '
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
     if (isNewUI) return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-[2rem] border border-white/5 bg-[#1c1b1b] shadow-2xl">
-                <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+            <div className="w-full max-w-md rounded-[2rem] border border-surface-border bg-surface shadow-2xl">
+                <div className="flex items-center justify-between border-b border-surface-border px-6 py-5">
                     <div>
-                        <h3 className="font-headline font-bold text-[#e5e2e1]">{title}</h3>
-                        <p className="mt-1 truncate text-xs text-[#e5e2e1]/40">{rescue.description}</p>
+                        <h3 className="font-headline font-bold text-on-surface">{title}</h3>
+                        <p className="mt-1 truncate text-xs text-on-surface/40">{rescue.description}</p>
                     </div>
-                    <button onClick={onClose} className="rounded-xl p-2 hover:bg-white/5 text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-all"><XMarkIcon className="h-5 w-5" /></button>
+                    <button onClick={onClose} className="rounded-xl p-2 hover:bg-surface-hover text-on-surface/40 hover:text-on-surface transition-all"><XMarkIcon className="h-5 w-5" /></button>
                 </div>
                 <div className="space-y-4 p-6">
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Date</label><input type="date" className="w-full rounded-xl bg-white/5 border border-white/5 p-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" value={date} min={toDateInputValue(new Date())} onChange={(e) => setDate(e.target.value)} /></div>
-                        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Time</label><input type="time" className="w-full rounded-xl bg-white/5 border border-white/5 p-3 text-sm text-[#e5e2e1] outline-none focus:border-[#76d6d5]/30 transition-all" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-on-surface/30">Date</label><input type="date" className="w-full rounded-xl bg-surface-hover border border-surface-border p-3 text-sm text-on-surface outline-none focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10 transition-all" value={date} min={toDateInputValue(new Date())} onChange={(e) => setDate(e.target.value)} /></div>
+                        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-on-surface/30">Time</label><input type="time" className="w-full rounded-xl bg-surface-hover border border-surface-border p-3 text-sm text-on-surface outline-none focus:border-[#76d6d5]/30 transition-all" value={time} onChange={(e) => setTime(e.target.value)} /></div>
                     </div>
-                    <textarea className="w-full rounded-xl bg-white/5 border border-white/5 p-4 text-sm text-[#e5e2e1] h-24 outline-none focus:border-[#76d6d5]/30 transition-all" placeholder="Optional note for this visit" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                    <textarea className="w-full rounded-xl bg-surface-hover border border-surface-border p-4 text-sm text-on-surface h-24 outline-none focus:border-[#76d6d5]/30 transition-all" placeholder="Optional note for this visit" value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
-                <div className="flex gap-3 border-t border-white/5 px-6 py-5">
-                    <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/40 hover:bg-white/5 transition-all">Cancel</button>
+                <div className="flex gap-3 border-t border-surface-border px-6 py-5">
+                    <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-surface-border text-[10px] font-black uppercase tracking-widest text-on-surface/40 hover:bg-surface-hover transition-all">Cancel</button>
                     <button onClick={handleSubmit} disabled={submitting} className="flex-1 py-3 rounded-xl bg-[#76d6d5] text-[#131313] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">{submitting ? 'Saving...' : 'Confirm'}</button>
                 </div>
             </div>
@@ -105,39 +105,39 @@ const TransportModal = ({ open, onClose, onConfirm, actionType }) => {
 
     if (isNewUI) return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] shadow-2xl p-8 space-y-8 animate-scale-in">
+            <div className="w-full max-w-md rounded-[2.5rem] border border-surface-border bg-surface shadow-2xl p-8 space-y-8 animate-scale-in">
                 <div className="text-center space-y-4">
                     <div className="mx-auto w-16 h-16 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
                         <span className="material-symbols-outlined text-3xl">local_hospital</span>
                     </div>
                     <div className="space-y-2">
-                        <h3 className="text-2xl font-headline font-bold text-[#e5e2e1]">Hospital Transport</h3>
-                        <p className="text-sm text-[#e5e2e1]/40">How would you like to transport the animal to the hospital?</p>
+                        <h3 className="text-2xl font-headline font-bold text-on-surface">Hospital Transport</h3>
+                        <p className="text-sm text-on-surface/40">How would you like to transport the animal to the hospital?</p>
                     </div>
                 </div>
                 <div className="grid gap-4">
                     <button 
                         onClick={() => handleConfirm('self')}
-                        className="group flex items-center gap-4 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#76d6d5]/30 hover:bg-[#76d6d5]/5 transition-all text-left"
+                        className="group flex items-center gap-4 p-5 rounded-2xl bg-surface-hover border border-surface-border hover:border-[#76d6d5]/30 hover:bg-[#76d6d5]/5 transition-all text-left"
                     >
-                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-[#e5e2e1]/40 group-hover:text-[#76d6d5] transition-colors">
+                        <div className="w-12 h-12 rounded-xl bg-surface-hover flex items-center justify-center text-on-surface/40 group-hover:text-[#76d6d5] transition-colors">
                             <span className="material-symbols-outlined">person</span>
                         </div>
                         <div>
-                            <p className="font-bold text-sm text-[#e5e2e1]">Take by Yourself</p>
-                            <p className="text-[10px] text-[#e5e2e1]/30 uppercase font-black tracking-widest">Direct to Hospital Flow</p>
+                            <p className="font-bold text-sm text-on-surface">Take by Yourself</p>
+                            <p className="text-[10px] text-on-surface/30 uppercase font-black tracking-widest">Direct to Hospital Flow</p>
                         </div>
                     </button>
                     <button 
                         onClick={() => handleConfirm('ambulance')}
-                        className="group flex items-center gap-4 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#76d6d5]/30 hover:bg-[#76d6d5]/5 transition-all text-left"
+                        className="group flex items-center gap-4 p-5 rounded-2xl bg-surface-hover border border-surface-border hover:border-[#76d6d5]/30 hover:bg-[#76d6d5]/5 transition-all text-left"
                     >
-                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-[#e5e2e1]/40 group-hover:text-[#76d6d5] transition-colors">
+                        <div className="w-12 h-12 rounded-xl bg-surface-hover flex items-center justify-center text-on-surface/40 group-hover:text-[#76d6d5] transition-colors">
                             <span className="material-symbols-outlined">ambulance</span>
                         </div>
                         <div>
-                            <p className="font-bold text-sm text-[#e5e2e1]">Request Ambulance</p>
-                            <p className="text-[10px] text-[#e5e2e1]/30 uppercase font-black tracking-widest">Procedural Dispatch Flow</p>
+                            <p className="font-bold text-sm text-on-surface">Request Ambulance</p>
+                            <p className="text-[10px] text-on-surface/30 uppercase font-black tracking-widest">Procedural Dispatch Flow</p>
                         </div>
                     </button>
                     
@@ -146,17 +146,17 @@ const TransportModal = ({ open, onClose, onConfirm, actionType }) => {
                             type="checkbox" 
                             checked={cannotPay}
                             onChange={(e) => setCannotPay(e.target.checked)}
-                            className="mt-1 w-5 h-5 rounded border-white/10 bg-black/50 text-[#fd8b00] focus:ring-[#fd8b00] focus:ring-offset-0"
+                            className="mt-1 w-5 h-5 rounded border-on-surface/10 bg-black/50 text-[#fd8b00] focus:ring-[#fd8b00] focus:ring-offset-0"
                         />
                         <div className="flex-1 space-y-1">
-                            <div className="text-sm font-bold text-[#e5e2e1] group-hover:text-white transition-colors">I cannot cover hospital fees</div>
-                            <div className="text-[10px] text-[#e5e2e1]/50 font-medium leading-relaxed">
+                            <div className="text-sm font-bold text-on-surface group-hover:text-white transition-colors">I cannot cover hospital fees</div>
+                            <div className="text-[10px] text-on-surface/50 font-medium leading-relaxed">
                                 Checking this lets the system know it needs to find alternative funding (User or Platform Fund) for the hospital bill.
                             </div>
                         </div>
                     </label>
                 </div>
-                <button onClick={onClose} className="w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/20 hover:text-[#e5e2e1] transition-all">Cancel Request</button>
+                <button onClick={onClose} className="w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/20 hover:text-on-surface transition-all">Cancel Request</button>
             </div>
         </div>
     );
@@ -442,16 +442,16 @@ const NGODashboard = () => {
                         <div className="w-24 h-24 rounded-[2rem] bg-[#ffb77d]/10 flex items-center justify-center text-[#ffb77d] border border-[#ffb77d]/20 shadow-[0_0_50px_rgba(255,183,125,0.1)]">
                             <span className="material-symbols-outlined text-5xl animate-pulse">pending_actions</span>
                         </div>
-                        <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[#131313] border border-white/5 flex items-center justify-center text-[#ffb77d]">
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-background border border-surface-border flex items-center justify-center text-[#ffb77d]">
                             <span className="material-symbols-outlined text-sm">lock</span>
                         </div>
                     </div>
                     <div className="space-y-4 max-w-md">
                         <span className="text-[#ffb77d] text-[10px] font-black uppercase tracking-[0.3em]">Verification Protocol Active</span>
-                        <h2 className="font-headline text-3xl font-extrabold tracking-tight text-[#e5e2e1]">Awaiting <span className="text-[#76d6d5]">Admin Authorization</span></h2>
-                        <p className="text-[#e5e2e1]/40 text-sm leading-relaxed">Your organization credentials are being verified by the central command. You will receive dispatch clearance once the review is complete.</p>
+                        <h2 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Awaiting <span className="text-[#76d6d5]">Admin Authorization</span></h2>
+                        <p className="text-on-surface/40 text-sm leading-relaxed">Your organization credentials are being verified by the central command. You will receive dispatch clearance once the review is complete.</p>
                     </div>
-                    <button onClick={() => window.location.reload()} className="px-8 py-4 rounded-2xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
+                    <button onClick={() => window.location.reload()} className="px-8 py-4 rounded-2xl bg-surface-hover border border-surface-border text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/40 hover:text-[#76d6d5] hover:border-[#76d6d5]/20 transition-all">
                         Check Status Sync
                     </button>
                 </div>
@@ -473,7 +473,7 @@ const NGODashboard = () => {
 
     if (isNewUI) {
         return (
-            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-12 pb-20">
+            <div className="resqpet-obsidian-theme w-full text-on-surface space-y-12 pb-20">
                 <ScheduleModal 
                     rescue={scheduleCase} 
                     open={!!scheduleCase} 
@@ -506,18 +506,18 @@ const NGODashboard = () => {
                 <Transition appear show={walletModalOpen} as={Fragment}>
                     <Dialog as="div" className="relative z-50 resqpet-obsidian-theme" onClose={() => setWalletModalOpen(false)}>
                         <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-                            <div className="fixed inset-0 bg-[#131313]/90 backdrop-blur-xl" />
+                            <div className="fixed inset-0 bg-background/90 backdrop-blur-xl" />
                         </Transition.Child>
 
                         <div className="fixed inset-0 flex items-center justify-center p-4">
                             <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                                <Dialog.Panel className="w-full max-w-lg bg-[#1c1b1b] p-6 md:p-8 border border-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh]">
+                                <Dialog.Panel className="w-full max-w-lg bg-surface p-6 md:p-8 border border-surface-border shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh]">
                                     <div className="flex items-center justify-between mb-8">
-                                        <Dialog.Title className="text-2xl font-headline font-extrabold text-[#e5e2e1] flex items-center gap-3">
+                                        <Dialog.Title className="text-2xl font-headline font-extrabold text-on-surface flex items-center gap-3">
                                             <WalletIcon className="w-8 h-8 text-[#76d6d5]" />
                                             Unified Wallet
                                         </Dialog.Title>
-                                        <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-[#e5e2e1]/40">
+                                        <button onClick={() => setWalletModalOpen(false)} className="p-2 hover:bg-surface-hover rounded-full transition-colors text-on-surface/40">
                                             <XMarkIcon className="w-6 h-6" />
                                         </button>
                                     </div>
@@ -526,18 +526,18 @@ const NGODashboard = () => {
                                         <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#76d6d5]/10 rounded-full blur-3xl" />
                                         <div className="relative z-10 text-center py-4">
                                             <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Available Balance</span>
-                                            <p className="text-5xl font-headline font-black mt-2 mb-2 text-[#e5e2e1]">₹{wallet?.walletBalance?.toFixed(2) || '0.00'}</p>
+                                            <p className="text-5xl font-headline font-black mt-2 mb-2 text-on-surface">₹{wallet?.walletBalance?.toFixed(2) || '0.00'}</p>
                                         </div>
                                     </div>
 
                                     <div className="space-y-6">
                                         <div>
-                                            <label className="block text-xs font-black text-[#e5e2e1]/40 uppercase tracking-widest mb-3 px-2">Quick Top-up</label>
+                                            <label className="block text-xs font-black text-on-surface/40 uppercase tracking-widest mb-3 px-2">Quick Top-up</label>
                                             <div className="flex gap-2">
                                                 {[50, 100, 200, 500].map((amt) => (
                                                     <button key={amt} onClick={() => handleMockTopup(amt)}
                                                         disabled={mockPaying}
-                                                        className="flex-1 py-3 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-xs font-bold hover:bg-[#76d6d5]/10 hover:border-[#76d6d5]/30 transition-all active:scale-95 disabled:opacity-50">
+                                                        className="flex-1 py-3 rounded-2xl bg-surface-hover border border-surface-border text-on-surface text-xs font-bold hover:bg-[#76d6d5]/10 hover:border-[#76d6d5]/30 transition-all active:scale-95 disabled:opacity-50">
                                                         +₹{amt}
                                                     </button>
                                                 ))}
@@ -551,18 +551,18 @@ const NGODashboard = () => {
                                                     type="number" min="10" placeholder="Custom"
                                                     value={topupAmt}
                                                     onChange={(e) => setTopupAmt(e.target.value)}
-                                                    className="w-full h-14 px-6 rounded-2xl bg-white/5 border border-white/5 text-[#e5e2e1] text-sm focus:outline-none focus:ring-2 focus:ring-[#76d6d5]/20 focus:border-[#76d6d5]/50 transition-all font-bold placeholder:text-[#e5e2e1]/20"
+                                                    className="w-full h-14 px-6 rounded-2xl bg-surface-hover border border-surface-border text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-[#76d6d5]/20 focus:border-[#76d6d5]/50 transition-all font-bold placeholder:text-on-surface/20"
                                                 />
-                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#e5e2e1]/20">INR</span>
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-on-surface/20">INR</span>
                                             </div>
                                             <button onClick={handleTopup} disabled={paying} className="h-14 px-10 bg-[#e5e2e1] text-[#131313] rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-[#e5e2e1]/5 disabled:opacity-50">
                                                 {paying ? '...' : 'Top Up'}
                                             </button>
                                         </div>
 
-                                        <div className="pt-6 border-t border-white/5">
+                                        <div className="pt-6 border-t border-surface-border">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h3 className="font-bold text-[#e5e2e1]/40 text-xs uppercase tracking-widest px-2">Transactions</h3>
+                                                <h3 className="font-bold text-on-surface/40 text-xs uppercase tracking-widest px-2">Transactions</h3>
                                                 <button
                                                     onClick={() => { setWalletModalOpen(false); navigate('/user/payments?tab=all'); }}
                                                     className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:underline"
@@ -573,17 +573,17 @@ const NGODashboard = () => {
                                             <div className="overflow-hidden">
                                                 <div className="space-y-4 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
                                                     {wallet?.transactions?.length === 0 ? (
-                                                        <p className="text-[#e5e2e1]/20 text-xs text-center py-4">No history available</p>
+                                                        <p className="text-on-surface/20 text-xs text-center py-4">No history available</p>
                                                     ) : (
                                                         wallet.transactions.slice(0, 10).map((txn) => (
-                                                            <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
+                                                            <div key={txn._id} className="flex items-center justify-between p-3 rounded-xl hover:bg-surface-hover transition-colors">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] ${txn.type === 'debit' ? 'bg-red-500/10 text-red-400' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>
                                                                         <span className="material-symbols-outlined text-sm">{txn.type === 'debit' ? 'arrow_downward' : 'arrow_upward'}</span>
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-xs font-bold text-[#e5e2e1] truncate max-w-[200px]">{txn.description}</p>
-                                                                        <p className="text-[10px] text-[#e5e2e1]/40">{formatIndianDate(txn.createdAt)}</p>
+                                                                        <p className="text-xs font-bold text-on-surface truncate max-w-[200px]">{txn.description}</p>
+                                                                        <p className="text-[10px] text-on-surface/40">{formatIndianDate(txn.createdAt)}</p>
                                                                     </div>
                                                                 </div>
                                                                 <span className={`text-sm font-black ${txn.type === 'credit' || txn.type === 'refund' ? 'text-[#76d6d5]' : 'text-red-400'}`}>
@@ -609,12 +609,12 @@ const NGODashboard = () => {
                             <div className="space-y-2">
                                 <span className="text-[#76d6d5] text-[10px] font-black uppercase tracking-[0.3em]">Rescue Center</span>
                                 <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">NGO <span className="text-[#76d6d5]">Dashboard</span></h1>
-                                <p className="text-[#e5e2e1]/50 max-w-md">Help animals in need and manage your rescue tasks.</p>
+                                <p className="text-on-surface/50 max-w-md">Help animals in need and manage your rescue tasks.</p>
                             </div>
                             {/* Wallet Summary Card */}
                             <div 
                                 onClick={() => setWalletModalOpen(true)}
-                                className="glass-card rounded-[2rem] p-6 flex items-center gap-4 w-fit border border-white/5 bg-[#1c1b1b]/50 cursor-pointer hover:bg-[#1c1b1b] transition-all group"
+                                className="glass-card rounded-[2rem] p-6 flex items-center gap-4 w-fit border border-surface-border bg-surface/50 cursor-pointer hover:bg-surface transition-all group"
                             >
                                 <div className="w-12 h-12 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
                                     <WalletIcon className="w-6 h-6" />
@@ -625,7 +625,7 @@ const NGODashboard = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex bg-[#1c1b1b]/50 p-1 rounded-2xl border border-white/5 backdrop-blur-xl overflow-x-auto no-scrollbar scroll-smooth flex-nowrap">
+                        <div className="flex bg-surface/50 p-1 rounded-2xl border border-surface-border backdrop-blur-xl overflow-x-auto no-scrollbar scroll-smooth flex-nowrap">
                             {[
                                 { id: 'overview', label: 'Overview' },
                                 { id: 'nearby', label: 'Nearby' },
@@ -637,7 +637,7 @@ const NGODashboard = () => {
                                     className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${
                                         activeTab === t.id 
                                         ? 'bg-[#76d6d5] text-[#131313] shadow-[0_0_20px_rgba(118,214,213,0.3)]' 
-                                        : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
+                                        : 'text-on-surface/40 hover:text-on-surface'
                                     }`}
                                 >
                                     {t.label}
@@ -655,42 +655,42 @@ const NGODashboard = () => {
                                 [1, 2, 3, 4].map(i => <SkeletonStatCard key={i} />)
                             ) : analytics && (
                                 <>
-                                    <div className="glass-card rounded-[2rem] p-6 sm:p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-[#ffb77d]/30 transition-all flex flex-col justify-between h-52">
+                                    <div className="glass-card rounded-[2rem] p-6 sm:p-8 border border-surface-border bg-surface/30 group hover:border-[#ffb77d]/30 transition-all flex flex-col justify-between h-52">
                                         <div className="w-14 h-14 rounded-2xl bg-[#ffb77d]/10 flex items-center justify-center text-[#ffb77d] group-hover:scale-110 transition-transform">
                                             <ClockIcon className="w-7 h-7" />
                                         </div>
                                         <div>
-                                            <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.nearby_pending}</p>
-                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">Nearby Requests</p>
+                                            <p className="text-4xl font-headline font-black text-on-surface tracking-tighter">{analytics.nearby_pending}</p>
+                                            <p className="text-[10px] font-black text-on-surface/30 uppercase tracking-[0.2em]">Nearby Requests</p>
                                         </div>
                                     </div>
-                                    <div className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-blue-400/30 transition-all flex flex-col justify-between h-52">
+                                    <div className="glass-card rounded-[2rem] p-8 border border-surface-border bg-surface/30 group hover:border-blue-400/30 transition-all flex flex-col justify-between h-52">
                                         <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
                                             <ClipboardDocumentListIcon className="w-7 h-7" />
                                         </div>
                                         <div>
-                                            <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.accepted_count}</p>
-                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">My Tasks</p>
+                                            <p className="text-4xl font-headline font-black text-on-surface tracking-tighter">{analytics.accepted_count}</p>
+                                            <p className="text-[10px] font-black text-on-surface/30 uppercase tracking-[0.2em]">My Tasks</p>
                                         </div>
                                     </div>
-                                    <div className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-[#76d6d5]/30 transition-all flex flex-col justify-between h-52">
+                                    <div className="glass-card rounded-[2rem] p-8 border border-surface-border bg-surface/30 group hover:border-[#76d6d5]/30 transition-all flex flex-col justify-between h-52">
                                         <div className="w-14 h-14 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
                                             <CheckCircleIcon className="w-7 h-7" />
                                         </div>
                                         <div>
-                                            <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.completed_count}</p>
-                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">Animals Saved</p>
+                                            <p className="text-4xl font-headline font-black text-on-surface tracking-tighter">{analytics.completed_count}</p>
+                                            <p className="text-[10px] font-black text-on-surface/30 uppercase tracking-[0.2em]">Animals Saved</p>
                                         </div>
                                     </div>
-                                    <div className="glass-card rounded-[2rem] p-8 border border-white/5 bg-[#1c1b1b]/30 group hover:border-indigo-400/30 transition-all flex flex-col justify-between h-52">
+                                    <div className="glass-card rounded-[2rem] p-8 border border-surface-border bg-surface/30 group hover:border-indigo-400/30 transition-all flex flex-col justify-between h-52">
                                         <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
                                             <ChartBarIcon className="w-7 h-7" />
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-4xl font-headline font-black text-[#e5e2e1] tracking-tighter">{analytics.acceptance_rate}%</p>
+                                                <p className="text-4xl font-headline font-black text-on-surface tracking-tighter">{analytics.acceptance_rate}%</p>
                                             </div>
-                                            <p className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">Work Score</p>
+                                            <p className="text-[10px] font-black text-on-surface/30 uppercase tracking-[0.2em]">Work Score</p>
                                         </div>
                                     </div>
                                 </>
@@ -706,8 +706,8 @@ const NGODashboard = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {nearbyCases.slice(0, 3).map(c => (
-                                        <div key={c._id} className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b]/50 p-5 sm:p-6 flex flex-col md:flex-row gap-6 hover:border-[#76d6d5]/20 transition-all">
-                                            <div className="w-full md:w-32 aspect-[4/3] rounded-2xl overflow-hidden bg-white/5 shrink-0 relative">
+                                        <div key={c._id} className="glass-card rounded-[2rem] border border-surface-border bg-surface/50 p-5 sm:p-6 flex flex-col md:flex-row gap-6 hover:border-[#76d6d5]/20 transition-all">
+                                            <div className="w-full md:w-32 aspect-[4/3] rounded-2xl overflow-hidden bg-surface-hover shrink-0 relative">
                                                 {c.images?.[0] ? (
                                                     <img src={c.images[0]} alt="Subject" className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-500" />
                                                 ) : (
@@ -727,7 +727,7 @@ const NGODashboard = () => {
                                                         <StatusBadge status={c.status} />
                                                     </div>
                                                     <h4 className="font-bold text-lg mb-1 truncate">{c.description}</h4>
-                                                    <p className="text-[10px] font-black text-[#e5e2e1]/40 uppercase tracking-widest flex items-center gap-2">
+                                                    <p className="text-[10px] font-black text-on-surface/40 uppercase tracking-widest flex items-center gap-2">
                                                         <span className="material-symbols-outlined text-xs">location_on</span>
                                                         {c.location.address || 'Geo-Locked Area'}
                                                     </p>
@@ -735,7 +735,7 @@ const NGODashboard = () => {
                                                 <div className="flex gap-2 pt-4">
                                                     <button onClick={() => handleAccept(c._id, 'immediate')} className="flex-1 py-3 bg-[#76d6d5] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all">Accept Now</button>
                                                     <button onClick={() => setTransportCase({ id: c._id, actionType: 'accept' })} className="flex-1 py-3 bg-[#ffb77d] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all">Accept & Hospital</button>
-                                                    <button onClick={() => setScheduleCase(c)} className="px-4 py-3 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                                                    <button onClick={() => setScheduleCase(c)} className="px-4 py-3 bg-surface-hover border border-surface-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-surface-hover transition-all">
                                                         <ClockIcon className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -743,7 +743,7 @@ const NGODashboard = () => {
                                         </div>
                                     ))}
                                     {nearbyCases.length === 0 && (
-                                        <div className="p-12 glass-card rounded-[2.5rem] border border-dashed border-white/5 text-center space-y-4">
+                                        <div className="p-12 glass-card rounded-[2.5rem] border border-dashed border-surface-border text-center space-y-4">
                                             <span className="material-symbols-outlined text-4xl text-[#76d6d5]/20">satellite_alt</span>
                                             <p className="text-xs font-black uppercase tracking-widest text-white/20">Sector Clear - No Active Distress Signals</p>
                                         </div>
@@ -753,7 +753,7 @@ const NGODashboard = () => {
 
                              {/* Sector Stats & Map Quickview */}
                              <div className="lg:col-span-4 space-y-8">
-                                <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-6 sm:p-8 space-y-8">
+                                <div className="glass-card rounded-[2.5rem] border border-surface-border bg-surface p-6 sm:p-8 space-y-8">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
                                             <span className="material-symbols-outlined text-2xl">radar</span>
@@ -770,18 +770,18 @@ const NGODashboard = () => {
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Team Capacity</span>
                                                 <span className="text-sm font-bold text-[#76d6d5]">Active</span>
                                             </div>
-                                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="w-full h-1.5 bg-surface-hover rounded-full overflow-hidden">
                                                 <div className="h-full bg-gradient-to-r from-[#76d6d5] to-blue-500 w-3/4 animate-pulse-slow" />
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/10 space-y-2">
                                             <p className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">Active Volunteers</p>
-                                            <p className="text-2xl font-headline font-black text-[#e5e2e1]">128 HEROES</p>
+                                            <p className="text-2xl font-headline font-black text-on-surface">128 HEROES</p>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-6 text-center space-y-4">
-                                    <button onClick={fetchAll} className="w-full py-4 rounded-2xl border border-white/5 hover:bg-white/5 transition-all text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/30">Refresh List</button>
+                                <div className="glass-card rounded-[2.5rem] border border-surface-border bg-surface p-6 text-center space-y-4">
+                                    <button onClick={fetchAll} className="w-full py-4 rounded-2xl border border-surface-border hover:bg-surface-hover transition-all text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/30">Refresh List</button>
                                 </div>
                              </div>
                         </section>
@@ -803,7 +803,7 @@ const NGODashboard = () => {
                         <div className="flex items-center justify-between px-2">
                              <div className="flex items-center gap-3">
                                 <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">Active Transmissions</h2>
-                                <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">{nearbyCases.length}</span>
+                                <span className="px-3 py-1 bg-surface-hover rounded-full text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">{nearbyCases.length}</span>
                              </div>
                              <div className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
                                 <div className="w-2 h-2 rounded-full bg-[#76d6d5] animate-ping" />
@@ -813,14 +813,14 @@ const NGODashboard = () => {
 
                         <div className="grid grid-cols-1 gap-6">
                             {nearbyCases.length === 0 ? (
-                                <div className="py-32 glass-card rounded-[3rem] text-center border border-dashed border-white/5 space-y-6">
-                                     <div className="mx-auto w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-white/10 uppercase tracking-widest text-[10px] font-black">Scanning</div>
-                                     <h3 className="text-[#e5e2e1]/40 uppercase tracking-[0.3em] font-black">All Sectors Clear</h3>
+                                <div className="py-32 glass-card rounded-[3rem] text-center border border-dashed border-surface-border space-y-6">
+                                     <div className="mx-auto w-20 h-20 rounded-full bg-surface-hover flex items-center justify-center text-white/10 uppercase tracking-widest text-[10px] font-black">Scanning</div>
+                                     <h3 className="text-on-surface/40 uppercase tracking-[0.3em] font-black">All Sectors Clear</h3>
                                 </div>
                             ) : nearbyCases.map(c => (
-                                <div key={c._id} className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] overflow-hidden group hover:border-[#76d6d5]/30 transition-all">
+                                <div key={c._id} className="glass-card rounded-[2.5rem] border border-surface-border bg-surface overflow-hidden group hover:border-[#76d6d5]/30 transition-all">
                                     <div className="flex flex-col md:flex-row">
-                                        <div className="w-full md:w-64 aspect-square bg-[#131313] relative overflow-hidden group">
+                                        <div className="w-full md:w-64 aspect-square bg-background relative overflow-hidden group">
                                              {c.images?.[0] ? (
                                                 <img src={c.images[0]} alt="Reporting" className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700" />
                                              ) : (
@@ -831,7 +831,7 @@ const NGODashboard = () => {
                                              <div className="absolute top-4 left-4">
                                                 <StatusBadge status={c.status} />
                                              </div>
-                                             <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[8px] font-black text-[#76d6d5] uppercase tracking-widest border border-white/10">
+                                             <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[8px] font-black text-[#76d6d5] uppercase tracking-widest border border-surface-border">
                                                 {c.distance !== null && c.distance !== undefined ? `${c.distance.toFixed(1)}km Reach` : 'Unknown SCTR'}
                                              </div>
                                         </div>
@@ -839,7 +839,7 @@ const NGODashboard = () => {
                                             <div className="space-y-4">
                                                 <div className="space-y-1">
                                                     <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Distress Signal ID #{c._id.slice(-6).toUpperCase()}</p>
-                                                    <h3 className="font-headline text-2xl font-bold text-[#e5e2e1] leading-tight">{c.description}</h3>
+                                                    <h3 className="font-headline text-2xl font-bold text-on-surface leading-tight">{c.description}</h3>
                                                 </div>
                                                 <div className="flex flex-col gap-3">
                                                     <div className="flex items-center gap-3 text-sm text-white/40">
@@ -853,12 +853,12 @@ const NGODashboard = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap gap-4 pt-8 mt-8 border-t border-white/5">
+                                            <div className="flex flex-wrap gap-4 pt-8 mt-8 border-t border-surface-border">
                                                 <button onClick={() => handleAccept(c._id, 'immediate')} className="flex-1 min-w-[180px] h-14 bg-[#76d6d5] text-[#131313] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[#76d6d5]/10">Immediate Dispatch</button>
-                                                <button onClick={() => setScheduleCase(c)} className="w-14 h-14 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center hover:bg-white/10 transition-all active:scale-90">
+                                                <button onClick={() => setScheduleCase(c)} className="w-14 h-14 bg-surface-hover border border-surface-border rounded-2xl flex items-center justify-center hover:bg-surface-hover transition-all active:scale-90">
                                                     <ClockIcon className="w-5 h-5" />
                                                 </button>
-                                                <button onClick={() => handleReject(c._id)} className="w-14 h-14 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center hover:bg-red-500/20 text-red-400 group transition-all active:scale-90">
+                                                <button onClick={() => handleReject(c._id)} className="w-14 h-14 bg-surface-hover border border-surface-border rounded-2xl flex items-center justify-center hover:bg-red-500/20 text-red-400 group transition-all active:scale-90">
                                                     <XMarkIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                                 </button>
                                             </div>
@@ -874,21 +874,21 @@ const NGODashboard = () => {
                     <section className="space-y-10 animate-fade-in w-full">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="glass-card p-6 rounded-[2rem] border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between h-40">
-                                <p className="text-5xl font-headline font-black text-[#e5e2e1] px-2">{activeCases.length}</p>
+                                <p className="text-5xl font-headline font-black text-on-surface px-2">{activeCases.length}</p>
                             </div>
                             <div className="glass-card p-6 rounded-[2rem] border border-amber-500/20 bg-amber-500/5 flex flex-col justify-between h-40">
-                                <p className="text-5xl font-headline font-black text-[#e5e2e1] px-2">{scheduledCases.length}</p>
+                                <p className="text-5xl font-headline font-black text-on-surface px-2">{scheduledCases.length}</p>
                             </div>
                             <div className="glass-card p-6 rounded-[2rem] border border-[#76d6d5]/20 bg-[#76d6d5]/5 flex flex-col justify-between h-40">
                                 <h4 className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest px-2">Successful Rescues</h4>
-                                <p className="text-5xl font-headline font-black text-[#e5e2e1] px-2">{completedCases.length}</p>
+                                <p className="text-5xl font-headline font-black text-on-surface px-2">{completedCases.length}</p>
                             </div>
                         </div>
 
                         <div className="space-y-6">
                             <div className="flex flex-col md:flex-row gap-6">
                                 {/* Desktop List Tabs */}
-                                <div className="hidden md:flex bg-[#1c1b1b]/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl w-fit">
+                                <div className="hidden md:flex bg-surface/50 p-1.5 rounded-2xl border border-surface-border backdrop-blur-xl w-fit">
                                      {[
                                          { id: 'active', label: 'Current Rescues', count: activeCases.length },
                                          { id: 'scheduled_list', label: 'Planned Tasks', count: scheduledCases.length },
@@ -899,12 +899,12 @@ const NGODashboard = () => {
                                              onClick={() => setSearchParams({ tab: 'my_cases', list: t.id })}
                                              className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${
                                                  activeList === t.id 
-                                                 ? 'bg-white/10 text-[#76d6d4]' 
-                                                 : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
+                                                 ? 'bg-surface-hover text-[#76d6d4]' 
+                                                 : 'text-on-surface/40 hover:text-on-surface'
                                              }`}
                                          >
                                              {t.label}
-                                             <span className={`px-2 py-0.5 rounded-full text-[9px] ${activeList === t.id ? 'bg-[#76d6d4] text-[#131313]' : 'bg-white/5 text-white/30'}`}>{t.count}</span>
+                                             <span className={`px-2 py-0.5 rounded-full text-[9px] ${activeList === t.id ? 'bg-[#76d6d4] text-[#131313]' : 'bg-surface-hover text-white/30'}`}>{t.count}</span>
                                          </button>
                                      ))}
                                  </div>
@@ -915,14 +915,14 @@ const NGODashboard = () => {
                                         <select
                                             value={activeList}
                                             onChange={(e) => setSearchParams({ tab: 'my_cases', list: e.target.value })}
-                                            className="w-full bg-[#1c1b1b] border border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[#76d6d4] outline-none focus:ring-2 focus:ring-[#76d6d4]/20 transition-all appearance-none cursor-pointer"
+                                            className="w-full bg-surface border border-surface-border rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[#76d6d4] outline-none focus:ring-2 focus:ring-[#76d6d4]/20 transition-all appearance-none cursor-pointer"
                                         >
                                             {[
                                                 { id: 'active', label: 'Current Rescues' },
                                                 { id: 'scheduled_list', label: 'Planned Tasks' },
                                                 { id: 'completed_list', label: 'Archive' },
                                             ].map((t) => (
-                                                <option key={t.id} value={t.id} className="bg-[#1c1b1b]">
+                                                <option key={t.id} value={t.id} className="bg-surface">
                                                     {t.label.toUpperCase()}
                                                 </option>
                                             ))}
@@ -938,12 +938,12 @@ const NGODashboard = () => {
                                 {loading ? (
                                     [1, 2].map(i => <SkeletonCard key={i} />)
                                 ) : visibleCases.length === 0 ? (
-                                    <div className="py-32 glass-card rounded-[3rem] text-center border border-dashed border-white/5 space-y-4">
+                                    <div className="py-32 glass-card rounded-[3rem] text-center border border-dashed border-surface-border space-y-4">
                                          <span className="material-symbols-outlined text-5xl text-white/10">inventory_2</span>
                                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Empty Transaction Queue</p>
                                     </div>
                                 ) : visibleCases.map(c => (
-                                    <div key={c._id} className="glass-card rounded-[2rem] sm:rounded-[3rem] border border-white/5 bg-[#1c1b1b] p-6 sm:p-8 space-y-8 group hover:border-[#76d6d5]/30 transition-all">
+                                    <div key={c._id} className="glass-card rounded-[2rem] sm:rounded-[3rem] border border-surface-border bg-surface p-6 sm:p-8 space-y-8 group hover:border-[#76d6d5]/30 transition-all">
                                          <div className="flex items-start justify-between">
                                             <div className="space-y-2">
                                                  <div className="flex items-center gap-3">
@@ -965,7 +965,7 @@ const NGODashboard = () => {
                                                  </div>
                                             </div>
                                             <div className="flex -space-x-3">
-                                                 <div className="w-12 h-12 rounded-2xl bg-white/5 border-2 border-[#1c1b1b] flex items-center justify-center font-bold text-xs uppercase tracking-widest text-[#76d6d5]">{c.user?.name?.charAt(0) || 'A'}</div>
+                                                 <div className="w-12 h-12 rounded-2xl bg-surface-hover border-2 border-[#1c1b1b] flex items-center justify-center font-bold text-xs uppercase tracking-widest text-[#76d6d5]">{c.user?.name?.charAt(0) || 'A'}</div>
                                             </div>
                                          </div>
 
@@ -975,7 +975,7 @@ const NGODashboard = () => {
                                                      <span className="material-symbols-outlined">hail</span>
                                                      Manual Transport Mode
                                                  </div>
-                                                 <p className="text-xs text-[#e5e2e1]/60 leading-relaxed">
+                                                 <p className="text-xs text-on-surface/60 leading-relaxed">
                                                      No ambulance responded to this critical dispatch. The hospital has already accepted. 
                                                      Please coordinate manual transport for the subject to <strong>{c.assignedHospital?.name || 'Assigned Hospital'}</strong> immediately.
                                                  </p>
@@ -990,7 +990,7 @@ const NGODashboard = () => {
                                                      <button
                                                          onClick={() => handleManualResponse(c._id, false)}
                                                          disabled={acting[c._id]}
-                                                         className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white/50 text-[10px] font-black uppercase tracking-widest transition-all"
+                                                         className="flex-1 py-3 rounded-xl border border-surface-border hover:bg-surface-hover text-white/50 text-[10px] font-black uppercase tracking-widest transition-all"
                                                      >
                                                          Cannot Transport
                                                      </button>
@@ -1007,7 +1007,7 @@ const NGODashboard = () => {
                                                      </div>
                                                      <span className="text-2xl font-headline font-black text-white">₹{c.bill.totalAmount}</span>
                                                  </div>
-                                                 <p className="text-xs text-[#e5e2e1]/60">The hospital has submitted the estimated diagnosis and bill. Please pay to continue treatment.</p>
+                                                 <p className="text-xs text-on-surface/60">The hospital has submitted the estimated diagnosis and bill. Please pay to continue treatment.</p>
                                                  <button
                                                      onClick={() => handlePayBill(c._id)}
                                                      disabled={acting[c._id]}
@@ -1024,7 +1024,7 @@ const NGODashboard = () => {
                                                      <span className="material-symbols-outlined">moving</span>
                                                      Animal Discharged!
                                                  </div>
-                                                 <p className="text-xs text-[#e5e2e1]/70">Treatment is complete. How would you like to return the animal?</p>
+                                                 <p className="text-xs text-on-surface/70">Treatment is complete. How would you like to return the animal?</p>
                                                  <div className="flex flex-col sm:flex-row gap-3">
                                                      <button
                                                          onClick={() => handleReturnTransport(c._id, false)}
@@ -1045,7 +1045,7 @@ const NGODashboard = () => {
                                          )}
 
                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                             <div className="p-6 rounded-[2rem] bg-white/5 border border-white/5 space-y-4">
+                                             <div className="p-6 rounded-[2rem] bg-surface-hover border border-surface-border space-y-4">
                                                   <div className="flex items-center gap-3 mb-2">
                                                       <div className="w-8 h-8 rounded-lg bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
                                                           <MapPinIcon className="w-4 h-4" />
@@ -1063,7 +1063,7 @@ const NGODashboard = () => {
                                                       </a>
                                                   </div>
                                              </div>
-                                             <div className="p-6 rounded-[2rem] bg-white/5 border border-white/5 space-y-4">
+                                             <div className="p-6 rounded-[2rem] bg-surface-hover border border-surface-border space-y-4">
                                                   <div className="flex items-center gap-3 mb-2">
                                                       <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
                                                           <PhoneIcon className="w-4 h-4" />
@@ -1083,7 +1083,7 @@ const NGODashboard = () => {
                                          </div>
 
                                          {!['completed', 'cancelled', 'closed_unresolved'].includes(c.status) && (
-                                             <div className="pt-8 border-t border-white/5 space-y-8">
+                                             <div className="pt-8 border-t border-surface-border space-y-8">
                                                  <div className="flex flex-wrap gap-3">                                                      {c.status === 'accepted' && <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="px-6 py-4 bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Start Going</button>}
                                                       {c.status === 'scheduled' && <button onClick={() => handleUpdateStatus(c._id, 'on_the_way')} className="px-6 py-4 bg-amber-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Start Rescue</button>}
                                                       {c.status === 'on_the_way' && <button onClick={() => handleUpdateStatus(c._id, 'reached')} className="px-6 py-4 bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">I Have Reached</button>}
@@ -1097,12 +1097,12 @@ const NGODashboard = () => {
                                                      {c.status === 'resolved_on_spot' && (
                                                         <>
                                                             <button onClick={() => handleComplete(c._id)} className="px-6 py-4 bg-[#76d6d5] text-[#131313] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Decommission Mission</button>
-                                                            <button onClick={() => setFollowUpCase(c)} className="px-6 py-4 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Schedule Follow-up</button>
+                                                            <button onClick={() => setFollowUpCase(c)} className="px-6 py-4 bg-surface-hover border border-surface-border rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-surface-hover transition-all">Schedule Follow-up</button>
                                                         </>
                                                      )}
                                                  </div>
 
-                                                 <div className="glass-card rounded-[2.5rem] bg-[#131313] border border-white/5 p-8 space-y-6">
+                                                 <div className="glass-card rounded-[2.5rem] bg-background border border-surface-border p-8 space-y-6">
                                                      <div className="flex items-center gap-3 mb-2">
                                                          <div className="w-10 h-10 rounded-xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
                                                              <ArrowUpTrayIcon className="w-6 h-6" />
@@ -1110,7 +1110,7 @@ const NGODashboard = () => {
                                                          <h4 className="text-xl font-headline font-bold uppercase tracking-tight">Mission Log Analytics</h4>
                                                      </div>
                                                      <textarea 
-                                                         className="w-full h-24 bg-white/5 border border-white/5 rounded-2xl p-6 font-bold text-sm text-[#e5e2e1] focus:ring-2 focus:ring-[#76d6d5]/20 outline-none transition-all"
+                                                         className="w-full h-24 bg-surface-hover border border-surface-border rounded-2xl p-6 font-bold text-sm text-on-surface focus:ring-2 focus:ring-[#76d6d5]/20 outline-none transition-all"
                                                          placeholder="Append tactical observation or field notes..."
                                                          value={mediaComments[c._id] || ''} 
                                                          onChange={(e) => setMediaComments((prev) => ({ ...prev, [c._id]: e.target.value }))}
@@ -1125,7 +1125,7 @@ const NGODashboard = () => {
                                                              }}
                                                          />
                                                          <label htmlFor={`media-upload-${c._id}`} className="px-8 h-14 bg-[#76d6d5] text-[#131313] rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center shadow-lg hover:scale-105 transition-all cursor-pointer">Append Intel Media</label>
-                                                         <button onClick={() => handleUpdateStatus(c._id, c.status)} className="px-8 h-14 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">Save Notes Only</button>
+                                                         <button onClick={() => handleUpdateStatus(c._id, c.status)} className="px-8 h-14 rounded-xl border border-surface-border text-[10px] font-black uppercase tracking-widest hover:bg-surface-hover transition-all">Save Notes Only</button>
                                                      </div>
                                                  </div>
                                              </div>

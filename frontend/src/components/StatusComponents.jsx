@@ -142,13 +142,13 @@ export const StatusTimeline = ({ status, rescue }) => {
                                         ${done
                                             ? current
                                                 ? isNewUI 
-                                                    ? 'bg-[#76d6d4] border-[#76d6d4] text-[#131313] shadow-[0_0_20px_rgba(118,214,213,0.3)] scale-110'
+                                                    ? 'bg-brand border-brand text-background shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] scale-110'
                                                     : 'bg-primary-600 border-primary-600 text-white shadow-lg scale-110'
                                                 : isNewUI
-                                                    ? 'bg-[#76d6d4]/10 border-[#76d6d4]/20 text-[#76d6d4]'
+                                                    ? 'bg-brand/10 border-brand/20 text-brand'
                                                     : 'bg-primary-50 border-primary-100 text-primary-700'
                                             : isNewUI
-                                                ? 'bg-white/5 border-white/5 text-white/20'
+                                                ? 'bg-surface-hover border-surface-border text-on-surface/20'
                                                 : 'bg-slate-50 border-slate-100 text-slate-300'}
                                     `}
                                 >
@@ -156,8 +156,8 @@ export const StatusTimeline = ({ status, rescue }) => {
                                 </div>
                                 <p className={`text-[8px] mt-2 font-black uppercase tracking-widest text-center max-w-[70px] leading-tight transition-colors ${
                                     done 
-                                        ? (isNewUI ? 'text-[#e5e2e1]' : 'text-slate-700') 
-                                        : (isNewUI ? 'text-white/20' : 'text-slate-400')
+                                        ? (isNewUI ? 'text-on-surface' : 'text-slate-700') 
+                                        : (isNewUI ? 'text-on-surface/20' : 'text-slate-400')
                                 }`}>
                                     {step.label}
                                 </p>
@@ -165,8 +165,8 @@ export const StatusTimeline = ({ status, rescue }) => {
                             {idx < steps.length - 1 && (
                                 <div className={`h-[1px] w-8 mx-1 rounded-full transition-all duration-500 mt-5 shrink-0 ${
                                     idx < currentIdx 
-                                        ? (isNewUI ? 'bg-[#76d6d4]/40' : 'bg-primary-300') 
-                                        : (isNewUI ? 'bg-white/5' : 'bg-slate-100')
+                                        ? (isNewUI ? 'bg-brand/40' : 'bg-primary-300') 
+                                        : (isNewUI ? 'bg-surface-hover' : 'bg-slate-100')
                                 }`} />
                             )}
                         </div>
@@ -176,7 +176,7 @@ export const StatusTimeline = ({ status, rescue }) => {
             {/* Scroll hint for mobile */}
             <div className="md:hidden flex justify-center mt-[-10px] pb-4">
                  <div className="w-8 h-1 bg-slate-200/30 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${isNewUI ? 'bg-[#76d6d4]/20' : 'bg-primary-500/20'}`} style={{ width: `${((currentIdx + 1) / steps.length) * 100}%` }} />
+                    <div className={`h-full rounded-full transition-all ${isNewUI ? 'bg-brand/20' : 'bg-primary-500/20'}`} style={{ width: `${((currentIdx + 1) / steps.length) * 100}%` }} />
                  </div>
             </div>
         </div>

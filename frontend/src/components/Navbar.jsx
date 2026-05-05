@@ -138,7 +138,7 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                 {isMuted ? (
                                     <SpeakerXMarkIcon className={`w-5 h-5 ${isNewUI ? 'text-red-400' : 'text-red-600'}`} />
                                 ) : (
-                                    <SpeakerWaveIcon className={`w-5 h-5 ${isNewUI ? 'text-[#76d6d4]' : 'text-primary-600'}`} />
+                                    <SpeakerWaveIcon className={`w-5 h-5 ${isNewUI ? 'text-brand' : 'text-primary-600'}`} />
                                 )}
                             </button>
                         )}
@@ -164,7 +164,7 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                 onClick={() => setShowSwitcher(true)}
                                 className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all rounded-full border ${
                                     isNewUI 
-                                    ? 'text-[#76d6d5] bg-[#008080]/10 border-[#008080]/30 hover:bg-[#008080]/20' 
+                                    ? 'text-brand bg-brand-dark/10 border-brand-dark/30 hover:bg-brand-dark/20' 
                                     : 'text-indigo-600 bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
                                 }`}
                             >
@@ -227,7 +227,7 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                                 <p className="text-xs truncate text-surface-muted">{user?.email}</p>
                                                 {user?.isAdmin && (
                                                     <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full transition-all ${
-                                                        isNewUI ? 'text-[#76d6d5] bg-[#008080]/10' : 'text-indigo-600 bg-indigo-50'
+                                                        isNewUI ? 'text-brand bg-brand-dark/10' : 'text-indigo-600 bg-indigo-50'
                                                     }`}>
                                                         Admin
                                                     </span>
@@ -236,7 +236,7 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
 
                                             {/* Admin-only quick actions */}
                                             {user?.isAdmin && (
-                                                <div className={`py-1 border-b mb-1 transition-all ${isNewUI ? 'border-white/5' : 'border-surface-border'}`}>
+                                                <div className={`py-1 border-b mb-1 transition-all ${isNewUI ? 'border-surface-border' : 'border-surface-border'}`}>
                                                     {isImpersonating && (
                                                         <Menu.Item>
                                                             {({ active }) => (
@@ -290,7 +290,7 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                                         <Link
                                                             to="/ngo/fundraisers"
                                                             className={`${active 
-                                                                ? (isNewUI ? 'bg-surface-hover text-[#76d6d4]' : 'bg-[#008080]/10 text-[#008080]') 
+                                                                ? (isNewUI ? 'bg-surface-hover text-brand' : 'bg-brand-dark/10 text-brand-dark') 
                                                                 : (isNewUI ? 'text-on-background/70' : 'text-slate-600')} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
                                                         >
                                                             <CreditCardIcon className="w-4 h-4" />

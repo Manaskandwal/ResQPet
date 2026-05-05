@@ -19,21 +19,21 @@ const AuthDropdown = ({ options, value, onChange, label, icon: Icon }) => {
 
   return (
     <div className="space-y-1.5 relative w-full" ref={dropdownRef}>
-      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#e5e2e1]/30">{label}</label>
+      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/30">{label}</label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-white/5 border border-white/5 text-sm text-[#e5e2e1] hover:bg-white/10 hover:border-white/10 transition-all focus:border-[#76d6d5]/30 focus:ring-2 focus:ring-[#76d6d5]/10"
+        className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-surface hover:bg-surface-hover hover:border-surface-border transition-all focus:border-brand/30 focus:ring-2 focus:ring-brand/10"
       >
         <div className="flex items-center gap-3">
-            {Icon && <Icon className="w-5 h-5 text-[#76d6d5]" />}
+            {Icon && <Icon className="w-5 h-5 text-brand" />}
             <span className="font-bold">{selectedOption.label}</span>
         </div>
-        <ChevronDownIcon className={`w-4 h-4 text-[#e5e2e1]/30 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDownIcon className={`w-4 h-4 text-on-surface/30 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full rounded-2xl bg-[#1c1b1b] border border-white/10 shadow-2xl overflow-hidden backdrop-blur-xl animate-dropdown-in">
+        <div className="absolute z-50 mt-2 w-full rounded-2xl bg-surface border border-surface-border shadow-2xl overflow-hidden backdrop-blur-xl animate-dropdown-in">
           {options.map((option) => (
             <button
               key={option.value}
@@ -42,12 +42,12 @@ const AuthDropdown = ({ options, value, onChange, label, icon: Icon }) => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-4 px-5 py-4 text-sm text-left transition-all hover:bg-white/5 ${value === option.value ? 'bg-[#76d6d5]/10 text-[#76d6d5]' : 'text-[#e5e2e1]/60'}`}
+              className={`w-full flex items-center gap-4 px-5 py-4 text-sm text-left transition-all hover:bg-surface-hover ${value === option.value ? 'bg-brand/10 text-brand' : 'text-on-surface/60'}`}
             >
               <span className="text-xl">{option.icon || '🐾'}</span>
               <div className="flex flex-col">
                 <span className="font-bold">{option.label}</span>
-                {option.desc && <span className="text-[10px] text-white/30 uppercase tracking-widest">{option.desc}</span>}
+                {option.desc && <span className="text-[10px] text-on-surface/30 uppercase tracking-widest">{option.desc}</span>}
               </div>
             </button>
           ))}
