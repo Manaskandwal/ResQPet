@@ -1052,7 +1052,16 @@ const NGODashboard = () => {
                                                       </div>
                                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Rescue Location</span>
                                                   </div>
-                                                  <p className="text-sm font-bold leading-relaxed">{c.location.address || 'Address withheld by civilian'}</p>
+                                                  <div className="flex items-center justify-between gap-4">
+                                                      <p className="text-sm font-bold leading-relaxed flex-1">{c.location.address || 'Address withheld by civilian'}</p>
+                                                      <a 
+                                                          href={`geo:${c.location.lat},${c.location.lng}?q=${c.location.lat},${c.location.lng}`}
+                                                          className="px-4 py-2 rounded-xl bg-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/30 transition-all flex items-center gap-1 shrink-0"
+                                                      >
+                                                          <span className="material-symbols-outlined text-xs">navigation</span>
+                                                          Navigate
+                                                      </a>
+                                                  </div>
                                              </div>
                                              <div className="p-6 rounded-[2rem] bg-white/5 border border-white/5 space-y-4">
                                                   <div className="flex items-center gap-3 mb-2">
@@ -1062,7 +1071,11 @@ const NGODashboard = () => {
                                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Reporter Contact</span>
                                                   </div>
                                                   <div className="flex items-center justify-between">
-                                                      <p className="text-sm font-bold">{c.user?.name || 'Anonymous User'}</p>                                                       {c.user?.phone && (
+                                                      <div className="min-w-0">
+                                                          <p className="text-sm font-bold truncate">{c.user?.name || 'Anonymous User'}</p>
+                                                          {c.user?.phone && <p className="text-[10px] font-bold text-white/40 mt-0.5">{c.user.phone}</p>}
+                                                      </div>
+                                                      {c.user?.phone && (
                                                            <a href={`tel:${c.user.phone}`} className="px-4 py-2 rounded-xl bg-[#76d6d5] text-[#131313] text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all">Call Now</a>
                                                        )}
                                                   </div>
@@ -1127,7 +1140,7 @@ const NGODashboard = () => {
                 {/* FAB */}
                 <button 
                     onClick={() => setSearchParams({ tab: 'nearby' })}
-                    className="fixed right-8 bottom-8 w-16 h-16 bg-gradient-to-br from-[#fd8b00] to-[#ffb77d] text-[#131313] rounded-[1.5rem] flex items-center justify-center shadow-[0_20px_40px_-10px_rgba(253,139,0,0.4)] z-40 active:scale-90 transition-all group"
+                    className="fixed right-32 bottom-8 w-16 h-16 bg-gradient-to-br from-[#fd8b00] to-[#ffb77d] text-[#131313] rounded-[1.5rem] flex items-center justify-center shadow-[0_20px_40px_-10px_rgba(253,139,0,0.4)] z-40 active:scale-90 transition-all group"
                 >
                     <span className="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">emergency_share</span>
                 </button>

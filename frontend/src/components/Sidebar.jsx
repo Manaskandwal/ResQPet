@@ -32,6 +32,7 @@ const navConfig = {
         { to: '/ngo/dashboard?tab=overview', label: 'Overview', Icon: HomeIcon },
         { to: '/ngo/dashboard?tab=nearby', label: 'Nearby Cases', Icon: MapPinIcon },
         { to: '/ngo/dashboard?tab=my_cases', label: 'My Cases', Icon: ClipboardDocumentListIcon },
+        { to: '/fundraisers', label: 'Fundraisers', Icon: HeartIcon },
     ],
     hospital: [
         { to: '/hospital/dashboard', label: 'Dashboard', Icon: HomeIcon },

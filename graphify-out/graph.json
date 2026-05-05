@@ -7352,8 +7352,8 @@
       "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
       "source_location": "L34",
       "weight": 1.0,
-      "_src": "aichatcontroller_handlechat",
-      "_tgt": "aiagentservice_askvetscueagentstream",
+      "_src": "aiagentservice_askvetscueagentstream",
+      "_tgt": "aichatcontroller_handlechat",
       "source": "aiagentservice_askvetscueagentstream",
       "target": "aichatcontroller_handlechat"
     },
