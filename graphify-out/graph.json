@@ -206,7 +206,7 @@
       "source_file": "frontend/postcss.config.js",
       "source_location": "L1",
       "id": "frontend_postcss_config_js",
-      "community": 55,
+      "community": 57,
       "norm_label": "postcss.config.js"
     },
     {
@@ -215,7 +215,7 @@
       "source_file": "frontend/vite.config.js",
       "source_location": "L1",
       "id": "frontend_vite_config_js",
-      "community": 56,
+      "community": 58,
       "norm_label": "vite.config.js"
     },
     {
@@ -224,7 +224,7 @@
       "source_file": "frontend/eslint.config.js",
       "source_location": "L1",
       "id": "frontend_eslint_config_js",
-      "community": 57,
+      "community": 59,
       "norm_label": "eslint.config.js"
     },
     {
@@ -233,7 +233,7 @@
       "source_file": "frontend/tailwind.config.js",
       "source_location": "L1",
       "id": "frontend_tailwind_config_js",
-      "community": 58,
+      "community": 60,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -242,7 +242,7 @@
       "source_file": "frontend/src/socket.js",
       "source_location": "L1",
       "id": "frontend_src_socket_js",
-      "community": 15,
+      "community": 16,
       "norm_label": "socket.js"
     },
     {
@@ -251,7 +251,7 @@
       "source_file": "frontend/src/socket.js",
       "source_location": "L9",
       "id": "socket_getauthtoken",
-      "community": 15,
+      "community": 16,
       "norm_label": "getauthtoken()"
     },
     {
@@ -260,7 +260,7 @@
       "source_file": "frontend/src/socket.js",
       "source_location": "L30",
       "id": "socket_refreshsocketauth",
-      "community": 15,
+      "community": 16,
       "norm_label": "refreshsocketauth()"
     },
     {
@@ -269,23 +269,23 @@
       "source_file": "frontend/src/socket.js",
       "source_location": "L35",
       "id": "socket_connectsocket",
-      "community": 15,
+      "community": 16,
       "norm_label": "connectsocket()"
     },
     {
       "label": "App.jsx",
       "file_type": "code",
-      "source_file": "frontend/src/App.jsx",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
       "source_location": "L1",
-      "id": "frontend_src_app_jsx",
+      "id": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "community": 0,
       "norm_label": "app.jsx"
     },
     {
       "label": "RouteFallback()",
       "file_type": "code",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L36",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L37",
       "id": "app_routefallback",
       "community": 0,
       "norm_label": "routefallback()"
@@ -293,8 +293,8 @@
     {
       "label": "withSuspense()",
       "file_type": "code",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L42",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L43",
       "id": "app_withsuspense",
       "community": 0,
       "norm_label": "withsuspense()"
@@ -302,8 +302,8 @@
     {
       "label": "DashboardRedirect()",
       "file_type": "code",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L48",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L49",
       "id": "app_dashboardredirect",
       "community": 0,
       "norm_label": "dashboardredirect()"
@@ -311,8 +311,8 @@
     {
       "label": "App()",
       "file_type": "code",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L65",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L66",
       "id": "app_app",
       "community": 0,
       "norm_label": "app()"
@@ -323,7 +323,7 @@
       "source_file": "frontend/src/main.jsx",
       "source_location": "L1",
       "id": "frontend_src_main_jsx",
-      "community": 59,
+      "community": 61,
       "norm_label": "main.jsx"
     },
     {
@@ -422,7 +422,7 @@
       "source_file": "frontend/src/components/AuthDropdown.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_authdropdown_jsx",
-      "community": 26,
+      "community": 27,
       "norm_label": "authdropdown.jsx"
     },
     {
@@ -431,7 +431,7 @@
       "source_file": "frontend/src/components/AuthDropdown.jsx",
       "source_location": "L4",
       "id": "authdropdown_authdropdown",
-      "community": 26,
+      "community": 27,
       "norm_label": "authdropdown()"
     },
     {
@@ -440,7 +440,7 @@
       "source_file": "frontend/src/components/Layout.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_layout_jsx",
-      "community": 27,
+      "community": 28,
       "norm_label": "layout.jsx"
     },
     {
@@ -449,7 +449,7 @@
       "source_file": "frontend/src/components/Layout.jsx",
       "source_location": "L12",
       "id": "layout_layout",
-      "community": 27,
+      "community": 28,
       "norm_label": "layout()"
     },
     {
@@ -476,7 +476,7 @@
       "source_file": "frontend/src/components/Skeleton.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_skeleton_jsx",
-      "community": 16,
+      "community": 17,
       "norm_label": "skeleton.jsx"
     },
     {
@@ -485,7 +485,7 @@
       "source_file": "frontend/src/components/Skeleton.jsx",
       "source_location": "L3",
       "id": "skeleton_skeletoncard",
-      "community": 16,
+      "community": 17,
       "norm_label": "skeletoncard()"
     },
     {
@@ -494,7 +494,7 @@
       "source_file": "frontend/src/components/Skeleton.jsx",
       "source_location": "L11",
       "id": "skeleton_skeletonrow",
-      "community": 16,
+      "community": 17,
       "norm_label": "skeletonrow()"
     },
     {
@@ -503,7 +503,7 @@
       "source_file": "frontend/src/components/Skeleton.jsx",
       "source_location": "L22",
       "id": "skeleton_skeletonstatcard",
-      "community": 16,
+      "community": 17,
       "norm_label": "skeletonstatcard()"
     },
     {
@@ -543,6 +543,24 @@
       "norm_label": "sidebar()"
     },
     {
+      "label": "ChatbotWidget.jsx",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/components/ChatbotWidget.jsx",
+      "source_location": "L1",
+      "id": "home_manas_desktop_extrawork_resqpet_frontend_src_components_chatbotwidget_jsx",
+      "community": 0,
+      "norm_label": "chatbotwidget.jsx"
+    },
+    {
+      "label": "ChatbotWidget()",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/components/ChatbotWidget.jsx",
+      "source_location": "L19",
+      "id": "chatbotwidget_chatbotwidget",
+      "community": 0,
+      "norm_label": "chatbotwidget()"
+    },
+    {
       "label": "NotificationModal.jsx",
       "file_type": "code",
       "source_file": "frontend/src/components/NotificationModal.jsx",
@@ -566,7 +584,7 @@
       "source_file": "frontend/src/components/SocialShare.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_socialshare_jsx",
-      "community": 17,
+      "community": 18,
       "norm_label": "socialshare.jsx"
     },
     {
@@ -575,7 +593,7 @@
       "source_file": "frontend/src/components/SocialShare.jsx",
       "source_location": "L38",
       "id": "socialshare_loadimage",
-      "community": 17,
+      "community": 18,
       "norm_label": "loadimage()"
     },
     {
@@ -584,7 +602,7 @@
       "source_file": "frontend/src/components/SocialShare.jsx",
       "source_location": "L51",
       "id": "socialshare_createposterfile",
-      "community": 17,
+      "community": 18,
       "norm_label": "createposterfile()"
     },
     {
@@ -593,7 +611,7 @@
       "source_file": "frontend/src/components/SocialShare.jsx",
       "source_location": "L104",
       "id": "socialshare_socialshare",
-      "community": 17,
+      "community": 18,
       "norm_label": "socialshare()"
     },
     {
@@ -602,7 +620,7 @@
       "source_file": "frontend/src/components/SessionExpiryHandler.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_sessionexpiryhandler_jsx",
-      "community": 28,
+      "community": 29,
       "norm_label": "sessionexpiryhandler.jsx"
     },
     {
@@ -611,7 +629,7 @@
       "source_file": "frontend/src/components/SessionExpiryHandler.jsx",
       "source_location": "L4",
       "id": "sessionexpiryhandler_sessionexpiryhandler",
-      "community": 28,
+      "community": 29,
       "norm_label": "sessionexpiryhandler()"
     },
     {
@@ -620,7 +638,7 @@
       "source_file": "frontend/src/components/StatusComponents.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_statuscomponents_jsx",
-      "community": 18,
+      "community": 19,
       "norm_label": "statuscomponents.jsx"
     },
     {
@@ -629,7 +647,7 @@
       "source_file": "frontend/src/components/StatusComponents.jsx",
       "source_location": "L29",
       "id": "statuscomponents_statusbadge",
-      "community": 18,
+      "community": 19,
       "norm_label": "statusbadge()"
     },
     {
@@ -638,7 +656,7 @@
       "source_file": "frontend/src/components/StatusComponents.jsx",
       "source_location": "L91",
       "id": "statuscomponents_gettimelineconfig",
-      "community": 18,
+      "community": 19,
       "norm_label": "gettimelineconfig()"
     },
     {
@@ -647,7 +665,7 @@
       "source_file": "frontend/src/components/StatusComponents.jsx",
       "source_location": "L124",
       "id": "statuscomponents_statustimeline",
-      "community": 18,
+      "community": 19,
       "norm_label": "statustimeline()"
     },
     {
@@ -728,7 +746,7 @@
       "source_file": "frontend/src/components/PawLoader.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_pawloader_jsx",
-      "community": 29,
+      "community": 30,
       "norm_label": "pawloader.jsx"
     },
     {
@@ -737,7 +755,7 @@
       "source_file": "frontend/src/components/PawLoader.jsx",
       "source_location": "L3",
       "id": "pawloader_pawloader",
-      "community": 29,
+      "community": 30,
       "norm_label": "pawloader()"
     },
     {
@@ -746,7 +764,7 @@
       "source_file": "frontend/src/api/axios.js",
       "source_location": "L1",
       "id": "frontend_src_api_axios_js",
-      "community": 60,
+      "community": 62,
       "norm_label": "axios.js"
     },
     {
@@ -809,7 +827,7 @@
       "source_file": "frontend/src/pages/Impact.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_impact_jsx",
-      "community": 30,
+      "community": 31,
       "norm_label": "impact.jsx"
     },
     {
@@ -818,7 +836,7 @@
       "source_file": "frontend/src/pages/Impact.jsx",
       "source_location": "L10",
       "id": "impact_impact",
-      "community": 30,
+      "community": 31,
       "norm_label": "impact()"
     },
     {
@@ -908,7 +926,7 @@
       "source_file": "frontend/src/pages/user/SubmitRescue.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_user_submitrescue_jsx",
-      "community": 21,
+      "community": 22,
       "norm_label": "submitrescue.jsx"
     },
     {
@@ -917,7 +935,7 @@
       "source_file": "frontend/src/pages/user/SubmitRescue.jsx",
       "source_location": "L33",
       "id": "submitrescue_locationpicker",
-      "community": 21,
+      "community": 22,
       "norm_label": "locationpicker()"
     },
     {
@@ -926,7 +944,7 @@
       "source_file": "frontend/src/pages/user/SubmitRescue.jsx",
       "source_location": "L42",
       "id": "submitrescue_submitrescue",
-      "community": 21,
+      "community": 22,
       "norm_label": "submitrescue()"
     },
     {
@@ -980,7 +998,7 @@
       "source_file": "frontend/src/pages/user/MyRescueReports.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_user_myrescuereports_jsx",
-      "community": 31,
+      "community": 32,
       "norm_label": "myrescuereports.jsx"
     },
     {
@@ -989,7 +1007,7 @@
       "source_file": "frontend/src/pages/user/MyRescueReports.jsx",
       "source_location": "L11",
       "id": "myrescuereports_myrescuereports",
-      "community": 31,
+      "community": 32,
       "norm_label": "myrescuereports()"
     },
     {
@@ -998,7 +1016,7 @@
       "source_file": "frontend/src/pages/hospital/HospitalHistory.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_hospital_hospitalhistory_jsx",
-      "community": 32,
+      "community": 33,
       "norm_label": "hospitalhistory.jsx"
     },
     {
@@ -1007,7 +1025,7 @@
       "source_file": "frontend/src/pages/hospital/HospitalHistory.jsx",
       "source_location": "L8",
       "id": "hospitalhistory_hospitalhistory",
-      "community": 32,
+      "community": 33,
       "norm_label": "hospitalhistory()"
     },
     {
@@ -1088,7 +1106,7 @@
       "source_file": "frontend/src/pages/new-designs/CitizenUIDesign.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_new_designs_citizenuidesign_jsx",
-      "community": 33,
+      "community": 34,
       "norm_label": "citizenuidesign.jsx"
     },
     {
@@ -1097,7 +1115,7 @@
       "source_file": "frontend/src/pages/new-designs/CitizenUIDesign.jsx",
       "source_location": "L3",
       "id": "citizenuidesign_citizenuidesign",
-      "community": 33,
+      "community": 34,
       "norm_label": "citizenuidesign()"
     },
     {
@@ -1106,7 +1124,7 @@
       "source_file": "frontend/src/pages/new-designs/AmbulanceUIDesign.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_new_designs_ambulanceuidesign_jsx",
-      "community": 34,
+      "community": 35,
       "norm_label": "ambulanceuidesign.jsx"
     },
     {
@@ -1115,7 +1133,7 @@
       "source_file": "frontend/src/pages/new-designs/AmbulanceUIDesign.jsx",
       "source_location": "L3",
       "id": "ambulanceuidesign_ambulanceuidesign",
-      "community": 34,
+      "community": 35,
       "norm_label": "ambulanceuidesign()"
     },
     {
@@ -1124,7 +1142,7 @@
       "source_file": "frontend/src/pages/new-designs/NgoUIDesign.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_new_designs_ngouidesign_jsx",
-      "community": 35,
+      "community": 36,
       "norm_label": "ngouidesign.jsx"
     },
     {
@@ -1133,7 +1151,7 @@
       "source_file": "frontend/src/pages/new-designs/NgoUIDesign.jsx",
       "source_location": "L3",
       "id": "ngouidesign_ngouidesign",
-      "community": 35,
+      "community": 36,
       "norm_label": "ngouidesign()"
     },
     {
@@ -1142,7 +1160,7 @@
       "source_file": "frontend/src/pages/new-designs/AdminUIDesign.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_new_designs_adminuidesign_jsx",
-      "community": 36,
+      "community": 37,
       "norm_label": "adminuidesign.jsx"
     },
     {
@@ -1151,7 +1169,7 @@
       "source_file": "frontend/src/pages/new-designs/AdminUIDesign.jsx",
       "source_location": "L3",
       "id": "adminuidesign_adminuidesign",
-      "community": 36,
+      "community": 37,
       "norm_label": "adminuidesign()"
     },
     {
@@ -1160,7 +1178,7 @@
       "source_file": "frontend/src/pages/new-designs/HospitalUIDesign.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_new_designs_hospitaluidesign_jsx",
-      "community": 37,
+      "community": 38,
       "norm_label": "hospitaluidesign.jsx"
     },
     {
@@ -1169,7 +1187,7 @@
       "source_file": "frontend/src/pages/new-designs/HospitalUIDesign.jsx",
       "source_location": "L3",
       "id": "hospitaluidesign_hospitaluidesign",
-      "community": 37,
+      "community": 38,
       "norm_label": "hospitaluidesign()"
     },
     {
@@ -1335,12 +1353,30 @@
       "norm_label": "admindashboard()"
     },
     {
+      "label": "test-ai.js",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/test-ai.js",
+      "source_location": "L1",
+      "id": "home_manas_desktop_extrawork_resqpet_backend_test_ai_js",
+      "community": 39,
+      "norm_label": "test-ai.js"
+    },
+    {
+      "label": "testAI()",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/test-ai.js",
+      "source_location": "L5",
+      "id": "test_ai_testai",
+      "community": 39,
+      "norm_label": "testai()"
+    },
+    {
       "label": "server.js",
       "file_type": "code",
-      "source_file": "backend/server.js",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/server.js",
       "source_location": "L1",
-      "id": "backend_server_js",
-      "community": 61,
+      "id": "home_manas_desktop_extrawork_resqpet_backend_server_js",
+      "community": 63,
       "norm_label": "server.js"
     },
     {
@@ -1349,7 +1385,7 @@
       "source_file": "backend/utils/haversine.js",
       "source_location": "L1",
       "id": "backend_utils_haversine_js",
-      "community": 38,
+      "community": 40,
       "norm_label": "haversine.js"
     },
     {
@@ -1358,7 +1394,7 @@
       "source_file": "backend/utils/haversine.js",
       "source_location": "L11",
       "id": "haversine_haversinedistance",
-      "community": 38,
+      "community": 40,
       "norm_label": "haversinedistance()"
     },
     {
@@ -1367,7 +1403,7 @@
       "source_file": "backend/jobs/recurringJobs.js",
       "source_location": "L1",
       "id": "backend_jobs_recurringjobs_js",
-      "community": 22,
+      "community": 23,
       "norm_label": "recurringjobs.js"
     },
     {
@@ -1376,7 +1412,7 @@
       "source_file": "backend/jobs/recurringJobs.js",
       "source_location": "L7",
       "id": "recurringjobs_addbillingmonth",
-      "community": 22,
+      "community": 23,
       "norm_label": "addbillingmonth()"
     },
     {
@@ -1385,7 +1421,7 @@
       "source_file": "backend/jobs/recurringJobs.js",
       "source_location": "L28",
       "id": "recurringjobs_startrecurringemergencydeduction",
-      "community": 22,
+      "community": 23,
       "norm_label": "startrecurringemergencydeduction()"
     },
     {
@@ -1461,12 +1497,30 @@
       "norm_label": "rehydrateescalationjobs()"
     },
     {
+      "label": "aiAgentService.js",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/services/aiAgentService.js",
+      "source_location": "L1",
+      "id": "home_manas_desktop_extrawork_resqpet_backend_services_aiagentservice_js",
+      "community": 15,
+      "norm_label": "aiagentservice.js"
+    },
+    {
+      "label": "askVetsCueAgentStream()",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/services/aiAgentService.js",
+      "source_location": "L10",
+      "id": "aiagentservice_askvetscueagentstream",
+      "community": 15,
+      "norm_label": "askvetscueagentstream()"
+    },
+    {
       "label": "ambulanceDispatchService.js",
       "file_type": "code",
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L1",
       "id": "backend_services_ambulancedispatchservice_js",
-      "community": 1,
+      "community": 6,
       "norm_label": "ambulancedispatchservice.js"
     },
     {
@@ -1475,7 +1529,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L19",
       "id": "ambulancedispatchservice_startambulancedispatch",
-      "community": 1,
+      "community": 6,
       "norm_label": "startambulancedispatch()"
     },
     {
@@ -1484,7 +1538,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L46",
       "id": "ambulancedispatchservice_schedulerescuechecks",
-      "community": 1,
+      "community": 6,
       "norm_label": "schedulerescuechecks()"
     },
     {
@@ -1493,7 +1547,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L127",
       "id": "ambulancedispatchservice_stoprescuechecks",
-      "community": 1,
+      "community": 6,
       "norm_label": "stoprescuechecks()"
     },
     {
@@ -1502,7 +1556,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L138",
       "id": "ambulancedispatchservice_pingnearestambulance",
-      "community": 1,
+      "community": 6,
       "norm_label": "pingnearestambulance()"
     },
     {
@@ -1511,7 +1565,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L180",
       "id": "ambulancedispatchservice_handlestalledrescue",
-      "community": 1,
+      "community": 6,
       "norm_label": "handlestalledrescue()"
     },
     {
@@ -1520,7 +1574,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L268",
       "id": "ambulancedispatchservice_onrescueneedsambulance",
-      "community": 1,
+      "community": 6,
       "norm_label": "onrescueneedsambulance()"
     },
     {
@@ -1529,7 +1583,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L276",
       "id": "ambulancedispatchservice_initializeactivedispatches",
-      "community": 1,
+      "community": 6,
       "norm_label": "initializeactivedispatches()"
     },
     {
@@ -1538,7 +1592,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L288",
       "id": "ambulancedispatchservice_cleanup",
-      "community": 1,
+      "community": 6,
       "norm_label": "cleanup()"
     },
     {
@@ -1547,7 +1601,7 @@
       "source_file": "backend/services/ambulanceDispatchService.js",
       "source_location": "L299",
       "id": "ambulancedispatchservice_getactivedispatchcount",
-      "community": 1,
+      "community": 6,
       "norm_label": "getactivedispatchcount()"
     },
     {
@@ -1556,7 +1610,7 @@
       "source_file": "backend/config/db.js",
       "source_location": "L1",
       "id": "backend_config_db_js",
-      "community": 39,
+      "community": 41,
       "norm_label": "db.js"
     },
     {
@@ -1565,7 +1619,7 @@
       "source_file": "backend/config/db.js",
       "source_location": "L14",
       "id": "db_connectdb",
-      "community": 39,
+      "community": 41,
       "norm_label": "connectdb()"
     },
     {
@@ -1574,7 +1628,7 @@
       "source_file": "backend/config/razorpay.js",
       "source_location": "L1",
       "id": "backend_config_razorpay_js",
-      "community": 10,
+      "community": 11,
       "norm_label": "razorpay.js"
     },
     {
@@ -1583,7 +1637,7 @@
       "source_file": "backend/config/razorpay.js",
       "source_location": "L10",
       "id": "razorpay_getrazorpay",
-      "community": 10,
+      "community": 11,
       "norm_label": "getrazorpay()"
     },
     {
@@ -1592,7 +1646,7 @@
       "source_file": "backend/config/socket.js",
       "source_location": "L1",
       "id": "backend_config_socket_js",
-      "community": 1,
+      "community": 6,
       "norm_label": "socket.js"
     },
     {
@@ -1601,7 +1655,7 @@
       "source_file": "backend/config/socket.js",
       "source_location": "L7",
       "id": "socket_authenticatesocket",
-      "community": 1,
+      "community": 6,
       "norm_label": "authenticatesocket()"
     },
     {
@@ -1610,7 +1664,7 @@
       "source_file": "backend/config/socket.js",
       "source_location": "L29",
       "id": "socket_initsocket",
-      "community": 1,
+      "community": 6,
       "norm_label": "initsocket()"
     },
     {
@@ -1619,7 +1673,7 @@
       "source_file": "backend/config/socket.js",
       "source_location": "L121",
       "id": "socket_getio",
-      "community": 1,
+      "community": 6,
       "norm_label": "getio()"
     },
     {
@@ -1637,7 +1691,7 @@
       "source_file": "backend/config/socket.js",
       "source_location": "L153",
       "id": "socket_emitnewcasetongos",
-      "community": 1,
+      "community": 6,
       "norm_label": "emitnewcasetongos()"
     },
     {
@@ -1646,7 +1700,7 @@
       "source_file": "backend/config/socket.js",
       "source_location": "L171",
       "id": "socket_emitambulancedispatch",
-      "community": 1,
+      "community": 6,
       "norm_label": "emitambulancedispatch()"
     },
     {
@@ -1655,7 +1709,7 @@
       "source_file": "backend/config/cloudinary.js",
       "source_location": "L1",
       "id": "backend_config_cloudinary_js",
-      "community": 40,
+      "community": 42,
       "norm_label": "cloudinary.js"
     },
     {
@@ -1664,7 +1718,7 @@
       "source_file": "backend/config/cloudinary.js",
       "source_location": "L7",
       "id": "cloudinary_connectcloudinary",
-      "community": 40,
+      "community": 42,
       "norm_label": "connectcloudinary()"
     },
     {
@@ -1673,7 +1727,7 @@
       "source_file": "backend/config/constants.js",
       "source_location": "L1",
       "id": "backend_config_constants_js",
-      "community": 62,
+      "community": 64,
       "norm_label": "constants.js"
     },
     {
@@ -1799,7 +1853,7 @@
       "source_file": "backend/middleware/upload.js",
       "source_location": "L1",
       "id": "backend_middleware_upload_js",
-      "community": 5,
+      "community": 1,
       "norm_label": "upload.js"
     },
     {
@@ -1808,7 +1862,7 @@
       "source_file": "backend/middleware/upload.js",
       "source_location": "L8",
       "id": "upload_filefilter",
-      "community": 5,
+      "community": 1,
       "norm_label": "filefilter()"
     },
     {
@@ -1817,7 +1871,7 @@
       "source_file": "backend/middleware/upload.js",
       "source_location": "L37",
       "id": "upload_uploadbuffertocloudinary",
-      "community": 5,
+      "community": 1,
       "norm_label": "uploadbuffertocloudinary()"
     },
     {
@@ -1826,7 +1880,7 @@
       "source_file": "backend/middleware/errorHandler.js",
       "source_location": "L1",
       "id": "backend_middleware_errorhandler_js",
-      "community": 23,
+      "community": 24,
       "norm_label": "errorhandler.js"
     },
     {
@@ -1835,7 +1889,7 @@
       "source_file": "backend/middleware/errorHandler.js",
       "source_location": "L12",
       "id": "errorhandler_errorhandler",
-      "community": 23,
+      "community": 24,
       "norm_label": "errorhandler()"
     },
     {
@@ -1844,7 +1898,7 @@
       "source_file": "backend/middleware/errorHandler.js",
       "source_location": "L65",
       "id": "errorhandler_asynchandler",
-      "community": 23,
+      "community": 24,
       "norm_label": "asynchandler()"
     },
     {
@@ -1853,7 +1907,7 @@
       "source_file": "backend/middleware/validateMedia.js",
       "source_location": "L1",
       "id": "backend_middleware_validatemedia_js",
-      "community": 41,
+      "community": 43,
       "norm_label": "validatemedia.js"
     },
     {
@@ -1862,7 +1916,7 @@
       "source_file": "backend/middleware/validateMedia.js",
       "source_location": "L6",
       "id": "validatemedia_validatemedia",
-      "community": 41,
+      "community": 43,
       "norm_label": "validatemedia()"
     },
     {
@@ -1871,7 +1925,7 @@
       "source_file": "backend/middleware/roleGuard.js",
       "source_location": "L1",
       "id": "backend_middleware_roleguard_js",
-      "community": 42,
+      "community": 44,
       "norm_label": "roleguard.js"
     },
     {
@@ -1880,7 +1934,7 @@
       "source_file": "backend/middleware/roleGuard.js",
       "source_location": "L10",
       "id": "roleguard_allowroles",
-      "community": 42,
+      "community": 44,
       "norm_label": "allowroles()"
     },
     {
@@ -1889,7 +1943,7 @@
       "source_file": "backend/middleware/auth.js",
       "source_location": "L1",
       "id": "backend_middleware_auth_js",
-      "community": 24,
+      "community": 25,
       "norm_label": "auth.js"
     },
     {
@@ -1898,7 +1952,7 @@
       "source_file": "backend/middleware/auth.js",
       "source_location": "L5",
       "id": "auth_attachuserfromtoken",
-      "community": 24,
+      "community": 25,
       "norm_label": "attachuserfromtoken()"
     },
     {
@@ -1907,7 +1961,7 @@
       "source_file": "backend/middleware/auth.js",
       "source_location": "L36",
       "id": "auth_protect",
-      "community": 24,
+      "community": 25,
       "norm_label": "protect()"
     },
     {
@@ -1916,7 +1970,7 @@
       "source_file": "backend/scripts/resetAdmin.js",
       "source_location": "L1",
       "id": "backend_scripts_resetadmin_js",
-      "community": 43,
+      "community": 45,
       "norm_label": "resetadmin.js"
     },
     {
@@ -1925,7 +1979,7 @@
       "source_file": "backend/scripts/resetAdmin.js",
       "source_location": "L5",
       "id": "resetadmin_resetadmin",
-      "community": 43,
+      "community": 45,
       "norm_label": "resetadmin()"
     },
     {
@@ -1934,7 +1988,7 @@
       "source_file": "backend/scripts/upgradeAdmins.js",
       "source_location": "L1",
       "id": "backend_scripts_upgradeadmins_js",
-      "community": 44,
+      "community": 46,
       "norm_label": "upgradeadmins.js"
     },
     {
@@ -1943,7 +1997,7 @@
       "source_file": "backend/scripts/upgradeAdmins.js",
       "source_location": "L5",
       "id": "upgradeadmins_upgradeadmins",
-      "community": 44,
+      "community": 46,
       "norm_label": "upgradeadmins()"
     },
     {
@@ -1952,7 +2006,7 @@
       "source_file": "backend/scripts/listAllUsers.js",
       "source_location": "L1",
       "id": "backend_scripts_listallusers_js",
-      "community": 45,
+      "community": 47,
       "norm_label": "listallusers.js"
     },
     {
@@ -1961,7 +2015,7 @@
       "source_file": "backend/scripts/listAllUsers.js",
       "source_location": "L5",
       "id": "listallusers_listallusers",
-      "community": 45,
+      "community": 47,
       "norm_label": "listallusers()"
     },
     {
@@ -1970,7 +2024,7 @@
       "source_file": "backend/scripts/upgradeNamedUser.js",
       "source_location": "L1",
       "id": "backend_scripts_upgradenameduser_js",
-      "community": 46,
+      "community": 48,
       "norm_label": "upgradenameduser.js"
     },
     {
@@ -1979,7 +2033,7 @@
       "source_file": "backend/scripts/upgradeNamedUser.js",
       "source_location": "L5",
       "id": "upgradenameduser_upgradeusertoadmin",
-      "community": 46,
+      "community": 48,
       "norm_label": "upgradeusertoadmin()"
     },
     {
@@ -1988,7 +2042,7 @@
       "source_file": "backend/scripts/checkAdmin.js",
       "source_location": "L1",
       "id": "backend_scripts_checkadmin_js",
-      "community": 47,
+      "community": 49,
       "norm_label": "checkadmin.js"
     },
     {
@@ -1997,7 +2051,7 @@
       "source_file": "backend/scripts/checkAdmin.js",
       "source_location": "L5",
       "id": "checkadmin_checkadmin",
-      "community": 47,
+      "community": 49,
       "norm_label": "checkadmin()"
     },
     {
@@ -2006,7 +2060,7 @@
       "source_file": "backend/scripts/findSuperAdmin.js",
       "source_location": "L1",
       "id": "backend_scripts_findsuperadmin_js",
-      "community": 48,
+      "community": 50,
       "norm_label": "findsuperadmin.js"
     },
     {
@@ -2015,7 +2069,7 @@
       "source_file": "backend/scripts/findSuperAdmin.js",
       "source_location": "L5",
       "id": "findsuperadmin_findsuperadmin",
-      "community": 48,
+      "community": 50,
       "norm_label": "findsuperadmin()"
     },
     {
@@ -2024,7 +2078,7 @@
       "source_file": "backend/seeders/adminSeed.js",
       "source_location": "L1",
       "id": "backend_seeders_adminseed_js",
-      "community": 49,
+      "community": 51,
       "norm_label": "adminseed.js"
     },
     {
@@ -2033,7 +2087,7 @@
       "source_file": "backend/seeders/adminSeed.js",
       "source_location": "L12",
       "id": "adminseed_seedadmin",
-      "community": 49,
+      "community": 51,
       "norm_label": "seedadmin()"
     },
     {
@@ -2042,7 +2096,7 @@
       "source_file": "backend/routes/donationRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_donationroutes_js",
-      "community": 63,
+      "community": 65,
       "norm_label": "donationroutes.js"
     },
     {
@@ -2051,7 +2105,7 @@
       "source_file": "backend/routes/userRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_userroutes_js",
-      "community": 64,
+      "community": 66,
       "norm_label": "userroutes.js"
     },
     {
@@ -2060,7 +2114,7 @@
       "source_file": "backend/routes/hospitalRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_hospitalroutes_js",
-      "community": 65,
+      "community": 67,
       "norm_label": "hospitalroutes.js"
     },
     {
@@ -2069,7 +2123,7 @@
       "source_file": "backend/routes/adminRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_adminroutes_js",
-      "community": 66,
+      "community": 68,
       "norm_label": "adminroutes.js"
     },
     {
@@ -2078,7 +2132,7 @@
       "source_file": "backend/routes/rescueRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_rescueroutes_js",
-      "community": 67,
+      "community": 69,
       "norm_label": "rescueroutes.js"
     },
     {
@@ -2087,7 +2141,7 @@
       "source_file": "backend/routes/authRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_authroutes_js",
-      "community": 68,
+      "community": 70,
       "norm_label": "authroutes.js"
     },
     {
@@ -2096,7 +2150,7 @@
       "source_file": "backend/routes/ambulanceRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_ambulanceroutes_js",
-      "community": 69,
+      "community": 71,
       "norm_label": "ambulanceroutes.js"
     },
     {
@@ -2105,8 +2159,17 @@
       "source_file": "backend/routes/publicRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_publicroutes_js",
-      "community": 70,
+      "community": 72,
       "norm_label": "publicroutes.js"
+    },
+    {
+      "label": "aiChatRoutes.js",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/routes/aiChatRoutes.js",
+      "source_location": "L1",
+      "id": "home_manas_desktop_extrawork_resqpet_backend_routes_aichatroutes_js",
+      "community": 73,
+      "norm_label": "aichatroutes.js"
     },
     {
       "label": "ngoRoutes.js",
@@ -2114,7 +2177,7 @@
       "source_file": "backend/routes/ngoRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_ngoroutes_js",
-      "community": 71,
+      "community": 74,
       "norm_label": "ngoroutes.js"
     },
     {
@@ -2123,7 +2186,7 @@
       "source_file": "backend/routes/notificationRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_notificationroutes_js",
-      "community": 72,
+      "community": 75,
       "norm_label": "notificationroutes.js"
     },
     {
@@ -2132,7 +2195,7 @@
       "source_file": "backend/routes/paymentRoutes.js",
       "source_location": "L1",
       "id": "backend_routes_paymentroutes_js",
-      "community": 73,
+      "community": 76,
       "norm_label": "paymentroutes.js"
     },
     {
@@ -2141,7 +2204,7 @@
       "source_file": "backend/controllers/paymentController.js",
       "source_location": "L1",
       "id": "backend_controllers_paymentcontroller_js",
-      "community": 10,
+      "community": 11,
       "norm_label": "paymentcontroller.js"
     },
     {
@@ -2150,7 +2213,7 @@
       "source_file": "backend/controllers/paymentController.js",
       "source_location": "L18",
       "id": "paymentcontroller_mocktopup",
-      "community": 10,
+      "community": 11,
       "norm_label": "mocktopup()"
     },
     {
@@ -2159,7 +2222,7 @@
       "source_file": "backend/controllers/paymentController.js",
       "source_location": "L72",
       "id": "paymentcontroller_createorder",
-      "community": 10,
+      "community": 11,
       "norm_label": "createorder()"
     },
     {
@@ -2168,7 +2231,7 @@
       "source_file": "backend/controllers/paymentController.js",
       "source_location": "L139",
       "id": "paymentcontroller_verifypayment",
-      "community": 10,
+      "community": 11,
       "norm_label": "verifypayment()"
     },
     {
@@ -2231,7 +2294,7 @@
       "source_file": "backend/controllers/hospitalController.js",
       "source_location": "L123",
       "id": "hospitalcontroller_acceptbroadcastedcase",
-      "community": 1,
+      "community": 6,
       "norm_label": "acceptbroadcastedcase()"
     },
     {
@@ -2294,7 +2357,7 @@
       "source_file": "backend/controllers/authController.js",
       "source_location": "L1",
       "id": "backend_controllers_authcontroller_js",
-      "community": 74,
+      "community": 77,
       "norm_label": "authcontroller.js"
     },
     {
@@ -2303,7 +2366,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L1",
       "id": "backend_controllers_ngocontroller_js",
-      "community": 5,
+      "community": 1,
       "norm_label": "ngocontroller.js"
     },
     {
@@ -2312,7 +2375,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L9",
       "id": "ngocontroller_parsecoordinate",
-      "community": 5,
+      "community": 1,
       "norm_label": "parsecoordinate()"
     },
     {
@@ -2321,7 +2384,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L14",
       "id": "ngocontroller_pushstatuslog",
-      "community": 5,
+      "community": 1,
       "norm_label": "pushstatuslog()"
     },
     {
@@ -2330,7 +2393,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L24",
       "id": "ngocontroller_processescalationfallback",
-      "community": 5,
+      "community": 1,
       "norm_label": "processescalationfallback()"
     },
     {
@@ -2339,7 +2402,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L66",
       "id": "ngocontroller_getnearbycases",
-      "community": 5,
+      "community": 1,
       "norm_label": "getnearbycases()"
     },
     {
@@ -2348,7 +2411,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L110",
       "id": "ngocontroller_acceptcase",
-      "community": 5,
+      "community": 1,
       "norm_label": "acceptcase()"
     },
     {
@@ -2357,7 +2420,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L163",
       "id": "ngocontroller_updatengostatus",
-      "community": 5,
+      "community": 1,
       "norm_label": "updatengostatus()"
     },
     {
@@ -2366,7 +2429,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L209",
       "id": "ngocontroller_rejectcase",
-      "community": 5,
+      "community": 1,
       "norm_label": "rejectcase()"
     },
     {
@@ -2375,7 +2438,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L247",
       "id": "ngocontroller_getmycases",
-      "community": 5,
+      "community": 1,
       "norm_label": "getmycases()"
     },
     {
@@ -2384,7 +2447,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L261",
       "id": "ngocontroller_getanalytics",
-      "community": 5,
+      "community": 1,
       "norm_label": "getanalytics()"
     },
     {
@@ -2393,7 +2456,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L290",
       "id": "ngocontroller_resolveonspot",
-      "community": 5,
+      "community": 1,
       "norm_label": "resolveonspot()"
     },
     {
@@ -2402,7 +2465,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L312",
       "id": "ngocontroller_completecase",
-      "community": 5,
+      "community": 1,
       "norm_label": "completecase()"
     },
     {
@@ -2411,7 +2474,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L336",
       "id": "ngocontroller_addfollowup",
-      "community": 5,
+      "community": 1,
       "norm_label": "addfollowup()"
     },
     {
@@ -2420,7 +2483,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L361",
       "id": "ngocontroller_escalatetohospital",
-      "community": 5,
+      "community": 1,
       "norm_label": "escalatetohospital()"
     },
     {
@@ -2429,7 +2492,7 @@
       "source_file": "backend/controllers/ngoController.js",
       "source_location": "L387",
       "id": "ngocontroller_requestfundraiser",
-      "community": 5,
+      "community": 1,
       "norm_label": "requestfundraiser()"
     },
     {
@@ -2438,7 +2501,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L1",
       "id": "backend_controllers_usercontroller_js",
-      "community": 11,
+      "community": 10,
       "norm_label": "usercontroller.js"
     },
     {
@@ -2447,7 +2510,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L6",
       "id": "usercontroller_addbillingmonth",
-      "community": 11,
+      "community": 10,
       "norm_label": "addbillingmonth()"
     },
     {
@@ -2456,7 +2519,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L27",
       "id": "usercontroller_normalizemonthlysubscription",
-      "community": 11,
+      "community": 10,
       "norm_label": "normalizemonthlysubscription()"
     },
     {
@@ -2465,7 +2528,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L45",
       "id": "usercontroller_getprofile",
-      "community": 11,
+      "community": 10,
       "norm_label": "getprofile()"
     },
     {
@@ -2474,7 +2537,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L58",
       "id": "usercontroller_updateprofile",
-      "community": 11,
+      "community": 10,
       "norm_label": "updateprofile()"
     },
     {
@@ -2483,7 +2546,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L83",
       "id": "usercontroller_getwallet",
-      "community": 11,
+      "community": 10,
       "norm_label": "getwallet()"
     },
     {
@@ -2492,7 +2555,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L102",
       "id": "usercontroller_getngos",
-      "community": 11,
+      "community": 10,
       "norm_label": "getngos()"
     },
     {
@@ -2501,7 +2564,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L112",
       "id": "usercontroller_subscribeemergency",
-      "community": 11,
+      "community": 10,
       "norm_label": "subscribeemergency()"
     },
     {
@@ -2510,7 +2573,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L180",
       "id": "usercontroller_updatesubscriptionamount",
-      "community": 11,
+      "community": 10,
       "norm_label": "updatesubscriptionamount()"
     },
     {
@@ -2519,7 +2582,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L207",
       "id": "usercontroller_getpaymenthistory",
-      "community": 11,
+      "community": 10,
       "norm_label": "getpaymenthistory()"
     },
     {
@@ -2528,7 +2591,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L257",
       "id": "usercontroller_pausesubscription",
-      "community": 11,
+      "community": 10,
       "norm_label": "pausesubscription()"
     },
     {
@@ -2537,7 +2600,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L286",
       "id": "usercontroller_resumesubscription",
-      "community": 11,
+      "community": 10,
       "norm_label": "resumesubscription()"
     },
     {
@@ -2546,7 +2609,7 @@
       "source_file": "backend/controllers/userController.js",
       "source_location": "L313",
       "id": "usercontroller_cancelsubscription",
-      "community": 11,
+      "community": 10,
       "norm_label": "cancelsubscription()"
     },
     {
@@ -2555,7 +2618,7 @@
       "source_file": "backend/controllers/donationController.js",
       "source_location": "L1",
       "id": "backend_controllers_donationcontroller_js",
-      "community": 10,
+      "community": 11,
       "norm_label": "donationcontroller.js"
     },
     {
@@ -2564,7 +2627,7 @@
       "source_file": "backend/controllers/donationController.js",
       "source_location": "L11",
       "id": "donationcontroller_createdonationorder",
-      "community": 10,
+      "community": 11,
       "norm_label": "createdonationorder()"
     },
     {
@@ -2573,7 +2636,7 @@
       "source_file": "backend/controllers/donationController.js",
       "source_location": "L63",
       "id": "donationcontroller_verifydonation",
-      "community": 10,
+      "community": 11,
       "norm_label": "verifydonation()"
     },
     {
@@ -2582,7 +2645,7 @@
       "source_file": "backend/controllers/donationController.js",
       "source_location": "L124",
       "id": "donationcontroller_createsubscription",
-      "community": 10,
+      "community": 11,
       "norm_label": "createsubscription()"
     },
     {
@@ -2591,7 +2654,7 @@
       "source_file": "backend/controllers/donationController.js",
       "source_location": "L172",
       "id": "donationcontroller_verifysubscription",
-      "community": 10,
+      "community": 11,
       "norm_label": "verifysubscription()"
     },
     {
@@ -2600,7 +2663,7 @@
       "source_file": "backend/controllers/donationController.js",
       "source_location": "L205",
       "id": "donationcontroller_getpublicfundraisers",
-      "community": 10,
+      "community": 11,
       "norm_label": "getpublicfundraisers()"
     },
     {
@@ -2609,8 +2672,44 @@
       "source_file": "backend/controllers/donationController.js",
       "source_location": "L228",
       "id": "donationcontroller_donatewithwallet",
-      "community": 10,
+      "community": 11,
       "norm_label": "donatewithwallet()"
+    },
+    {
+      "label": "aiChatController.js",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L1",
+      "id": "home_manas_desktop_extrawork_resqpet_backend_controllers_aichatcontroller_js",
+      "community": 15,
+      "norm_label": "aichatcontroller.js"
+    },
+    {
+      "label": "handleChat()",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L9",
+      "id": "aichatcontroller_handlechat",
+      "community": 15,
+      "norm_label": "handlechat()"
+    },
+    {
+      "label": "getChatHistory()",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L77",
+      "id": "aichatcontroller_getchathistory",
+      "community": 15,
+      "norm_label": "getchathistory()"
+    },
+    {
+      "label": "clearChatHistory()",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L98",
+      "id": "aichatcontroller_clearchathistory",
+      "community": 15,
+      "norm_label": "clearchathistory()"
     },
     {
       "label": "adminController.js",
@@ -2753,7 +2852,7 @@
       "source_file": "backend/controllers/rescueController.js",
       "source_location": "L19",
       "id": "rescuecontroller_submitrescue",
-      "community": 1,
+      "community": 4,
       "norm_label": "submitrescue()"
     },
     {
@@ -2942,7 +3041,7 @@
       "source_file": "backend/controllers/notificationController.js",
       "source_location": "L1",
       "id": "backend_controllers_notificationcontroller_js",
-      "community": 75,
+      "community": 78,
       "norm_label": "notificationcontroller.js"
     },
     {
@@ -2951,7 +3050,7 @@
       "source_file": "backend/models/WalletTransaction.js",
       "source_location": "L1",
       "id": "backend_models_wallettransaction_js",
-      "community": 76,
+      "community": 79,
       "norm_label": "wallettransaction.js"
     },
     {
@@ -2960,7 +3059,7 @@
       "source_file": "backend/models/PaymentOrder.js",
       "source_location": "L1",
       "id": "backend_models_paymentorder_js",
-      "community": 77,
+      "community": 80,
       "norm_label": "paymentorder.js"
     },
     {
@@ -2969,7 +3068,7 @@
       "source_file": "backend/models/AuditLog.js",
       "source_location": "L1",
       "id": "backend_models_auditlog_js",
-      "community": 78,
+      "community": 81,
       "norm_label": "auditlog.js"
     },
     {
@@ -2978,7 +3077,7 @@
       "source_file": "backend/models/Donation.js",
       "source_location": "L1",
       "id": "backend_models_donation_js",
-      "community": 79,
+      "community": 82,
       "norm_label": "donation.js"
     },
     {
@@ -2987,7 +3086,7 @@
       "source_file": "backend/models/Commission.js",
       "source_location": "L1",
       "id": "backend_models_commission_js",
-      "community": 80,
+      "community": 83,
       "norm_label": "commission.js"
     },
     {
@@ -2996,7 +3095,7 @@
       "source_file": "backend/models/Notification.js",
       "source_location": "L1",
       "id": "backend_models_notification_js",
-      "community": 81,
+      "community": 84,
       "norm_label": "notification.js"
     },
     {
@@ -3005,8 +3104,17 @@
       "source_file": "backend/models/User.js",
       "source_location": "L1",
       "id": "backend_models_user_js",
-      "community": 82,
+      "community": 85,
       "norm_label": "user.js"
+    },
+    {
+      "label": "AIChatSession.js",
+      "file_type": "code",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/models/AIChatSession.js",
+      "source_location": "L1",
+      "id": "home_manas_desktop_extrawork_resqpet_backend_models_aichatsession_js",
+      "community": 86,
+      "norm_label": "aichatsession.js"
     },
     {
       "label": "RescueRequest.js",
@@ -3014,7 +3122,7 @@
       "source_file": "backend/models/RescueRequest.js",
       "source_location": "L1",
       "id": "backend_models_rescuerequest_js",
-      "community": 83,
+      "community": 87,
       "norm_label": "rescuerequest.js"
     },
     {
@@ -3026,7 +3134,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 84,
+      "community": 88,
       "norm_label": "pawsaarthi platform",
       "id": "concept_pawsaarthi_platform"
     },
@@ -3039,7 +3147,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 25,
+      "community": 26,
       "norm_label": "rescue escalation pipeline",
       "id": "concept_escalation_pipeline"
     },
@@ -3052,7 +3160,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 85,
+      "community": 89,
       "norm_label": "wallet system",
       "id": "concept_wallet_system"
     },
@@ -3065,7 +3173,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 25,
+      "community": 26,
       "norm_label": "pawsaarthi workflow diagram",
       "id": "file_pawsaarthi_pdf"
     },
@@ -3078,7 +3186,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 25,
+      "community": 26,
       "norm_label": "payment flow & refunds",
       "id": "concept_payment_flow"
     },
@@ -3086,7 +3194,7 @@
       "label": "Frontend README",
       "file_type": "document",
       "source_file": "frontend/README.md",
-      "community": 86,
+      "community": 90,
       "norm_label": "frontend readme",
       "id": "frontend_readme"
     },
@@ -3099,7 +3207,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 87,
+      "community": 91,
       "norm_label": "user",
       "id": "pawsaarthi_1_drawio_user"
     },
@@ -3112,7 +3220,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 88,
+      "community": 92,
       "norm_label": "ambulance partner",
       "id": "pawsaarthi_1_drawio_ambulance_partner"
     },
@@ -3125,7 +3233,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 89,
+      "community": 93,
       "norm_label": "hospital",
       "id": "pawsaarthi_1_drawio_hospital"
     },
@@ -3138,7 +3246,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 90,
+      "community": 94,
       "norm_label": "ngo",
       "id": "pawsaarthi_1_drawio_ngo"
     },
@@ -3151,7 +3259,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 91,
+      "community": 95,
       "norm_label": "admin",
       "id": "pawsaarthi_1_drawio_admin"
     },
@@ -3190,7 +3298,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 92,
+      "community": 96,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no"
     },
@@ -3242,7 +3350,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 50,
+      "community": 52,
       "norm_label": "save",
       "id": "pawsaarthi_1_drawio_save"
     },
@@ -3255,7 +3363,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 93,
+      "community": 97,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes"
     },
@@ -3268,7 +3376,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 94,
+      "community": 98,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_1"
     },
@@ -3320,7 +3428,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 95,
+      "community": 99,
       "norm_label": "treatment and cost",
       "id": "pawsaarthi_1_drawio_treatment_and_cost"
     },
@@ -3385,7 +3493,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "check availability of pvt hospital",
       "id": "pawsaarthi_1_drawio_check_availability_of_pvt_hospital"
     },
@@ -3398,7 +3506,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "available",
       "id": "pawsaarthi_1_drawio_available"
     },
@@ -3411,7 +3519,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 96,
+      "community": 100,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_1"
     },
@@ -3424,7 +3532,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 97,
+      "community": 101,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_2"
     },
@@ -3437,7 +3545,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 98,
+      "community": 102,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_3"
     },
@@ -3450,7 +3558,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "quick treament possible or not",
       "id": "pawsaarthi_1_drawio_quick_treament_possible_or_not"
     },
@@ -3463,7 +3571,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 99,
+      "community": 103,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_2"
     },
@@ -3476,7 +3584,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "ambulance flow",
       "id": "pawsaarthi_1_drawio_ambulance_flow_1"
     },
@@ -3489,7 +3597,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 100,
+      "community": 104,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_3"
     },
@@ -3502,7 +3610,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 101,
+      "community": 105,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_4"
     },
@@ -3515,7 +3623,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "available",
       "id": "pawsaarthi_1_drawio_available_1"
     },
@@ -3528,7 +3636,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "notify user / not possible",
       "id": "pawsaarthi_1_drawio_notify_user_not_possible"
     },
@@ -3541,7 +3649,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "report close",
       "id": "pawsaarthi_1_drawio_report_close"
     },
@@ -3554,7 +3662,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund"
     },
@@ -3567,7 +3675,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 50,
+      "community": 52,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_1"
     },
@@ -3580,7 +3688,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 102,
+      "community": 106,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_4"
     },
@@ -3593,7 +3701,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "quick treament possible or not",
       "id": "pawsaarthi_1_drawio_quick_treament_possible_or_not_1"
     },
@@ -3606,7 +3714,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "ambulance flow",
       "id": "pawsaarthi_1_drawio_ambulance_flow_2"
     },
@@ -3619,7 +3727,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 103,
+      "community": 107,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_5"
     },
@@ -3632,7 +3740,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 104,
+      "community": 108,
       "norm_label": "no  by all ngo  within range",
       "id": "pawsaarthi_1_drawio_no_by_all_ngo_within_range"
     },
@@ -3697,7 +3805,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 105,
+      "community": 109,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_6"
     },
@@ -3710,7 +3818,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 106,
+      "community": 110,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_5"
     },
@@ -3775,7 +3883,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 107,
+      "community": 111,
       "norm_label": "accepted (in previous flow)",
       "id": "pawsaarthi_1_drawio_accepted_in_previous_flow"
     },
@@ -3788,7 +3896,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 108,
+      "community": 112,
       "norm_label": "rejected (in previous flow)",
       "id": "pawsaarthi_1_drawio_rejected_in_previous_flow"
     },
@@ -3801,7 +3909,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "ngo&nbsp;",
       "id": "pawsaarthi_1_drawio_ngo_nbsp"
     },
@@ -3814,7 +3922,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 109,
+      "community": 113,
       "norm_label": "if accpeted by user",
       "id": "pawsaarthi_1_drawio_if_accpeted_by_user"
     },
@@ -3827,7 +3935,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "ask user to take to hospital",
       "id": "pawsaarthi_1_drawio_ask_user_to_take_to_hospital"
     },
@@ -3840,7 +3948,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "ambulance flow",
       "id": "pawsaarthi_1_drawio_ambulance_flow_3"
     },
@@ -3853,7 +3961,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_3"
     },
@@ -3866,7 +3974,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_4"
     },
@@ -3879,7 +3987,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_5"
     },
@@ -3892,7 +4000,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 7,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_6"
     },
@@ -3905,7 +4013,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 110,
+      "community": 114,
       "norm_label": "%3cmxgraphmodel%3e%3croot%3e%3cmxcell%20id%3d%220%22%2f%3e%3cmxcell%20id%3d%221%22%20parent%3d%220%22%2f%3e%3cmxcell%20id%3d%222%22%20connectable%3d%220%22%20parent%3d%221%22%20style%3d%22edgelabel%3bhtml%3d1%3balign%3dcenter%3bverticalalign%3dmiddle%3bresizable%3d0%3bpoints%3d%5b%5d%3b%22%20value%3d%22if%20rejected%20by%20user%22%20vertex%3d%221%22%3e%3cmxgeometry%20x%3d%22399.0895177088387%22%20y%3d%221370.0050504082%22%20as%3d%22geometry%22%2f%3e%3c%2fmxcell%3e%3c%2froot%3e%3c%2fmxgraphmodel%3e  %3cmxgraphmodel%3e%3croot%3e%3cmxcell%20id%3d%220%22%2f%3e%3cmxcell%20id%3d%221%22%20parent%3d%220%22%2f%3e%3cmxcell%20id%3d%222%22%20connectable%3d%220%22%20parent%3d%221%22%20style%3d%22edgelabel%3bhtml%3d1%3balign%3dcenter%3bverticalalign%3dmiddle%3bresizable%3d0%3bpoints%3d%5b%5d%3b%22%20value%3d%22if%20rejected%20by%20user%22%20vertex%3d%221%22%3e%3cmxgeometry%20x%3d%22399.0895177088387%22%20y%3d%221370.0050504082%22%20as%3d%22geometry%22%2f%3e%3c%2fmxcell%3e%3c%2froot%3e%3c%2fmxgraphmodel%3e",
       "id": "pawsaarthi_1_drawio_3cmxgraphmodel_3e_3croot_3e_3cmxcell_20id_3d_220_22_2f_3e_3cmxcell_20id_3d_221_22_20parent_3d_220_22_2f_3e_3cmxcell_20id_3d_222_22_20connectable_3d_220_22_20parent_3d_221_22_20style_3d_22edgelabel_3bhtml_3d1_3balign_3dcenter_3bverticalalign_3dmiddle_3bresizable_3d0_3bpoints_3d_5b_5d_3b_22_20value_3d_22if_20rejected_20by_20user_22_20vertex_3d_221_22_3e_3cmxgeometry_20x_3d_22399_0895177088387_22_20y_3d_221370_0050504082_22_20as_3d_22geometry_22_2f_3e_3c_2fmxcell_3e_3c_2froot_3e_3c_2fmxgraphmodel_3e_3cmxgraphmodel_3e_3croot_3e_3cmxcell_20id_3d_220_22_2f_3e_3cmxcell_20id_3d_221_22_20parent_3d_220_22_2f_3e_3cmxcell_20id_3d_222_22_20connectable_3d_220_22_20parent_3d_221_22_20style_3d_22edgelabel_3bhtml_3d1_3balign_3dcenter_3bverticalalign_3dmiddle_3bresizable_3d0_3bpoints_3d_5b_5d_3b_22_20value_3d_22if_20rejected_20by_20user_22_20vertex_3d_221_22_3e_3cmxgeometry_20x_3d_22399_0895177088387_22_20y_3d_221370_0050504082_22_20as_3d_22geometry_22_2f_3e_3c_2fmxcell_3e_3c_2froot_3e_3c_2fmxgraphmodel_3e"
     },
@@ -3918,7 +4026,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 111,
+      "community": 115,
       "norm_label": "if rejected by user",
       "id": "pawsaarthi_1_drawio_if_rejected_by_user"
     },
@@ -3931,7 +4039,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 112,
+      "community": 116,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_7"
     },
@@ -3944,7 +4052,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 113,
+      "community": 117,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_6"
     },
@@ -3996,7 +4104,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 114,
+      "community": 118,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_8"
     },
@@ -4009,7 +4117,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 115,
+      "community": 119,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_7"
     },
@@ -4048,7 +4156,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 116,
+      "community": 120,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_9"
     },
@@ -4074,7 +4182,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 117,
+      "community": 121,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_8"
     },
@@ -4087,7 +4195,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 118,
+      "community": 122,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_10"
     },
@@ -4113,7 +4221,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 51,
+      "community": 53,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_3"
     },
@@ -4126,7 +4234,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 51,
+      "community": 53,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_7"
     },
@@ -4178,7 +4286,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 119,
+      "community": 123,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_9"
     },
@@ -4269,7 +4377,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 120,
+      "community": 124,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_11"
     },
@@ -4282,7 +4390,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 121,
+      "community": 125,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_10"
     },
@@ -4373,7 +4481,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 122,
+      "community": 126,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_12"
     },
@@ -4386,7 +4494,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "is user is paying 100%",
       "id": "pawsaarthi_1_drawio_is_user_is_paying_100"
     },
@@ -4399,7 +4507,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 123,
+      "community": 127,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_11"
     },
@@ -4412,7 +4520,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 124,
+      "community": 128,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_13"
     },
@@ -4490,7 +4598,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "reached hospital , treatment done",
       "id": "pawsaarthi_1_drawio_reached_hospital_treatment_done_3"
     },
@@ -4503,7 +4611,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "discharge animal back to orignal place",
       "id": "pawsaarthi_1_drawio_discharge_animal_back_to_orignal_place_3"
     },
@@ -4516,7 +4624,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_7"
     },
@@ -4529,7 +4637,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_13"
     },
@@ -4542,7 +4650,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 125,
+      "community": 129,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_12"
     },
@@ -4555,7 +4663,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 126,
+      "community": 130,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_14"
     },
@@ -4581,7 +4689,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 127,
+      "community": 131,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_15"
     },
@@ -4594,7 +4702,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 128,
+      "community": 132,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_13"
     },
@@ -4607,7 +4715,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "ngo able to give full payment?&nbsp;",
       "id": "pawsaarthi_1_drawio_ngo_able_to_give_full_payment_nbsp"
     },
@@ -4620,7 +4728,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "reached hospital , treatment done",
       "id": "pawsaarthi_1_drawio_reached_hospital_treatment_done_4"
     },
@@ -4633,7 +4741,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "discharge animal back to orignal place",
       "id": "pawsaarthi_1_drawio_discharge_animal_back_to_orignal_place_4"
     },
@@ -4646,7 +4754,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_8"
     },
@@ -4659,7 +4767,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_14"
     },
@@ -4672,7 +4780,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 129,
+      "community": 133,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_14"
     },
@@ -4685,7 +4793,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 130,
+      "community": 134,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_16"
     },
@@ -4698,7 +4806,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "user is paying partial payment?",
       "id": "pawsaarthi_1_drawio_user_is_paying_partial_payment"
     },
@@ -4711,7 +4819,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 131,
+      "community": 135,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_17"
     },
@@ -4724,7 +4832,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 132,
+      "community": 136,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_15"
     },
@@ -4737,7 +4845,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "donations/ fundrasier successful?",
       "id": "pawsaarthi_1_drawio_donations_fundrasier_successful_1"
     },
@@ -4750,7 +4858,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "reached hospital , treatment done",
       "id": "pawsaarthi_1_drawio_reached_hospital_treatment_done_5"
     },
@@ -4763,7 +4871,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "discharge animal back to orignal place",
       "id": "pawsaarthi_1_drawio_discharge_animal_back_to_orignal_place_5"
     },
@@ -4776,7 +4884,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_9"
     },
@@ -4789,7 +4897,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_15"
     },
@@ -4802,7 +4910,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "donation for remainng amount",
       "id": "pawsaarthi_1_drawio_donation_for_remainng_amount"
     },
@@ -4815,7 +4923,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "donation for total amount",
       "id": "pawsaarthi_1_drawio_donation_for_total_amount"
     },
@@ -4828,7 +4936,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "notify the user that treatment not possible",
       "id": "pawsaarthi_1_drawio_notify_the_user_that_treatment_not_possible"
     },
@@ -4841,7 +4949,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_10"
     },
@@ -4854,7 +4962,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_16"
     },
@@ -4867,7 +4975,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 2,
       "norm_label": "ambulance flow",
       "id": "pawsaarthi_1_drawio_ambulance_flow_4"
     },
@@ -4880,7 +4988,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 133,
+      "community": 137,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_16"
     },
@@ -4893,7 +5001,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 134,
+      "community": 138,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_18"
     },
@@ -4906,7 +5014,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "user is paying remaining partial payment?",
       "id": "pawsaarthi_1_drawio_user_is_paying_remaining_partial_payment"
     },
@@ -4919,7 +5027,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 135,
+      "community": 139,
       "norm_label": "yes",
       "id": "pawsaarthi_1_drawio_yes_19"
     },
@@ -4932,7 +5040,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 136,
+      "community": 140,
       "norm_label": "no",
       "id": "pawsaarthi_1_drawio_no_17"
     },
@@ -4945,7 +5053,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "donations/ fundrasier successful?",
       "id": "pawsaarthi_1_drawio_donations_fundrasier_successful_2"
     },
@@ -4958,7 +5066,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "reached hospital , treatment done",
       "id": "pawsaarthi_1_drawio_reached_hospital_treatment_done_6"
     },
@@ -4971,7 +5079,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "discharge animal back to orignal place",
       "id": "pawsaarthi_1_drawio_discharge_animal_back_to_orignal_place_6"
     },
@@ -4984,7 +5092,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 52,
+      "community": 54,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_11"
     },
@@ -4997,7 +5105,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 52,
+      "community": 54,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_17"
     },
@@ -5010,7 +5118,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "donation for remaining amount",
       "id": "pawsaarthi_1_drawio_donation_for_remaining_amount"
     },
@@ -5023,7 +5131,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "notify the user that treatment not possible",
       "id": "pawsaarthi_1_drawio_notify_the_user_that_treatment_not_possible_1"
     },
@@ -5036,7 +5144,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_12"
     },
@@ -5049,7 +5157,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_18"
     },
@@ -5062,7 +5170,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "ambulance flow",
       "id": "pawsaarthi_1_drawio_ambulance_flow_5"
     },
@@ -5075,7 +5183,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "reached hospital , treatment done",
       "id": "pawsaarthi_1_drawio_reached_hospital_treatment_done_7"
     },
@@ -5088,7 +5196,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "discharge animal back to orignal place",
       "id": "pawsaarthi_1_drawio_discharge_animal_back_to_orignal_place_7"
     },
@@ -5101,7 +5209,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "refund",
       "id": "pawsaarthi_1_drawio_refund_13"
     },
@@ -5114,7 +5222,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 5,
       "norm_label": "end",
       "id": "pawsaarthi_1_drawio_end_19"
     },
@@ -5153,7 +5261,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 53,
+      "community": 55,
       "norm_label": "react logo",
       "id": "react_logo"
     },
@@ -5166,7 +5274,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 53,
+      "community": 55,
       "norm_label": "react framework",
       "id": "react_framework"
     },
@@ -5179,7 +5287,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 19,
+      "community": 20,
       "norm_label": "woman holding dog",
       "id": "auth_splash_woman"
     },
@@ -5192,7 +5300,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 19,
+      "community": 20,
       "norm_label": "rescued dog",
       "id": "auth_splash_dog"
     },
@@ -5205,7 +5313,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 19,
+      "community": 20,
       "norm_label": "hope's haven sign",
       "id": "auth_splash_sign"
     },
@@ -5218,7 +5326,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 19,
+      "community": 20,
       "norm_label": "animal rescue and care",
       "id": "auth_splash_theme"
     },
@@ -5231,7 +5339,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 54,
+      "community": 56,
       "norm_label": "app icon (paw with heartbeat)",
       "id": "favicon_app_icon"
     },
@@ -5244,7 +5352,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 54,
+      "community": 56,
       "norm_label": "animal healthcare concept",
       "id": "favicon_animal_healthcare"
     },
@@ -5257,7 +5365,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 137,
+      "community": 141,
       "norm_label": "vite logo",
       "id": "vite_logo"
     },
@@ -5270,7 +5378,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 20,
+      "community": 21,
       "norm_label": "resqpet logo svg",
       "id": "frontend_public_logo_svg"
     },
@@ -5283,7 +5391,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 20,
+      "community": 21,
       "norm_label": "vetscue brand",
       "id": "vetscue_brand"
     },
@@ -5296,7 +5404,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 20,
+      "community": 21,
       "norm_label": "vetscue wordmark",
       "id": "vetscue_wordmark"
     },
@@ -5309,7 +5417,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 20,
+      "community": 21,
       "norm_label": "paw icon element",
       "id": "paw_icon_element"
     }
@@ -5378,56 +5486,56 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L36",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L37",
       "weight": 1.0,
-      "_src": "frontend_src_app_jsx",
+      "_src": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "_tgt": "app_routefallback",
-      "source": "frontend_src_app_jsx",
+      "source": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "target": "app_routefallback",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L42",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L43",
       "weight": 1.0,
-      "_src": "frontend_src_app_jsx",
+      "_src": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "_tgt": "app_withsuspense",
-      "source": "frontend_src_app_jsx",
+      "source": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "target": "app_withsuspense",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L48",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L49",
       "weight": 1.0,
-      "_src": "frontend_src_app_jsx",
+      "_src": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "_tgt": "app_dashboardredirect",
-      "source": "frontend_src_app_jsx",
+      "source": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "target": "app_dashboardredirect",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L65",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L66",
       "weight": 1.0,
-      "_src": "frontend_src_app_jsx",
+      "_src": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "_tgt": "app_app",
-      "source": "frontend_src_app_jsx",
+      "source": "home_manas_desktop_extrawork_resqpet_frontend_src_app_jsx",
       "target": "app_app",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/App.jsx",
-      "source_location": "L68",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx",
+      "source_location": "L70",
       "weight": 1.0,
       "_src": "app_app",
       "_tgt": "app_withsuspense",
@@ -5830,6 +5938,30 @@
       "_tgt": "themecontext_usetheme",
       "source": "sidebar_sidebar",
       "target": "themecontext_usetheme"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/components/ChatbotWidget.jsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "home_manas_desktop_extrawork_resqpet_frontend_src_components_chatbotwidget_jsx",
+      "_tgt": "chatbotwidget_chatbotwidget",
+      "source": "home_manas_desktop_extrawork_resqpet_frontend_src_components_chatbotwidget_jsx",
+      "target": "chatbotwidget_chatbotwidget",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/frontend/src/components/ChatbotWidget.jsx",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_src": "chatbotwidget_chatbotwidget",
+      "_tgt": "authcontext_useauth",
+      "source": "chatbotwidget_chatbotwidget",
+      "target": "authcontext_useauth"
     },
     {
       "relation": "contains",
@@ -6784,6 +6916,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/test-ai.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "home_manas_desktop_extrawork_resqpet_backend_test_ai_js",
+      "_tgt": "test_ai_testai",
+      "source": "home_manas_desktop_extrawork_resqpet_backend_test_ai_js",
+      "target": "test_ai_testai",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "backend/utils/haversine.js",
       "source_location": "L11",
       "weight": 1.0,
@@ -7188,6 +7332,30 @@
       "_tgt": "escalationscheduler_test_test9_rehydratehospitalbroadcastedkeeps45close",
       "source": "rescueescalationscheduler_rehydrateescalationjobs",
       "target": "escalationscheduler_test_test9_rehydratehospitalbroadcastedkeeps45close"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/services/aiAgentService.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "home_manas_desktop_extrawork_resqpet_backend_services_aiagentservice_js",
+      "_tgt": "aiagentservice_askvetscueagentstream",
+      "source": "home_manas_desktop_extrawork_resqpet_backend_services_aiagentservice_js",
+      "target": "aiagentservice_askvetscueagentstream",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_src": "aichatcontroller_handlechat",
+      "_tgt": "aiagentservice_askvetscueagentstream",
+      "source": "aiagentservice_askvetscueagentstream",
+      "target": "aichatcontroller_handlechat"
     },
     {
       "relation": "contains",
@@ -9131,6 +9299,42 @@
       "_tgt": "donationcontroller_donatewithwallet",
       "source": "backend_controllers_donationcontroller_js",
       "target": "donationcontroller_donatewithwallet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "home_manas_desktop_extrawork_resqpet_backend_controllers_aichatcontroller_js",
+      "_tgt": "aichatcontroller_handlechat",
+      "source": "home_manas_desktop_extrawork_resqpet_backend_controllers_aichatcontroller_js",
+      "target": "aichatcontroller_handlechat",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_src": "home_manas_desktop_extrawork_resqpet_backend_controllers_aichatcontroller_js",
+      "_tgt": "aichatcontroller_getchathistory",
+      "source": "home_manas_desktop_extrawork_resqpet_backend_controllers_aichatcontroller_js",
+      "target": "aichatcontroller_getchathistory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/home/manas/Desktop/extrawork/ResQPet/backend/controllers/aiChatController.js",
+      "source_location": "L98",
+      "weight": 1.0,
+      "_src": "home_manas_desktop_extrawork_resqpet_backend_controllers_aichatcontroller_js",
+      "_tgt": "aichatcontroller_clearchathistory",
+      "source": "home_manas_desktop_extrawork_resqpet_backend_controllers_aichatcontroller_js",
+      "target": "aichatcontroller_clearchathistory",
       "confidence_score": 1.0
     },
     {
