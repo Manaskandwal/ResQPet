@@ -1,7 +1,7 @@
 # Graph Report - /home/manas/Desktop/extrawork/ResQPet  (2026-05-05)
 
 ## Corpus Check
-- 109 files · ~148,466 words
+- 109 files · ~148,465 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -166,16 +166,16 @@
 10. `ErrorBoundary` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `HospitalCases()` --semantically_similar_to--> `AmbulanceDashboard()`  [INFERRED] [semantically similar]
+  frontend/src/pages/hospital/HospitalCases.jsx → /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/ambulance/AmbulanceDashboard.jsx
+- `AmbulanceDashboard()` --semantically_similar_to--> `AdminDashboard()`  [INFERRED] [semantically similar]
+  /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/ambulance/AmbulanceDashboard.jsx → frontend/src/pages/admin/AdminDashboard.jsx
 - `DashboardRedirect()` --calls--> `useAuth()`  [INFERRED]
   /home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx → frontend/src/context/AuthContext.jsx
 - `ChatbotWidget()` --calls--> `useAuth()`  [INFERRED]
   /home/manas/Desktop/extrawork/ResQPet/frontend/src/components/ChatbotWidget.jsx → frontend/src/context/AuthContext.jsx
-- `Rescue Escalation Pipeline` --conceptually_related_to--> `PawSaarthi Workflow Diagram`  [EXTRACTED]
-  PROJECT_OVERVIEW.md → Draw.io/pawSaarthi (1).drawio.pdf
-- `PawSaarthi Workflow Diagram` --conceptually_related_to--> `Payment Flow & Refunds`  [EXTRACTED]
-  Draw.io/pawSaarthi (1).drawio.pdf → README.md
-- `toDateInputValue()` --calls--> `ScheduleModal()`  [INFERRED]
-  frontend/src/utils/dateTime.js → /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/ngo/NGODashboard.jsx
+- `useAuth()` --calls--> `UserDashboard()`  [INFERRED]
+  frontend/src/context/AuthContext.jsx → /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/user/UserDashboard.jsx
 
 ## Hyperedges (group relationships)
 - **Rescue Escalation & Hand-off Flow** — module_hospital_controller, module_ngo_controller, module_ambulance_controller, module_rescue_controller, module_rescue_escalation_scheduler, concept_escalation_pipeline [INFERRED 0.90]
