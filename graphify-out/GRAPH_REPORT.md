@@ -1,7 +1,7 @@
-# Graph Report - /home/manas/Desktop/extrawork/ResQPet  (2026-05-05)
+# Graph Report - /home/manas/Desktop/extrawork/ResQPet  (2026-05-06)
 
 ## Corpus Check
-- 109 files · ~148,465 words
+- 109 files · ~148,458 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
