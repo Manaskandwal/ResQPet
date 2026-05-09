@@ -1,13 +1,18 @@
-# Graph Report - /home/manas/Desktop/extrawork/ResQPet  (2026-05-06)
+# Graph Report - ResQPet  (2026-05-10)
 
 ## Corpus Check
-- 109 files · ~148,458 words
+- 123 files · ~114,566 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 502 nodes · 489 edges · 142 communities detected
-- Extraction: 81% EXTRACTED · 19% INFERRED · 0% AMBIGUOUS · INFERRED: 94 edges (avg confidence: 0.81)
+- 1280 nodes · 1814 edges · 165 communities (91 shown, 74 thin omitted)
+- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 95 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `8e098edb`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_Community 0|Community 0]]
@@ -85,7 +90,6 @@
 - [[_COMMUNITY_Community 72|Community 72]]
 - [[_COMMUNITY_Community 73|Community 73]]
 - [[_COMMUNITY_Community 74|Community 74]]
-- [[_COMMUNITY_Community 75|Community 75]]
 - [[_COMMUNITY_Community 76|Community 76]]
 - [[_COMMUNITY_Community 77|Community 77]]
 - [[_COMMUNITY_Community 78|Community 78]]
@@ -93,34 +97,16 @@
 - [[_COMMUNITY_Community 80|Community 80]]
 - [[_COMMUNITY_Community 81|Community 81]]
 - [[_COMMUNITY_Community 82|Community 82]]
-- [[_COMMUNITY_Community 83|Community 83]]
-- [[_COMMUNITY_Community 84|Community 84]]
-- [[_COMMUNITY_Community 85|Community 85]]
-- [[_COMMUNITY_Community 86|Community 86]]
-- [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
 - [[_COMMUNITY_Community 89|Community 89]]
-- [[_COMMUNITY_Community 90|Community 90]]
 - [[_COMMUNITY_Community 91|Community 91]]
 - [[_COMMUNITY_Community 92|Community 92]]
 - [[_COMMUNITY_Community 93|Community 93]]
-- [[_COMMUNITY_Community 94|Community 94]]
-- [[_COMMUNITY_Community 95|Community 95]]
-- [[_COMMUNITY_Community 96|Community 96]]
-- [[_COMMUNITY_Community 97|Community 97]]
 - [[_COMMUNITY_Community 98|Community 98]]
 - [[_COMMUNITY_Community 99|Community 99]]
 - [[_COMMUNITY_Community 100|Community 100]]
 - [[_COMMUNITY_Community 101|Community 101]]
 - [[_COMMUNITY_Community 102|Community 102]]
-- [[_COMMUNITY_Community 103|Community 103]]
-- [[_COMMUNITY_Community 104|Community 104]]
-- [[_COMMUNITY_Community 105|Community 105]]
-- [[_COMMUNITY_Community 106|Community 106]]
-- [[_COMMUNITY_Community 107|Community 107]]
-- [[_COMMUNITY_Community 108|Community 108]]
-- [[_COMMUNITY_Community 109|Community 109]]
-- [[_COMMUNITY_Community 110|Community 110]]
 - [[_COMMUNITY_Community 111|Community 111]]
 - [[_COMMUNITY_Community 112|Community 112]]
 - [[_COMMUNITY_Community 113|Community 113]]
@@ -152,30 +138,53 @@
 - [[_COMMUNITY_Community 139|Community 139]]
 - [[_COMMUNITY_Community 140|Community 140]]
 - [[_COMMUNITY_Community 141|Community 141]]
+- [[_COMMUNITY_Community 142|Community 142]]
+- [[_COMMUNITY_Community 143|Community 143]]
+- [[_COMMUNITY_Community 144|Community 144]]
+- [[_COMMUNITY_Community 145|Community 145]]
+- [[_COMMUNITY_Community 146|Community 146]]
+- [[_COMMUNITY_Community 147|Community 147]]
+- [[_COMMUNITY_Community 148|Community 148]]
+- [[_COMMUNITY_Community 149|Community 149]]
+- [[_COMMUNITY_Community 150|Community 150]]
+- [[_COMMUNITY_Community 151|Community 151]]
+- [[_COMMUNITY_Community 152|Community 152]]
+- [[_COMMUNITY_Community 153|Community 153]]
+- [[_COMMUNITY_Community 154|Community 154]]
+- [[_COMMUNITY_Community 155|Community 155]]
+- [[_COMMUNITY_Community 156|Community 156]]
+- [[_COMMUNITY_Community 157|Community 157]]
+- [[_COMMUNITY_Community 158|Community 158]]
+- [[_COMMUNITY_Community 159|Community 159]]
+- [[_COMMUNITY_Community 160|Community 160]]
+- [[_COMMUNITY_Community 161|Community 161]]
+- [[_COMMUNITY_Community 162|Community 162]]
+- [[_COMMUNITY_Community 163|Community 163]]
+- [[_COMMUNITY_Community 164|Community 164]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `useAuth()` - 25 edges
-2. `emitRescueUpdate()` - 25 edges
-3. `rehydrateEscalationJobs()` - 10 edges
-4. `pushStatusLog()` - 9 edges
-5. `normalizeMonthlySubscription()` - 9 edges
-6. `cancelRescueEscalation()` - 8 edges
-7. `parseDate()` - 6 edges
-8. `scheduleRescueEscalation()` - 6 edges
-9. `acceptBroadcastedCase()` - 6 edges
-10. `ErrorBoundary` - 5 edges
+1. `useAuth()` - 51 edges
+2. `ResQPet / PawSaarthi Project Brief` - 33 edges
+3. `emitRescueUpdate()` - 32 edges
+4. `useAuth()` - 25 edges
+5. `emitRescueUpdate()` - 25 edges
+6. `formatIndianDateTime()` - 20 edges
+7. `ResQPet Project Explanation for Interview` - 14 edges
+8. `protect()` - 13 edges
+9. `StatusBadge()` - 12 edges
+10. `ResQPaw— Animal Rescue Platform 🐾` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `DashboardRedirect()` --calls--> `useAuth()`  [INFERRED]
+  /home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx → frontend/src/context/AuthContext.jsx
 - `HospitalCases()` --semantically_similar_to--> `AmbulanceDashboard()`  [INFERRED] [semantically similar]
   frontend/src/pages/hospital/HospitalCases.jsx → /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/ambulance/AmbulanceDashboard.jsx
 - `AmbulanceDashboard()` --semantically_similar_to--> `AdminDashboard()`  [INFERRED] [semantically similar]
   /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/ambulance/AmbulanceDashboard.jsx → frontend/src/pages/admin/AdminDashboard.jsx
-- `DashboardRedirect()` --calls--> `useAuth()`  [INFERRED]
-  /home/manas/Desktop/extrawork/ResQPet/frontend/src/App.jsx → frontend/src/context/AuthContext.jsx
+- `Sidebar()` --calls--> `useAuth()`  [INFERRED]
+  /home/manas/Desktop/extrawork/ResQPet/frontend/src/components/Sidebar.jsx → frontend/src/context/AuthContext.jsx
 - `ChatbotWidget()` --calls--> `useAuth()`  [INFERRED]
   /home/manas/Desktop/extrawork/ResQPet/frontend/src/components/ChatbotWidget.jsx → frontend/src/context/AuthContext.jsx
-- `useAuth()` --calls--> `UserDashboard()`  [INFERRED]
-  frontend/src/context/AuthContext.jsx → /home/manas/Desktop/extrawork/ResQPet/frontend/src/pages/user/UserDashboard.jsx
 
 ## Hyperedges (group relationships)
 - **Rescue Escalation & Hand-off Flow** — module_hospital_controller, module_ngo_controller, module_ambulance_controller, module_rescue_controller, module_rescue_escalation_scheduler, concept_escalation_pipeline [INFERRED 0.90]
@@ -192,824 +201,318 @@
 - **Rescue Haven Scene** — auth_splash_woman, auth_splash_dog, auth_splash_sign [INFERRED 0.85]
 - **Brand Identity Formation** — vetscue_brand, vetscue_wordmark, paw_icon_element [INFERRED 0.80]
 
-## Communities
+## Communities (165 total, 74 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.04
-Nodes (27): AdminDashboard(), AdminUserSwitcher(), AmbulanceDashboard(), AmbulanceHistory(), App(), DashboardRedirect(), withSuspense(), AudioAlert() (+19 more)
+Cohesion: 0.05
+Nodes (19): bcrypt, mongoose, User, userSchema, mongoose, User, mongoose, User (+11 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.08
-Nodes (26): assignAmbulance(), editBill(), pushStatusLog(), rejectBroadcastedCase(), submitBill(), updateTreatmentStatus(), acceptCase(), addFollowUp() (+18 more)
+Cohesion: 0.05
+Nodes (40): Authentication & Authorization, Backend API Concepts for Interviews, code:block1 (User's Phone/PC  ──────►  API Server  ──────►  Database), code:javascript (// backend/models/User.js), code:javascript (// Find one user), code:javascript (// Flow: User submits a rescue request), code:javascript (// backend/server.js), code:block2 (https://api.example.com/api/rescue/mine) (+32 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.08
-Nodes (27): AMBULANCE FLOW, AMBULANCE FLOW, CHECK AVAILABILITY OF GOVT HOSPITAL, Discharge animal back to orignal place, Discharge animal back to orignal place, Donation for remainng amount, Donation for total amount, Donations/ Fundrasier successful? (+19 more)
+Cohesion: 0.09
+Nodes (31): acceptCase(), addFollowUp(), { cancelRescueEscalation }, completeCase(), Donation, { emitRescueUpdate }, escalateToHospital(), getAnalytics() (+23 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.08
-Nodes (26): Discharge animal back to orignal place, Discharge animal back to orignal place, Discharge animal back to orignal place, Donations/ Fundrasier successful?, END, END, END, END (+18 more)
+Cohesion: 0.09
+Nodes (30): emitRescueUpdate(), verifyDonation(), acceptBroadcastedCase(), assignAmbulance(), { cancelRescueEscalation }, editBill(), { emitRescueUpdate, emitAmbulanceDispatch }, getBill() (+22 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.17
-Nodes (19): connectDB(), createTestUser(), runTests(), test2_20minEscalation(), test3_closeUnwillingToGo(), test4_45minHardClose(), test5_cancelOnNgoAccept(), test6_rescheduleWithinWindow() (+11 more)
+Cohesion: 0.07
+Nodes (23): approveUser(), AuditLog, deleteUser(), Donation, { emitRescueUpdate }, getAllRescues(), getAllUsers(), getAnalytics() (+15 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.12
-Nodes (18): AMBULANCE FLOW, Discharge animal back to orignal place, Discharge animal back to orignal place, Discharge animal back to orignal place, Donation for remaining amount, Donations/ Fundrasier successful?, END, END (+10 more)
+Cohesion: 0.06
+Nodes (36): AMBULANCE FLOW, AMBULANCE FLOW, Discharge animal back to orignal place, Discharge animal back to orignal place, Discharge animal back to orignal place, Discharge animal back to orignal place, Discharge animal back to orignal place, Donation for remaining amount (+28 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.18
-Nodes (11): handleStalledRescue(), initializeActiveDispatches(), onRescueNeedsAmbulance(), pingNearestAmbulance(), scheduleRescueChecks(), startAmbulanceDispatch(), stopRescueChecks(), acceptBroadcastedCase() (+3 more)
+Cohesion: 0.11
+Nodes (29): addBillingMonth(), cancelSubscription(), Donation, getNgos(), getPaymentHistory(), getProfile(), getWallet(), normalizeMonthlySubscription() (+21 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.14
-Nodes (17): AMBULANCE FLOW, AMBULANCE FLOW, AMBULANCE FLOW, ask user to take to hospital, available, available, CHECK AVAILABILITY OF PVT HOSPITAL, END (+9 more)
+Cohesion: 0.06
+Nodes (33): Admin Workflow, Ambulance Workflow, API Surface (Actual Routes), Architecture Overview, Authentication & Security, Backend Entry & Bootstrapping, Backend Structure, Core Goals (+25 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.19
-Nodes (10): formatIndianDate(), formatIndianDateTime(), formatIndianTime(), parseDate(), toDateInputValue(), toTimeInputValue(), ScheduleModal(), PaymentHistory() (+2 more)
+Cohesion: 0.06
+Nodes (30): Home(), futureCards, Home(), pilotStats, steps, AdminDashboard, AmbulanceDashboard, AmbulanceHistory (+22 more)
 
 ### Community 9 - "Community 9"
+Cohesion: 0.12
+Nodes (24): formatIndianDate(), formatIndianDateTime(), formatIndianTime(), parseDate(), toDateInputValue(), toTimeInputValue(), NGODashboard(), ScheduleModal() (+16 more)
+
+### Community 10 - "Community 10"
+Cohesion: 0.06
+Nodes (30): adminRoutes, aiChatRoutes, ambulanceRoutes, app, authRoutes, {
+    cleanup: cleanupAmbulanceDispatch,
+    initializeActiveDispatches,
+}, { connectCloudinary }, connectDB (+22 more)
+
+### Community 11 - "Community 11"
+Cohesion: 0.1
+Nodes (19): acceptPing(), pushStatusLog(), updateStatus(), acceptPing(), { emitRescueUpdate }, getAssignedTask(), getHistory(), getPingedTasks() (+11 more)
+
+### Community 12 - "Community 12"
+Cohesion: 0.13
+Nodes (15): AmbulanceHistory(), AmbulanceHistory(), Login(), ChatbotWidget(), NotificationModal(), ProtectedRoute(), AuthContext, useAuth() (+7 more)
+
+### Community 13 - "Community 13"
+Cohesion: 0.08
+Nodes (25): 1. Clone and install, 2. Configure Environment Variables, 3. Seed Admin Account, API Endpoints, Backend → Render, code:bash (# Backend), code:block2 (PORT=5000), code:block3 (VITE_API_URL=http://localhost:5000/api) (+17 more)
+
+### Community 14 - "Community 14"
+Cohesion: 0.08
+Nodes (25): Arrays & Objects, Async/Await & Promises, code:javascript (// Modern way (use this)), code:javascript (// backend/utils/haversine.js), code:javascript (// Primitive Types), code:javascript (// Traditional function), code:javascript (const createUser = (name, role = "user") => {), code:javascript (const users = ["John", "Jane", "Bob"];) (+17 more)
+
+### Community 15 - "Community 15"
+Cohesion: 0.1
+Nodes (22): initializeActiveDispatches(), onRescueNeedsAmbulance(), pingNearestAmbulance(), scheduleRescueChecks(), startAmbulanceDispatch(), stopRescueChecks(), verifyDonation(), acceptBroadcastedCase() (+14 more)
+
+### Community 16 - "Community 16"
+Cohesion: 0.09
+Nodes (14): connectDB(), createTestUser(), runTests(), assert, connectDB(), createTestUser(), Donation, mongoose (+6 more)
+
+### Community 17 - "Community 17"
+Cohesion: 0.11
+Nodes (21): { asyncHandler }, AuditLog, client, { generateToken }, getMe, googleLogin, impersonateUser, jwt (+13 more)
+
+### Community 18 - "Community 18"
+Cohesion: 0.1
+Nodes (17): emitNewCaseToNgos(), cancelRescue(), canRefundServiceFee(), { emitRescueUpdate, emitNewCaseToNgos }, { onRescueNeedsAmbulance }, requestReturnTransport(), RescueRequest, { scheduleRescueEscalation, cancelRescueEscalation } (+9 more)
+
+### Community 19 - "Community 19"
+Cohesion: 0.09
+Nodes (18): addImpactComment(), getImpactFeed(), getMyRescues(), getRescueById(), toggleImpactLike(), allowRoles(), FileType, validateMedia() (+10 more)
+
+### Community 20 - "Community 20"
+Cohesion: 0.12
+Nodes (23): reviewFundraiser(), handleStalledRescue(), assignAmbulance(), editBill(), pushStatusLog(), rejectBroadcastedCase(), submitBill(), updateTreatmentStatus() (+15 more)
+
+### Community 21 - "Community 21"
+Cohesion: 0.12
+Nodes (13): AMBULANCE_STATUS_LABELS, AmbulanceDashboard(), NEXT_STATUS, STATUS_LABELS, getTimelineConfig(), StatusBadge(), statusMap, StatusTimeline() (+5 more)
+
+### Community 22 - "Community 22"
+Cohesion: 0.12
+Nodes (11): Navbar(), comingSoon, navConfig, phaseTwoRoles, roleIcons, roleLabels, Sidebar(), AuthProvider() (+3 more)
+
+### Community 23 - "Community 23"
+Cohesion: 0.12
+Nodes (17): AIChatSession, { askVetsCueAgentStream }, clearChatHistory(), getChatHistory(), handleChat(), aiChatSessionSchema, mongoose, dailyLimiter (+9 more)
+
+### Community 24 - "Community 24"
+Cohesion: 0.14
+Nodes (15): getRazorpay(), createDonationOrder(), createSubscription(), crypto, donateWithWallet(), Donation, getPublicFundraisers(), { getRazorpay } (+7 more)
+
+### Community 25 - "Community 25"
+Cohesion: 0.13
+Nodes (12): AdminDashboard(), AmbulanceDashboard(), useAuth(), ChatbotWidget(), HospitalCases(), HospitalDashboard(), Login(), NGODashboard() (+4 more)
+
+### Community 26 - "Community 26"
+Cohesion: 0.13
+Nodes (9): AdminDashboard(), SkeletonCard(), SkeletonRow(), SkeletonStatCard(), Fundraisers(), Fundraisers(), defaultSupportForm, Fundraisers() (+1 more)
+
+### Community 27 - "Community 27"
+Cohesion: 0.15
+Nodes (13): attachUserFromToken(), protect(), attachUserFromToken(), jwt, protect(), TokenBlacklist, User, mongoose (+5 more)
+
+### Community 28 - "Community 28"
+Cohesion: 0.19
+Nodes (10): emitAmbulanceDispatch(), getIo(), initSocket(), jwt, socketIo, requestReturnTransport(), submitRescue(), emitAmbulanceDispatch() (+2 more)
+
+### Community 29 - "Community 29"
+Cohesion: 0.2
+Nodes (12): Donation, { emitRescueUpdate }, execute20MinCheck(), execute45MinClose(), mark20MinTimerCompleted(), maybeRefundUnresolvedFee(), pendingTimers, rehydrateEscalationJobs() (+4 more)
+
+### Community 30 - "Community 30"
 Cohesion: 0.18
 Nodes (14): can treay by NGO ?, END, END, END, HOSPITAL FLOW, HOSPITAL FLOW, NGO, NGO ACCEPT ? (+6 more)
 
-### Community 10 - "Community 10"
-Cohesion: 0.28
-Nodes (9): addBillingMonth(), cancelSubscription(), getPaymentHistory(), getProfile(), normalizeMonthlySubscription(), pauseSubscription(), resumeSubscription(), subscribeEmergency() (+1 more)
+### Community 31 - "Community 31"
+Cohesion: 0.24
+Nodes (11): AudioAlert(), useNotificationSound(), AudioAlert(), useNotificationSound(), connectSocket(), getAuthToken(), refreshSocketAuth(), connectSocket() (+3 more)
 
-### Community 11 - "Community 11"
+### Community 32 - "Community 32"
 Cohesion: 0.17
-Nodes (5): createDonationOrder(), createSubscription(), verifyDonation(), createOrder(), getRazorpay()
+Nodes (8): AdminUserSwitcher(), api, isPublicRoute, publicRoutes, token, AdminUserSwitcher(), DASHBOARD_ROUTES, ROLE_COLORS
 
-### Community 12 - "Community 12"
-Cohesion: 0.15
-Nodes (1): reviewFundraiser()
+### Community 33 - "Community 33"
+Cohesion: 0.18
+Nodes (7): crypto, { getRazorpay }, PaymentOrder, User, WalletTransaction, mongoose, paymentOrderSchema
 
-### Community 13 - "Community 13"
+### Community 34 - "Community 34"
+Cohesion: 0.2
+Nodes (11): test2_20minEscalation(), test3_closeUnwillingToGo(), test4_45minHardClose(), test6_rescheduleWithinWindow(), test7_skipAccepted(), test9_rehydrateHospitalBroadcastedKeeps45Close(), execute20MinCheck(), execute45MinClose() (+3 more)
+
+### Community 36 - "Community 36"
+Cohesion: 0.2
+Nodes (6): cron, Donation, Notification, startRecurringEmergencyDeduction(), User, WalletTransaction
+
+### Community 37 - "Community 37"
+Cohesion: 0.2
+Nodes (9): Backup: Quick Project Summary, Be Ready to Answer:, Interview Talking Points, Key Files Reference, Next Steps, Project Overview, Questions to Ask the Interviewer, ResQPet Project Explanation for Interview (+1 more)
+
+### Community 38 - "Community 38"
+Cohesion: 0.2
+Nodes (10): 1. Multi-Role System, 2. Wallet System, 3. Rescue Pipeline, 4. Real-time Updates, 5. Geolocation, 6. Escalation System, 7. Fundraisers, 8. Impact Feed (+2 more)
+
+### Community 39 - "Community 39"
+Cohesion: 0.2
+Nodes (10): AMBULANCE FLOW, CHECK AVAILABILITY OF GOVT HOSPITAL, ENROUTE, Examin, HOSPITAL FLOW, Is coming through NGO?, Payment Flow, REPORT (+2 more)
+
+### Community 40 - "Community 40"
+Cohesion: 0.22
+Nodes (7): mongoose, RescueRequest, rescueRequestSchema, express, RescueRequest, router, User
+
+### Community 41 - "Community 41"
+Cohesion: 0.22
+Nodes (9): 1. AmbulanceDispatchService, 2. RescueController, 3. AuthController, 4. Cron Jobs (Background Services), 5. Socket Service, 6. Payment Service, 7. Notification Service, code:block1 (1. Rescue enters "ambulance_pinged" status) (+1 more)
+
+### Community 42 - "Community 42"
+Cohesion: 0.22
+Nodes (9): code:javascript (try {), code:javascript (// file.js), JavaScript/Node.js Questions, Q11: What is the difference between let and const?, Q12: What is async/await?, Q13: What is a Promise?, Q14: How do you handle errors in async functions?, Q15: What is middleware? (+1 more)
+
+### Community 43 - "Community 43"
+Cohesion: 0.22
+Nodes (9): Discharge animal back to orignal place, END, END, Enroute&nbsp;, Is Govt. Ambulance, Is NGO is willing to pay for the Ambulance charge, Payment Flow, Reached Hospital , Treatment Done (+1 more)
+
+### Community 44 - "Community 44"
+Cohesion: 0.28
+Nodes (9): AMBULANCE FLOW, AMBULANCE FLOW, ask user to take to hospital, available, CHECK AVAILABILITY OF PVT HOSPITAL, END, END, NGO&nbsp; (+1 more)
+
+### Community 45 - "Community 45"
 Cohesion: 0.25
-Nodes (3): acceptPing(), pushStatusLog(), updateStatus()
+Nodes (9): Discharge animal back to orignal place, Donations/ Fundrasier successful?, END, END, Notify the user that rescue not possible, Payment Flow, Reached Hospital , Treatment Done, REFUND (+1 more)
 
-### Community 14 - "Community 14"
+### Community 46 - "Community 46"
+Cohesion: 0.25
+Nodes (7): mockTopup(), verifyPayment(), { allowRoles }, { createOrder, verifyPayment, mockTopup }, express, { protect }, router
+
+### Community 47 - "Community 47"
+Cohesion: 0.25
+Nodes (5): { cloudinary }, multer, { Readable }, storage, upload
+
+### Community 48 - "Community 48"
+Cohesion: 0.25
+Nodes (8): code:block1 (User submits → pending), Q10: What are the main APIs you built?, Q5: How does authentication work in your project?, Q6: How does role-based access control work?, Q7: Explain the rescue pipeline, Q8: How does the wallet system work?, Q9: How does ambulance dispatch work?, Technical Questions
+
+### Community 49 - "Community 49"
+Cohesion: 0.29
+Nodes (8): AMBULANCE FLOW, available, END, END, NOTIFY USER / NOT POSSIBLE, Quick treament possible or not, REFUND, REPORT CLOSE
+
+### Community 51 - "Community 51"
+Cohesion: 0.29
+Nodes (3): Navbar(), Sidebar(), useTheme()
+
+### Community 52 - "Community 52"
+Cohesion: 0.29
+Nodes (7): Discharge animal back to orignal place, END, Enroute&nbsp;, Is Govt. Ambulance, Notify user regarding the cost of pvt ambulance, Reached Hospital , Treatment Done, REFUND
+
+### Community 53 - "Community 53"
 Cohesion: 0.33
-Nodes (1): ErrorBoundary
+Nodes (4): Notification, query, mongoose, notificationSchema
 
-### Community 15 - "Community 15"
+### Community 54 - "Community 54"
 Cohesion: 0.33
-Nodes (2): askVetsCueAgentStream(), handleChat()
+Nodes (5): Razorpay, createDonationOrder(), createSubscription(), createOrder(), getRazorpay()
 
-### Community 16 - "Community 16"
-Cohesion: 0.83
-Nodes (3): connectSocket(), getAuthToken(), refreshSocketAuth()
+### Community 56 - "Community 56"
+Cohesion: 0.33
+Nodes (6): code:javascript ({), code:javascript ({), Database Models, Other Models, RescueRequest Model, User Model
 
-### Community 17 - "Community 17"
+### Community 57 - "Community 57"
+Cohesion: 0.33
+Nodes (6): 1. User (Citizen), 2. NGO, 3. Hospital, 4. Ambulance, 5. Admin, 5 User Roles Explained
+
+### Community 58 - "Community 58"
+Cohesion: 0.33
+Nodes (6): 1. Start with the Problem, 2. Explain Your Solution, 3. Mention Key Features, 4. Technical Highlights, 5. Security Features, How to Explain Your Work
+
+### Community 59 - "Community 59"
+Cohesion: 0.33
+Nodes (5): Common Interview Questions, Files Checklist, Practice Script, Remember, Table of Contents
+
+### Community 60 - "Community 60"
+Cohesion: 0.33
+Nodes (6): Q26: What if too many users submit at once?, Q27: What if the ambulance dispatch service crashes?, Q28: How do you test your APIs?, Q29: How would you handle payment failures?, Q30: What would you improve if you had more time?, Scenario-Based Questions
+
+### Community 61 - "Community 61"
+Cohesion: 0.33
+Nodes (6): Q21: How do you secure passwords?, Q22: What is JWT and how does it work?, Q23: How do you handle CORS?, Q24: What security measures did you implement?, Q25: How do you prevent SQL/NoSQL injection?, Security Questions
+
+### Community 64 - "Community 64"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (3): createPosterFile(), loadImage(), socialButtons
 
-### Community 18 - "Community 18"
-Cohesion: 0.67
-Nodes (2): createPosterFile(), loadImage()
+### Community 65 - "Community 65"
+Cohesion: 0.4
+Nodes (5): Database Questions, Q17: Why MongoDB?, Q18: What is Mongoose?, Q19: How do you query for "nearby" locations?, Q20: What are MongoDB indexes?
 
-### Community 19 - "Community 19"
-Cohesion: 0.67
-Nodes (2): getTimelineConfig(), StatusTimeline()
+### Community 66 - "Community 66"
+Cohesion: 0.4
+Nodes (5): API Methods, Common Status Codes, Key Files, Key Libraries (from package.json), Quick Answers Reference
 
-### Community 20 - "Community 20"
+### Community 67 - "Community 67"
+Cohesion: 0.4
+Nodes (5): General Project Questions, Q1: Tell me about your project, Q2: What was your role in the project?, Q3: What is the most difficult thing you solved?, Q4: Why did you choose this tech stack?
+
+### Community 68 - "Community 68"
+Cohesion: 0.5
+Nodes (3): App(), DashboardRedirect(), withSuspense()
+
+### Community 71 - "Community 71"
+Cohesion: 0.5
+Nodes (3): Donation, donationSchema, mongoose
+
+### Community 72 - "Community 72"
+Cohesion: 0.5
+Nodes (3): mongoose, WalletTransaction, walletTransactionSchema
+
+### Community 73 - "Community 73"
+Cohesion: 0.83
+Nodes (4): test5_cancelOnNgoAccept(), test8_cancelAfter20MinStillPrevents45Close(), cancelRescueEscalation(), scheduleRescueEscalation()
+
+### Community 74 - "Community 74"
+Cohesion: 0.5
+Nodes (3): Expanding the ESLint configuration, React Compiler, React + Vite
+
+### Community 78 - "Community 78"
 Cohesion: 0.5
 Nodes (4): Rescued Dog, Hope's Haven Sign, Animal Rescue and Care, Woman Holding Dog
 
-### Community 21 - "Community 21"
+### Community 79 - "Community 79"
 Cohesion: 0.67
 Nodes (4): ResQPet Logo SVG, Paw Icon Element, VetsCue Brand, VetsCue Wordmark
 
-### Community 22 - "Community 22"
+### Community 88 - "Community 88"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (3): Backend, Frontend, Tech Stack
 
-### Community 23 - "Community 23"
-Cohesion: 0.67
-Nodes (0): 
-
-### Community 24 - "Community 24"
-Cohesion: 0.67
-Nodes (0): 
-
-### Community 25 - "Community 25"
-Cohesion: 1.0
-Nodes (2): attachUserFromToken(), protect()
-
-### Community 26 - "Community 26"
+### Community 89 - "Community 89"
 Cohesion: 0.67
 Nodes (3): Rescue Escalation Pipeline, Payment Flow & Refunds, PawSaarthi Workflow Diagram
 
-### Community 27 - "Community 27"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 28 - "Community 28"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 29 - "Community 29"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 30 - "Community 30"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 31 - "Community 31"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 32 - "Community 32"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 33 - "Community 33"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 34 - "Community 34"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 35 - "Community 35"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 36 - "Community 36"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 37 - "Community 37"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 38 - "Community 38"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 39 - "Community 39"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 40 - "Community 40"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 41 - "Community 41"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 42 - "Community 42"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 43 - "Community 43"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 44 - "Community 44"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 45 - "Community 45"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 46 - "Community 46"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 47 - "Community 47"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 48 - "Community 48"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 49 - "Community 49"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 50 - "Community 50"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 51 - "Community 51"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 52 - "Community 52"
-Cohesion: 1.0
-Nodes (2): REFUND, SAVE
-
-### Community 53 - "Community 53"
-Cohesion: 1.0
-Nodes (2): END, REFUND
-
-### Community 54 - "Community 54"
-Cohesion: 2.0
-Nodes (2): END, REFUND
-
-### Community 55 - "Community 55"
-Cohesion: 1.0
-Nodes (2): React Framework, React Logo
-
-### Community 56 - "Community 56"
-Cohesion: 1.0
-Nodes (2): Animal Healthcare Concept, App Icon (Paw with Heartbeat)
-
-### Community 57 - "Community 57"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 58 - "Community 58"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 59 - "Community 59"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 60 - "Community 60"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 61 - "Community 61"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 62 - "Community 62"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 63 - "Community 63"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 64 - "Community 64"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 65 - "Community 65"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 66 - "Community 66"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 67 - "Community 67"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 68 - "Community 68"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 69 - "Community 69"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 70 - "Community 70"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 71 - "Community 71"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 72 - "Community 72"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 73 - "Community 73"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 74 - "Community 74"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 75 - "Community 75"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 76 - "Community 76"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 77 - "Community 77"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 78 - "Community 78"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 79 - "Community 79"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 80 - "Community 80"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 81 - "Community 81"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 82 - "Community 82"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 83 - "Community 83"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 84 - "Community 84"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 85 - "Community 85"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 86 - "Community 86"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 87 - "Community 87"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 88 - "Community 88"
-Cohesion: 1.0
-Nodes (1): PawSaarthi Platform
-
-### Community 89 - "Community 89"
-Cohesion: 1.0
-Nodes (1): Wallet System
-
-### Community 90 - "Community 90"
-Cohesion: 1.0
-Nodes (1): Frontend README
-
-### Community 91 - "Community 91"
-Cohesion: 1.0
-Nodes (1): USER
-
-### Community 92 - "Community 92"
-Cohesion: 1.0
-Nodes (1): AMBULANCE PARTNER
-
-### Community 93 - "Community 93"
-Cohesion: 1.0
-Nodes (1): HOSPITAL
-
-### Community 94 - "Community 94"
-Cohesion: 1.0
-Nodes (1): NGO
-
-### Community 95 - "Community 95"
-Cohesion: 1.0
-Nodes (1): ADMIN
-
-### Community 96 - "Community 96"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 97 - "Community 97"
-Cohesion: 1.0
-Nodes (1): YES
-
-### Community 98 - "Community 98"
-Cohesion: 1.0
-Nodes (1): NO
-
-### Community 99 - "Community 99"
-Cohesion: 1.0
-Nodes (1): TREATMENT and COST
-
-### Community 100 - "Community 100"
-Cohesion: 1.0
-Nodes (1): YES
-
-### Community 101 - "Community 101"
-Cohesion: 1.0
-Nodes (1): NO
-
-### Community 102 - "Community 102"
-Cohesion: 1.0
-Nodes (1): NO
-
-### Community 103 - "Community 103"
-Cohesion: 1.0
-Nodes (1): YES
-
-### Community 104 - "Community 104"
-Cohesion: 1.0
-Nodes (1): YES
-
-### Community 105 - "Community 105"
-Cohesion: 1.0
-Nodes (1): NO
-
-### Community 106 - "Community 106"
-Cohesion: 1.0
-Nodes (1): YES
-
-### Community 107 - "Community 107"
-Cohesion: 1.0
-Nodes (1): YES
-
-### Community 108 - "Community 108"
-Cohesion: 1.0
-Nodes (1): NO  by all NGO  within range
-
-### Community 109 - "Community 109"
-Cohesion: 1.0
-Nodes (1): YES
-
-### Community 110 - "Community 110"
-Cohesion: 1.0
-Nodes (1): NO
-
-### Community 111 - "Community 111"
-Cohesion: 1.0
-Nodes (1): ACCEPTED (in previous flow)
-
-### Community 112 - "Community 112"
-Cohesion: 1.0
-Nodes (1): REJECTED (in previous flow)
-
-### Community 113 - "Community 113"
-Cohesion: 1.0
-Nodes (1): if accpeted by user
-
-### Community 114 - "Community 114"
-Cohesion: 1.0
-Nodes (1): %3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20connectable%3D%220%22%20parent%3D%221%22%20style%3D%22edgeLabel%3Bhtml%3D1%3Balign%3Dcenter%3BverticalAlign%3Dmiddle%3Bresizable%3D0%3Bpoints%3D%5B%5D%3B%22%20value%3D%22if%20rejected%20by%20user%22%20vertex%3D%221%22%3E%3CmxGeometry%20x%3D%22399.0895177088387%22%20y%3D%221370.0050504082%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E  %3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20connectable%3D%220%22%20parent%3D%221%22%20style%3D%22edgeLabel%3Bhtml%3D1%3Balign%3Dcenter%3BverticalAlign%3Dmiddle%3Bresizable%3D0%3Bpoints%3D%5B%5D%3B%22%20value%3D%22if%20rejected%20by%20user%22%20vertex%3D%221%22%3E%3CmxGeometry%20x%3D%22399.0895177088387%22%20y%3D%221370.0050504082%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E
-
-### Community 115 - "Community 115"
-Cohesion: 1.0
-Nodes (1): if rejected by user
-
-### Community 116 - "Community 116"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 117 - "Community 117"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 118 - "Community 118"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 119 - "Community 119"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 120 - "Community 120"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 121 - "Community 121"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 122 - "Community 122"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 123 - "Community 123"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 124 - "Community 124"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 125 - "Community 125"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 126 - "Community 126"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 127 - "Community 127"
-Cohesion: 1.0
-Nodes (1): NO
-
-### Community 128 - "Community 128"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 129 - "Community 129"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 130 - "Community 130"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 131 - "Community 131"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 132 - "Community 132"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 133 - "Community 133"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 134 - "Community 134"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 135 - "Community 135"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 136 - "Community 136"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 137 - "Community 137"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 138 - "Community 138"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 139 - "Community 139"
-Cohesion: 1.0
-Nodes (1): Yes
-
-### Community 140 - "Community 140"
-Cohesion: 1.0
-Nodes (1): No
-
-### Community 141 - "Community 141"
-Cohesion: 1.0
-Nodes (1): Vite Logo
-
 ## Knowledge Gaps
-- **89 isolated node(s):** `PawSaarthi Platform`, `Rescue Escalation Pipeline`, `Wallet System`, `Payment Flow & Refunds`, `Frontend README` (+84 more)
+- **538 isolated node(s):** `express`, `cors`, `morgan`, `helmet`, `rateLimit` (+533 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 27`** (2 nodes): `AuthDropdown()`, `AuthDropdown.jsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 28`** (2 nodes): `Layout.jsx`, `Layout()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 29`** (2 nodes): `SessionExpiryHandler.jsx`, `SessionExpiryHandler()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 30`** (2 nodes): `PawLoader.jsx`, `PawLoader()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 31`** (2 nodes): `Impact.jsx`, `Impact()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (2 nodes): `MyRescueReports.jsx`, `MyRescueReports()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (2 nodes): `HospitalHistory.jsx`, `HospitalHistory()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (2 nodes): `CitizenUIDesign()`, `CitizenUIDesign.jsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (2 nodes): `AmbulanceUIDesign()`, `AmbulanceUIDesign.jsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (2 nodes): `NgoUIDesign.jsx`, `NgoUIDesign()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (2 nodes): `AdminUIDesign()`, `AdminUIDesign.jsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 38`** (2 nodes): `HospitalUIDesign.jsx`, `HospitalUIDesign()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 39`** (2 nodes): `test-ai.js`, `testAI()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 40`** (2 nodes): `haversine.js`, `haversineDistance()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 41`** (2 nodes): `db.js`, `connectDB()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 42`** (2 nodes): `cloudinary.js`, `connectCloudinary()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 43`** (2 nodes): `validateMedia.js`, `validateMedia()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 44`** (2 nodes): `roleGuard.js`, `allowRoles()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 45`** (2 nodes): `resetAdmin.js`, `resetAdmin()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 46`** (2 nodes): `upgradeAdmins.js`, `upgradeAdmins()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 47`** (2 nodes): `listAllUsers.js`, `listAllUsers()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 48`** (2 nodes): `upgradeNamedUser.js`, `upgradeUserToAdmin()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 49`** (2 nodes): `checkAdmin.js`, `checkAdmin()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 50`** (2 nodes): `findSuperAdmin.js`, `findSuperAdmin()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 51`** (2 nodes): `seedAdmin()`, `adminSeed.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 52`** (2 nodes): `REFUND`, `SAVE`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 53`** (2 nodes): `END`, `REFUND`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 54`** (2 nodes): `END`, `REFUND`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 55`** (2 nodes): `React Framework`, `React Logo`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 56`** (2 nodes): `Animal Healthcare Concept`, `App Icon (Paw with Heartbeat)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 57`** (1 nodes): `postcss.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 58`** (1 nodes): `vite.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 59`** (1 nodes): `eslint.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 60`** (1 nodes): `tailwind.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 61`** (1 nodes): `main.jsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 62`** (1 nodes): `axios.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 63`** (1 nodes): `server.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 64`** (1 nodes): `constants.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 65`** (1 nodes): `donationRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 66`** (1 nodes): `userRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 67`** (1 nodes): `hospitalRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 68`** (1 nodes): `adminRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 69`** (1 nodes): `rescueRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 70`** (1 nodes): `authRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 71`** (1 nodes): `ambulanceRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 72`** (1 nodes): `publicRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 73`** (1 nodes): `aiChatRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 74`** (1 nodes): `ngoRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 75`** (1 nodes): `notificationRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 76`** (1 nodes): `paymentRoutes.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 77`** (1 nodes): `authController.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 78`** (1 nodes): `notificationController.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 79`** (1 nodes): `WalletTransaction.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 80`** (1 nodes): `PaymentOrder.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 81`** (1 nodes): `AuditLog.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 82`** (1 nodes): `Donation.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 83`** (1 nodes): `Commission.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 84`** (1 nodes): `Notification.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 85`** (1 nodes): `User.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 86`** (1 nodes): `AIChatSession.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 87`** (1 nodes): `RescueRequest.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 88`** (1 nodes): `PawSaarthi Platform`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 89`** (1 nodes): `Wallet System`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 90`** (1 nodes): `Frontend README`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 91`** (1 nodes): `USER`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 92`** (1 nodes): `AMBULANCE PARTNER`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 93`** (1 nodes): `HOSPITAL`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 94`** (1 nodes): `NGO`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 95`** (1 nodes): `ADMIN`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 96`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 97`** (1 nodes): `YES`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 98`** (1 nodes): `NO`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 99`** (1 nodes): `TREATMENT and COST`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 100`** (1 nodes): `YES`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 101`** (1 nodes): `NO`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 102`** (1 nodes): `NO`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 103`** (1 nodes): `YES`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 104`** (1 nodes): `YES`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 105`** (1 nodes): `NO`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 106`** (1 nodes): `YES`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 107`** (1 nodes): `YES`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 108`** (1 nodes): `NO  by all NGO  within range`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 109`** (1 nodes): `YES`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 110`** (1 nodes): `NO`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 111`** (1 nodes): `ACCEPTED (in previous flow)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 112`** (1 nodes): `REJECTED (in previous flow)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 113`** (1 nodes): `if accpeted by user`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 114`** (1 nodes): `%3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20connectable%3D%220%22%20parent%3D%221%22%20style%3D%22edgeLabel%3Bhtml%3D1%3Balign%3Dcenter%3BverticalAlign%3Dmiddle%3Bresizable%3D0%3Bpoints%3D%5B%5D%3B%22%20value%3D%22if%20rejected%20by%20user%22%20vertex%3D%221%22%3E%3CmxGeometry%20x%3D%22399.0895177088387%22%20y%3D%221370.0050504082%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E  %3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20connectable%3D%220%22%20parent%3D%221%22%20style%3D%22edgeLabel%3Bhtml%3D1%3Balign%3Dcenter%3BverticalAlign%3Dmiddle%3Bresizable%3D0%3Bpoints%3D%5B%5D%3B%22%20value%3D%22if%20rejected%20by%20user%22%20vertex%3D%221%22%3E%3CmxGeometry%20x%3D%22399.0895177088387%22%20y%3D%221370.0050504082%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 115`** (1 nodes): `if rejected by user`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 116`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 117`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 118`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 119`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 120`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 121`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 122`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 123`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 124`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 125`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 126`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 127`** (1 nodes): `NO`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 128`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 129`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 130`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 131`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 132`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 133`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 134`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 135`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 136`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 137`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 138`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 139`** (1 nodes): `Yes`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 140`** (1 nodes): `No`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 141`** (1 nodes): `Vite Logo`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **74 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `emitRescueUpdate()` connect `Community 1` to `Community 13`, `Community 4`, `Community 12`, `Community 6`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
-- **Why does `AMBULANCE FLOW` connect `Community 2` to `Community 3`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `useAuth()` connect `Community 0` to `Community 8`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `useAuth()` connect `Community 12` to `Community 32`, `Community 8`, `Community 9`, `Community 50`, `Community 21`, `Community 22`, `Community 26`, `Community 31`?**
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **Why does `protect()` connect `Community 27` to `Community 2`, `Community 3`, `Community 4`, `Community 6`, `Community 11`, `Community 46`, `Community 17`, `Community 19`, `Community 23`, `Community 24`?**
+  _High betweenness centrality (0.010) - this node is a cross-community bridge._
+- **Why does `emitRescueUpdate()` connect `Community 3` to `Community 2`, `Community 4`, `Community 11`, `Community 15`, `Community 18`, `Community 28`, `Community 29`?**
+  _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Are the 24 inferred relationships involving `useAuth()` (e.g. with `DashboardRedirect()` and `AudioAlert()`) actually correct?**
   _`useAuth()` has 24 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 23 inferred relationships involving `emitRescueUpdate()` (e.g. with `execute20MinCheck()` and `execute45MinClose()`) actually correct?**
   _`emitRescueUpdate()` has 23 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 6 inferred relationships involving `rehydrateEscalationJobs()` (e.g. with `test2_20minEscalation()` and `test3_closeUnwillingToGo()`) actually correct?**
-  _`rehydrateEscalationJobs()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `PawSaarthi Platform`, `Rescue Escalation Pipeline`, `Wallet System` to the rest of the system?**
-  _89 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `express`, `cors`, `morgan` to the rest of the system?**
+  _538 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Community 0` be split into smaller, more focused modules?**
+  _Cohesion score 0.05 - nodes in this community are weakly interconnected._
