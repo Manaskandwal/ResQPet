@@ -4,13 +4,16 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { formatIndianDateTime } from '../utils/dateTime';
 import { BellIcon, CheckCircleIcon, TrashIcon, ExclamationTriangleIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Notifications() {
     const { user } = useAuth();
+    const { theme } = useTheme();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // 'all', 'unread', 'system', 'rescue', 'wallet'
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
+    const isDark = theme === 'dark';
 
     const fetchNotifications = async () => {
         try {
@@ -91,7 +94,9 @@ export default function Notifications() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button onClick={handleMarkAllRead} className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all ${
-                        isNewUI ? 'bg-[#1c1b1b] border border-white/5 text-[#e5e2e1]/60 hover:text-[#e5e2e1] hover:bg-white/5' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        isNewUI
+                        ? `bg-surface-card border border-surface-border text-on-background/60 hover:text-on-background hover:bg-surface-hover`
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}>
                         Mark All Read
                     </button>
@@ -99,15 +104,15 @@ export default function Notifications() {
             </div>
 
             {/* Filters */}
-            <div className={`flex overflow-x-auto p-1.5 rounded-2xl border backdrop-blur-xl ${isNewUI ? 'bg-[#1c1b1b]/50 border-white/5' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className={`flex overflow-x-auto p-1.5 rounded-2xl border backdrop-blur-xl ${isNewUI ? 'bg-surface-card/50 border-surface-border' : 'bg-white border-slate-200 shadow-sm'}`}>
                 {['all', 'unread', 'rescue', 'wallet', 'system'].map(f => (
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-5 py-2 whitespace-nowrap rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-                            filter === f 
-                            ? (isNewUI ? 'bg-[#76d6d5] text-[#131313] shadow-[0_0_20px_rgba(118,214,213,0.3)]' : 'bg-primary text-white')
-                            : (isNewUI ? 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]' : 'text-slate-500 hover:text-slate-900')
+                            filter === f
+                            ? (isNewUI ? 'bg-brand text-[#131313] shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)]' : 'bg-primary text-white')
+                            : (isNewUI ? 'text-on-background/40 hover:text-on-background' : 'text-slate-500 hover:text-slate-900')
                         }`}
                     >
                         {f}
@@ -118,38 +123,38 @@ export default function Notifications() {
             {/* List */}
             <div className="space-y-4">
                 {filtered.length === 0 ? (
-                    <div className={`py-20 text-center rounded-3xl border border-dashed ${isNewUI ? 'glass-card border-white/10' : 'bg-white border-slate-200'}`}>
-                        <BellIcon className={`w-12 h-12 mx-auto mb-4 ${isNewUI ? 'text-white/10' : 'text-slate-200'}`} />
-                        <h3 className={`font-bold ${isNewUI ? 'text-[#e5e2e1]' : 'text-slate-600'}`}>No Alerts</h3>
-                        <p className={`text-sm ${isNewUI ? 'text-[#e5e2e1]/40' : 'text-slate-400'}`}>Your comms channel is clear.</p>
+                    <div className={`py-20 text-center rounded-3xl border border-dashed ${isNewUI ? 'glass-card border-surface-border' : 'bg-white border-slate-200'}`}>
+                        <BellIcon className={`w-12 h-12 mx-auto mb-4 ${isNewUI ? 'text-on-surface/10' : 'text-slate-200'}`} />
+                        <h3 className={`font-bold ${isNewUI ? 'text-on-background' : 'text-slate-600'}`}>No Alerts</h3>
+                        <p className={`text-sm ${isNewUI ? 'text-on-background/40' : 'text-slate-400'}`}>Your comms channel is clear.</p>
                     </div>
                 ) : (
                     filtered.map(n => {
                         if (!n) return null;
                         return (
                         <div key={n._id} className={`p-5 rounded-2xl border transition-all flex gap-4 ${
-                            isNewUI 
-                            ? `glass-card bg-[#1c1b1b] hover:bg-white/5 ${n.isRead ? 'border-white/5 opacity-75' : 'border-[#76d6d5]/30 shadow-[0_0_30px_rgba(118,214,213,0.05)]'}` 
+                            isNewUI
+                            ? `glass-card bg-surface-card ${n.isRead ? 'border-surface-border opacity-75' : 'border-brand/30 shadow-[0_0_30px_rgba(var(--brand-primary-rgb),0.05)]'}`
                             : `bg-white hover:border-primary/30 ${n.isRead ? 'border-slate-100' : 'border-primary/20 shadow-sm'}`
                         }`}>
                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                                isNewUI ? 'bg-white/5 border border-white/5' : 'bg-slate-50'
+                                isNewUI ? 'bg-surface-hover border border-surface-border' : 'bg-slate-50'
                             }`}>
                                 {getIconForType(n.type)}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-start mb-1">
-                                    <h4 className={`font-bold text-sm ${isNewUI ? 'text-[#e5e2e1]' : 'text-slate-900'}`}>{n.title}</h4>
-                                    <span className={`text-[10px] font-bold uppercase tracking-widest whitespace-nowrap pl-2 ${isNewUI ? 'text-[#e5e2e1]/40' : 'text-slate-400'}`}>
+                                    <h4 className={`font-bold text-sm ${isNewUI ? 'text-on-background' : 'text-slate-900'}`}>{n.title}</h4>
+                                    <span className={`text-[10px] font-bold uppercase tracking-widest whitespace-nowrap pl-2 ${isNewUI ? 'text-on-background/40' : 'text-slate-400'}`}>
                                         {formatIndianDateTime(n.createdAt)}
                                     </span>
                                 </div>
-                                <p className={`text-sm ${isNewUI ? 'text-[#e5e2e1]/60' : 'text-slate-600'}`}>{n.message}</p>
+                                <p className={`text-sm ${isNewUI ? 'text-on-background/60' : 'text-slate-600'}`}>{n.message}</p>
                             </div>
                             <div className="flex flex-col justify-between items-end pl-2">
-                                
+
                                 {!n.isRead && (
-                                    <button onClick={() => handleMarkAsRead(n._id)} className={`p-1.5 rounded-lg transition-colors ${isNewUI ? 'text-[#76d6d5] hover:bg-[#76d6d5]/10' : 'text-primary hover:bg-primary-50'}`} title="Mark as read">
+                                    <button onClick={() => handleMarkAsRead(n._id)} className={`p-1.5 rounded-lg transition-colors ${isNewUI ? 'text-brand hover:bg-surface-hover' : 'text-primary hover:bg-primary-50'}`} title="Mark as read">
                                         <CheckCircleIcon className="w-5 h-5" />
                                     </button>
                                 )}
