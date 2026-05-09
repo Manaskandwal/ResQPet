@@ -83,7 +83,7 @@ const createOrder = async (req, res) => {
         const options = {
             amount: Math.round(Number(amount) * 100), // Razorpay expects paise
             currency: 'INR',
-            receipt: `wallet_topup_${req.user._id}_${Date.now()}`,
+            receipt: `wt_${req.user._id.toString().slice(-8)}_${Date.now()}`,
             notes: {
                 userId: req.user._id.toString(),
                 purpose: 'VetsCue Wallet Top-up',
