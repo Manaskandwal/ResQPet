@@ -5,12 +5,12 @@
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1280 nodes · 1817 edges · 166 communities (93 shown, 73 thin omitted)
+- 1280 nodes · 1817 edges · 166 communities (92 shown, 74 thin omitted)
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 95 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4bf0dd23`
+- Built from commit: `5aa77846`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -202,27 +202,27 @@
 - **Rescue Haven Scene** — auth_splash_woman, auth_splash_dog, auth_splash_sign [INFERRED 0.85]
 - **Brand Identity Formation** — vetscue_brand, vetscue_wordmark, paw_icon_element [INFERRED 0.80]
 
-## Communities (166 total, 73 thin omitted)
+## Communities (166 total, 74 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.06
-Nodes (35): addImpactComment(), cancelRescue(), canRefundServiceFee(), { emitRescueUpdate, emitNewCaseToNgos }, getImpactFeed(), getMyRescues(), getRescueById(), makeFundraiser() (+27 more)
-
-### Community 1 - "Community 1"
 Cohesion: 0.05
 Nodes (19): bcrypt, mongoose, User, userSchema, mongoose, User, mongoose, User (+11 more)
 
-### Community 2 - "Community 2"
+### Community 1 - "Community 1"
 Cohesion: 0.05
 Nodes (40): Authentication & Authorization, Backend API Concepts for Interviews, code:block1 (User's Phone/PC  ──────►  API Server  ──────►  Database), code:javascript (// backend/models/User.js), code:javascript (// Find one user), code:javascript (// Flow: User submits a rescue request), code:javascript (// backend/server.js), code:block2 (https://api.example.com/api/rescue/mine) (+32 more)
+
+### Community 2 - "Community 2"
+Cohesion: 0.07
+Nodes (32): emitRescueUpdate(), editBill(), addImpactComment(), cancelRescue(), canRefundServiceFee(), { emitRescueUpdate, emitNewCaseToNgos }, getImpactFeed(), getMyRescues() (+24 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.07
 Nodes (23): approveUser(), AuditLog, deleteUser(), Donation, { emitRescueUpdate }, getAllRescues(), getAllUsers(), getAnalytics() (+15 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.08
-Nodes (27): verifyDonation(), acceptBroadcastedCase(), assignAmbulance(), { cancelRescueEscalation }, editBill(), { emitRescueUpdate, emitAmbulanceDispatch }, getBill(), getEscalatedCases() (+19 more)
+Cohesion: 0.09
+Nodes (29): verifyDonation(), acceptBroadcastedCase(), assignAmbulance(), { cancelRescueEscalation }, { emitRescueUpdate, emitAmbulanceDispatch }, getBill(), getEscalatedCases(), getLinkedAmbulances() (+21 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.06
@@ -241,39 +241,39 @@ Cohesion: 0.06
 Nodes (30): Home(), futureCards, Home(), pilotStats, steps, AdminDashboard, AmbulanceDashboard, AmbulanceHistory (+22 more)
 
 ### Community 9 - "Community 9"
+Cohesion: 0.12
+Nodes (24): formatIndianDate(), formatIndianDateTime(), formatIndianTime(), parseDate(), toDateInputValue(), toTimeInputValue(), NGODashboard(), ScheduleModal() (+16 more)
+
+### Community 10 - "Community 10"
 Cohesion: 0.06
 Nodes (30): adminRoutes, aiChatRoutes, ambulanceRoutes, app, authRoutes, {
     cleanup: cleanupAmbulanceDispatch,
     initializeActiveDispatches,
 }, { connectCloudinary }, connectDB (+22 more)
 
-### Community 10 - "Community 10"
-Cohesion: 0.11
-Nodes (14): Navbar(), NotificationModal(), comingSoon, navConfig, phaseTwoRoles, roleIcons, roleLabels, Sidebar() (+6 more)
-
 ### Community 11 - "Community 11"
+Cohesion: 0.11
+Nodes (23): acceptCase(), addFollowUp(), { cancelRescueEscalation }, completeCase(), Donation, { emitRescueUpdate }, escalateToHospital(), getNearbyCases() (+15 more)
+
+### Community 12 - "Community 12"
 Cohesion: 0.1
 Nodes (19): acceptPing(), pushStatusLog(), updateStatus(), acceptPing(), { emitRescueUpdate }, getAssignedTask(), getHistory(), getPingedTasks() (+11 more)
 
-### Community 12 - "Community 12"
-Cohesion: 0.14
-Nodes (12): AdminDashboard(), SkeletonCard(), SkeletonRow(), SkeletonStatCard(), getTimelineConfig(), StatusBadge(), statusMap, StatusTimeline() (+4 more)
-
 ### Community 13 - "Community 13"
-Cohesion: 0.08
-Nodes (25): 1. Clone and install, 2. Configure Environment Variables, 3. Seed Admin Account, API Endpoints, Backend → Render, code:bash (# Backend), code:block2 (PORT=5000), code:block3 (VITE_API_URL=http://localhost:5000/api) (+17 more)
+Cohesion: 0.11
+Nodes (13): Navbar(), comingSoon, navConfig, phaseTwoRoles, roleIcons, roleLabels, Sidebar(), AuthContext (+5 more)
 
 ### Community 14 - "Community 14"
 Cohesion: 0.08
-Nodes (25): Arrays & Objects, Async/Await & Promises, code:javascript (// Modern way (use this)), code:javascript (// backend/utils/haversine.js), code:javascript (// Primitive Types), code:javascript (// Traditional function), code:javascript (const createUser = (name, role = "user") => {), code:javascript (const users = ["John", "Jane", "Bob"];) (+17 more)
+Nodes (25): 1. Clone and install, 2. Configure Environment Variables, 3. Seed Admin Account, API Endpoints, Backend → Render, code:bash (# Backend), code:block2 (PORT=5000), code:block3 (VITE_API_URL=http://localhost:5000/api) (+17 more)
 
 ### Community 15 - "Community 15"
-Cohesion: 0.1
-Nodes (22): initializeActiveDispatches(), onRescueNeedsAmbulance(), pingNearestAmbulance(), scheduleRescueChecks(), startAmbulanceDispatch(), stopRescueChecks(), verifyDonation(), acceptBroadcastedCase() (+14 more)
+Cohesion: 0.08
+Nodes (25): Arrays & Objects, Async/Await & Promises, code:javascript (// Modern way (use this)), code:javascript (// backend/utils/haversine.js), code:javascript (// Primitive Types), code:javascript (// Traditional function), code:javascript (const createUser = (name, role = "user") => {), code:javascript (const users = ["John", "Jane", "Bob"];) (+17 more)
 
 ### Community 16 - "Community 16"
-Cohesion: 0.14
-Nodes (22): emitRescueUpdate(), acceptCase(), { cancelRescueEscalation }, completeCase(), Donation, { emitRescueUpdate }, escalateToHospital(), getNearbyCases() (+14 more)
+Cohesion: 0.1
+Nodes (22): initializeActiveDispatches(), onRescueNeedsAmbulance(), pingNearestAmbulance(), scheduleRescueChecks(), startAmbulanceDispatch(), stopRescueChecks(), verifyDonation(), acceptBroadcastedCase() (+14 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.09
@@ -285,19 +285,19 @@ Nodes (21): { asyncHandler }, AuditLog, client, { generateToken }, getMe, google
 
 ### Community 19 - "Community 19"
 Cohesion: 0.12
-Nodes (23): reviewFundraiser(), handleStalledRescue(), assignAmbulance(), editBill(), pushStatusLog(), rejectBroadcastedCase(), submitBill(), updateTreatmentStatus() (+15 more)
+Nodes (12): Login(), Register(), ROLES, ChatbotWidget(), NotificationModal(), ProtectedRoute(), useAuth(), HospitalFleet() (+4 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.12
-Nodes (15): AmbulanceHistory(), AmbulanceHistory(), ChatbotWidget(), ProtectedRoute(), useAuth(), HospitalDashboard(), HospitalFleet(), HospitalFleet() (+7 more)
+Cohesion: 0.13
+Nodes (22): reviewFundraiser(), handleStalledRescue(), editBill(), submitBill(), acceptCase(), addFollowUp(), completeCase(), escalateToHospital() (+14 more)
 
 ### Community 21 - "Community 21"
-Cohesion: 0.16
-Nodes (18): formatIndianDate(), formatIndianDateTime(), formatIndianTime(), parseDate(), toDateInputValue(), toTimeInputValue(), NGODashboard(), ScheduleModal() (+10 more)
+Cohesion: 0.11
+Nodes (13): AdminDashboard(), AmbulanceDashboard(), useAuth(), ChatbotWidget(), Fundraisers(), HospitalCases(), HospitalDashboard(), Login() (+5 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.1
-Nodes (15): addFollowUp(), getAnalytics(), getMyCases(), allowRoles(), { cloudinary }, multer, { Readable }, storage (+7 more)
+Cohesion: 0.12
+Nodes (12): AMBULANCE_STATUS_LABELS, AmbulanceDashboard(), NEXT_STATUS, STATUS_LABELS, AmbulanceHistory(), AmbulanceHistory(), getTimelineConfig(), StatusBadge() (+4 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.12
@@ -308,24 +308,24 @@ Cohesion: 0.14
 Nodes (15): getRazorpay(), createDonationOrder(), createSubscription(), crypto, donateWithWallet(), Donation, getPublicFundraisers(), { getRazorpay } (+7 more)
 
 ### Community 25 - "Community 25"
-Cohesion: 0.12
-Nodes (11): AdminDashboard(), AmbulanceDashboard(), useAuth(), ChatbotWidget(), Fundraisers(), HospitalCases(), HospitalDashboard(), NGODashboard() (+3 more)
+Cohesion: 0.11
+Nodes (14): getAnalytics(), getMyCases(), allowRoles(), { cloudinary }, multer, { Readable }, storage, upload (+6 more)
 
 ### Community 26 - "Community 26"
 Cohesion: 0.15
-Nodes (13): attachUserFromToken(), protect(), attachUserFromToken(), jwt, protect(), TokenBlacklist, User, mongoose (+5 more)
+Nodes (8): AdminDashboard(), SkeletonCard(), SkeletonRow(), SkeletonStatCard(), Fundraisers(), defaultSupportForm, Fundraisers(), UserDashboard()
 
 ### Community 27 - "Community 27"
-Cohesion: 0.17
-Nodes (12): emitAmbulanceDispatch(), emitNewCaseToNgos(), getIo(), initSocket(), jwt, socketIo, requestReturnTransport(), requestReturnTransport() (+4 more)
+Cohesion: 0.15
+Nodes (13): attachUserFromToken(), protect(), attachUserFromToken(), jwt, protect(), TokenBlacklist, User, mongoose (+5 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.2
-Nodes (12): Donation, { emitRescueUpdate }, execute20MinCheck(), execute45MinClose(), mark20MinTimerCompleted(), maybeRefundUnresolvedFee(), pendingTimers, rehydrateEscalationJobs() (+4 more)
+Cohesion: 0.17
+Nodes (12): emitAmbulanceDispatch(), emitNewCaseToNgos(), getIo(), initSocket(), jwt, socketIo, submitRescue(), scheduleRescueEscalation() (+4 more)
 
 ### Community 29 - "Community 29"
-Cohesion: 0.14
-Nodes (8): AdminUserSwitcher(), api, isPublicRoute, publicRoutes, token, AdminUserSwitcher(), DASHBOARD_ROUTES, ROLE_COLORS
+Cohesion: 0.2
+Nodes (12): Donation, { emitRescueUpdate }, execute20MinCheck(), execute45MinClose(), mark20MinTimerCompleted(), maybeRefundUnresolvedFee(), pendingTimers, rehydrateEscalationJobs() (+4 more)
 
 ### Community 30 - "Community 30"
 Cohesion: 0.18
@@ -336,8 +336,8 @@ Cohesion: 0.24
 Nodes (11): AudioAlert(), useNotificationSound(), AudioAlert(), useNotificationSound(), connectSocket(), getAuthToken(), refreshSocketAuth(), connectSocket() (+3 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.18
-Nodes (7): AMBULANCE_STATUS_LABELS, AmbulanceDashboard(), NEXT_STATUS, STATUS_LABELS, PaymentHistory(), PaymentHistory(), formatIndianDateTime()
+Cohesion: 0.17
+Nodes (8): AdminUserSwitcher(), api, isPublicRoute, publicRoutes, token, AdminUserSwitcher(), DASHBOARD_ROUTES, ROLE_COLORS
 
 ### Community 33 - "Community 33"
 Cohesion: 0.18
@@ -349,67 +349,67 @@ Nodes (11): test2_20minEscalation(), test3_closeUnwillingToGo(), test4_45minHard
 
 ### Community 36 - "Community 36"
 Cohesion: 0.2
-Nodes (5): Login(), Register(), ROLES, Login(), Register()
+Nodes (11): END, END, Enroute&nbsp;, Is coming through NGO?, Is Govt. Ambulance, Is Govt. Ambulance, Is NGO is willing to pay for the Ambulance charge, Notify user regarding the cost of pvt ambulance (+3 more)
 
 ### Community 37 - "Community 37"
 Cohesion: 0.2
-Nodes (11): END, END, Enroute&nbsp;, Is coming through NGO?, Is Govt. Ambulance, Is Govt. Ambulance, Is NGO is willing to pay for the Ambulance charge, Notify user regarding the cost of pvt ambulance (+3 more)
+Nodes (6): cron, Donation, Notification, startRecurringEmergencyDeduction(), User, WalletTransaction
 
 ### Community 38 - "Community 38"
 Cohesion: 0.2
-Nodes (6): cron, Donation, Notification, startRecurringEmergencyDeduction(), User, WalletTransaction
+Nodes (10): 1. Multi-Role System, 2. Wallet System, 3. Rescue Pipeline, 4. Real-time Updates, 5. Geolocation, 6. Escalation System, 7. Fundraisers, 8. Impact Feed (+2 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.2
-Nodes (10): 1. Multi-Role System, 2. Wallet System, 3. Rescue Pipeline, 4. Real-time Updates, 5. Geolocation, 6. Escalation System, 7. Fundraisers, 8. Impact Feed (+2 more)
-
-### Community 40 - "Community 40"
-Cohesion: 0.2
 Nodes (9): Backup: Quick Project Summary, Be Ready to Answer:, Interview Talking Points, Key Files Reference, Next Steps, Project Overview, Questions to Ask the Interviewer, ResQPet Project Explanation for Interview (+1 more)
 
-### Community 41 - "Community 41"
+### Community 40 - "Community 40"
 Cohesion: 0.22
 Nodes (7): mongoose, RescueRequest, rescueRequestSchema, express, RescueRequest, router, User
 
-### Community 42 - "Community 42"
+### Community 41 - "Community 41"
 Cohesion: 0.22
 Nodes (9): 1. AmbulanceDispatchService, 2. RescueController, 3. AuthController, 4. Cron Jobs (Background Services), 5. Socket Service, 6. Payment Service, 7. Notification Service, code:block1 (1. Rescue enters "ambulance_pinged" status) (+1 more)
 
-### Community 43 - "Community 43"
+### Community 42 - "Community 42"
 Cohesion: 0.22
 Nodes (9): code:javascript (try {), code:javascript (// file.js), JavaScript/Node.js Questions, Q11: What is the difference between let and const?, Q12: What is async/await?, Q13: What is a Promise?, Q14: How do you handle errors in async functions?, Q15: What is middleware? (+1 more)
+
+### Community 43 - "Community 43"
+Cohesion: 0.28
+Nodes (9): AMBULANCE FLOW, AMBULANCE FLOW, ask user to take to hospital, available, CHECK AVAILABILITY OF PVT HOSPITAL, END, END, NGO&nbsp; (+1 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.22
 Nodes (9): AMBULANCE FLOW, CHECK AVAILABILITY OF GOVT HOSPITAL, ENROUTE, Examin, HOSPITAL FLOW, Payment Flow, REPORT, START (+1 more)
 
 ### Community 45 - "Community 45"
-Cohesion: 0.28
-Nodes (9): AMBULANCE FLOW, AMBULANCE FLOW, ask user to take to hospital, available, CHECK AVAILABILITY OF PVT HOSPITAL, END, END, NGO&nbsp; (+1 more)
-
-### Community 46 - "Community 46"
 Cohesion: 0.25
 Nodes (7): mockTopup(), verifyPayment(), { allowRoles }, { createOrder, verifyPayment, mockTopup }, express, { protect }, router
 
-### Community 47 - "Community 47"
+### Community 46 - "Community 46"
 Cohesion: 0.25
 Nodes (8): code:block1 (User submits → pending), Q10: What are the main APIs you built?, Q5: How does authentication work in your project?, Q6: How does role-based access control work?, Q7: Explain the rescue pipeline, Q8: How does the wallet system work?, Q9: How does ambulance dispatch work?, Technical Questions
 
-### Community 48 - "Community 48"
+### Community 47 - "Community 47"
 Cohesion: 0.29
 Nodes (8): AMBULANCE FLOW, available, END, END, NOTIFY USER / NOT POSSIBLE, Quick treament possible or not, REFUND, REPORT CLOSE
 
-### Community 49 - "Community 49"
+### Community 48 - "Community 48"
 Cohesion: 0.29
 Nodes (3): Navbar(), Sidebar(), useTheme()
 
-### Community 50 - "Community 50"
+### Community 49 - "Community 49"
 Cohesion: 0.33
 Nodes (4): Notification, query, mongoose, notificationSchema
 
-### Community 51 - "Community 51"
+### Community 50 - "Community 50"
 Cohesion: 0.33
 Nodes (5): Razorpay, createDonationOrder(), createSubscription(), createOrder(), getRazorpay()
+
+### Community 52 - "Community 52"
+Cohesion: 0.33
+Nodes (6): 1. User (Citizen), 2. NGO, 3. Hospital, 4. Ambulance, 5. Admin, 5 User Roles Explained
 
 ### Community 53 - "Community 53"
 Cohesion: 0.33
@@ -417,11 +417,11 @@ Nodes (6): code:javascript ({), code:javascript ({), Database Models, Other Mode
 
 ### Community 54 - "Community 54"
 Cohesion: 0.33
-Nodes (6): 1. User (Citizen), 2. NGO, 3. Hospital, 4. Ambulance, 5. Admin, 5 User Roles Explained
+Nodes (6): 1. Start with the Problem, 2. Explain Your Solution, 3. Mention Key Features, 4. Technical Highlights, 5. Security Features, How to Explain Your Work
 
 ### Community 55 - "Community 55"
 Cohesion: 0.33
-Nodes (6): 1. Start with the Problem, 2. Explain Your Solution, 3. Mention Key Features, 4. Technical Highlights, 5. Security Features, How to Explain Your Work
+Nodes (6): Q21: How do you secure passwords?, Q22: What is JWT and how does it work?, Q23: How do you handle CORS?, Q24: What security measures did you implement?, Q25: How do you prevent SQL/NoSQL injection?, Security Questions
 
 ### Community 56 - "Community 56"
 Cohesion: 0.33
@@ -429,23 +429,23 @@ Nodes (6): Q26: What if too many users submit at once?, Q27: What if the ambulan
 
 ### Community 57 - "Community 57"
 Cohesion: 0.33
-Nodes (6): Q21: How do you secure passwords?, Q22: What is JWT and how does it work?, Q23: How do you handle CORS?, Q24: What security measures did you implement?, Q25: How do you prevent SQL/NoSQL injection?, Security Questions
-
-### Community 58 - "Community 58"
-Cohesion: 0.33
 Nodes (5): Common Interview Questions, Files Checklist, Practice Script, Remember, Table of Contents
 
-### Community 60 - "Community 60"
+### Community 59 - "Community 59"
 Cohesion: 0.4
 Nodes (6): Discharge animal back to orignal place, Donations/ Fundrasier successful?, END, Notify the user that rescue not possible, Reached Hospital , Treatment Done, REFUND
 
-### Community 62 - "Community 62"
+### Community 61 - "Community 61"
 Cohesion: 0.5
 Nodes (3): createPosterFile(), loadImage(), socialButtons
 
-### Community 63 - "Community 63"
+### Community 62 - "Community 62"
 Cohesion: 0.4
 Nodes (4): FILTER_TABS, HospitalCases(), TREATMENT_COLORS, TREATMENT_LABELS
+
+### Community 63 - "Community 63"
+Cohesion: 0.4
+Nodes (5): API Methods, Common Status Codes, Key Files, Key Libraries (from package.json), Quick Answers Reference
 
 ### Community 64 - "Community 64"
 Cohesion: 0.4
@@ -453,27 +453,23 @@ Nodes (5): General Project Questions, Q1: Tell me about your project, Q2: What w
 
 ### Community 65 - "Community 65"
 Cohesion: 0.4
-Nodes (5): API Methods, Common Status Codes, Key Files, Key Libraries (from package.json), Quick Answers Reference
-
-### Community 66 - "Community 66"
-Cohesion: 0.4
 Nodes (5): Database Questions, Q17: Why MongoDB?, Q18: What is Mongoose?, Q19: How do you query for "nearby" locations?, Q20: What are MongoDB indexes?
 
-### Community 67 - "Community 67"
+### Community 66 - "Community 66"
 Cohesion: 0.5
 Nodes (3): App(), DashboardRedirect(), withSuspense()
 
-### Community 68 - "Community 68"
+### Community 67 - "Community 67"
 Cohesion: 0.4
 Nodes (5): Discharge animal back to orignal place, END, Enroute&nbsp;, Reached Hospital , Treatment Done, REFUND
 
 ### Community 71 - "Community 71"
-Cohesion: 0.5
-Nodes (3): mongoose, WalletTransaction, walletTransactionSchema
-
-### Community 72 - "Community 72"
 Cohesion: 0.83
 Nodes (4): test5_cancelOnNgoAccept(), test8_cancelAfter20MinStillPrevents45Close(), cancelRescueEscalation(), scheduleRescueEscalation()
+
+### Community 72 - "Community 72"
+Cohesion: 0.5
+Nodes (3): mongoose, WalletTransaction, walletTransactionSchema
 
 ### Community 73 - "Community 73"
 Cohesion: 0.5
@@ -506,16 +502,16 @@ Nodes (3): Rescue Escalation Pipeline, Payment Flow & Refunds, PawSaarthi Workfl
 ## Knowledge Gaps
 - **538 isolated node(s):** `express`, `cors`, `morgan`, `helmet`, `rateLimit` (+533 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **73 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **74 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useAuth()` connect `Community 20` to `Community 32`, `Community 36`, `Community 8`, `Community 10`, `Community 12`, `Community 63`, `Community 21`, `Community 29`, `Community 31`?**
+- **Why does `useAuth()` connect `Community 19` to `Community 32`, `Community 8`, `Community 9`, `Community 13`, `Community 22`, `Community 26`, `Community 62`, `Community 31`?**
   _High betweenness centrality (0.013) - this node is a cross-community bridge._
-- **Why does `protect()` connect `Community 26` to `Community 0`, `Community 3`, `Community 4`, `Community 6`, `Community 11`, `Community 46`, `Community 18`, `Community 22`, `Community 23`, `Community 24`?**
+- **Why does `protect()` connect `Community 27` to `Community 2`, `Community 3`, `Community 4`, `Community 6`, `Community 12`, `Community 45`, `Community 18`, `Community 23`, `Community 24`, `Community 25`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **Why does `emitRescueUpdate()` connect `Community 16` to `Community 0`, `Community 3`, `Community 4`, `Community 11`, `Community 15`, `Community 27`, `Community 28`?**
+- **Why does `emitRescueUpdate()` connect `Community 2` to `Community 3`, `Community 4`, `Community 11`, `Community 12`, `Community 16`, `Community 28`, `Community 29`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **Are the 24 inferred relationships involving `useAuth()` (e.g. with `DashboardRedirect()` and `AudioAlert()`) actually correct?**
   _`useAuth()` has 24 INFERRED edges - model-reasoned connections that need verification._
@@ -524,4 +520,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `express`, `cors`, `morgan` to the rest of the system?**
   _538 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.06 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05 - nodes in this community are weakly interconnected._
