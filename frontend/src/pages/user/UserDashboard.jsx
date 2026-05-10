@@ -250,7 +250,7 @@ const UserDashboard = () => {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div className="space-y-2">
                             <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">
-                                Hello, <span className="text-[#76d6d5]">{user?.name?.split(' ')[0]}</span>
+                                Hello, <span style={{ color: 'var(--primary-dim)' }}>{user?.name?.split(' ')[0]}</span>
                             </h1>
                             <p className="text-[10px] text-on-surface/30 font-black uppercase tracking-[0.2em] leading-relaxed">
                                 Your help saves lives. Ready to help an animal today?
@@ -261,12 +261,12 @@ const UserDashboard = () => {
                             onClick={() => setWalletModalOpen(true)}
                             className="glass-card rounded-[2rem] p-6 flex items-center gap-4 min-w-[280px] border border-surface-border bg-surface/50 cursor-pointer hover:bg-surface transition-all group"
                         >
-                            <div className="w-12 h-12 rounded-2xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5] group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: 'rgba(var(--brand-primary-rgb), 0.1)', color: 'var(--primary-dim)' }}>
                                 <WalletIcon className="w-6 h-6" />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold font-headline transition-all">₹{wallet.walletBalance.toFixed(2)}</div>
-                                <div className="text-[10px] text-[#76d6d5] font-black uppercase tracking-widest">Available Balance</div>
+                                <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--primary-dim)' }}>Available Balance</div>
                             </div>
                         </div>
                     </div>
@@ -274,20 +274,21 @@ const UserDashboard = () => {
 
                 {/* Main Hero: Report CTA & Stats */}
                 <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-                    <div className="lg:col-span-8 relative rounded-[2.5rem] overflow-hidden group min-h-[400px] border border-surface-border bg-surface">
-                        <div className="absolute inset-0 opacity-20 grayscale bg-[url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')] bg-cover bg-center">
-                            <div className="absolute inset-0 bg-gradient-to-r from-[#131313] via-[#131313]/40 to-transparent"></div>
+                    <div className="lg:col-span-8 relative rounded-[2.5rem] overflow-hidden group min-h-[400px] border bg-surface" style={{ borderColor: 'var(--border-surface)' }}>
+                        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')] bg-cover bg-center">
+                            <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg-surface)] via-[var(--bg-surface)]/40 to-transparent"></div>
                         </div>
                         <div className="relative h-full p-8 md:p-12 flex flex-col justify-center max-w-xl">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#76d6d5]/10 text-[#76d6d5] text-xs font-bold uppercase tracking-widest mb-6 w-fit">
-                                <span className="w-2 h-2 rounded-full bg-[#76d6d5] animate-pulse"></span>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-6 w-fit" style={{ backgroundColor: 'rgba(var(--brand-primary-rgb), 0.1)', color: 'var(--primary-dim)' }}>
+                                <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--primary-dim)' }}></span>
                                 Citizen Guardian
                             </div>
                             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4 leading-tight">Spot an animal in distress?</h2>
-                            <p className="text-on-surface/70 mb-8 text-lg">Pin the location and upload a photo. Our rapid response team is on standby 24/7.</p>
+                            <p className="mb-8 text-lg" style={{ color: 'var(--text-muted)' }}>Pin the location and upload a photo. Our rapid response team is on standby 24/7.</p>
                             <button 
                                 onClick={() => navigate('/user/submit-rescue')}
-                                className="w-fit flex items-center gap-3 px-8 py-4 bg-gradient-to-br from-[#76d6d5] to-[#008080] text-[#131313] font-bold rounded-full hover:scale-105 transition-all shadow-xl active:scale-95"
+                                className="w-fit flex items-center gap-3 px-8 py-4 font-bold rounded-full hover:scale-105 transition-all shadow-xl active:scale-95"
+                                style={{ background: 'linear-gradient(135deg, #2dd4bf, #0d9488)', color: '#0f172a' }}
                             >
                                 <span className="material-symbols-outlined">campaign</span>
                                 Report an Animal
@@ -314,7 +315,7 @@ const UserDashboard = () => {
                 <section className="space-y-8">
                     <div className="flex items-center justify-between">
                         <h2 className="font-headline text-2xl font-bold tracking-tight text-on-surface">Your Recent Reports</h2>
-                        <Link to="/user/reports" className="text-sm font-bold text-[#76d6d5] hover:underline flex items-center gap-2 group">
+                        <Link to="/user/reports" className="text-sm font-bold hover:underline flex items-center gap-2 group" style={{ color: 'var(--primary-dim)' }}>
                             View All <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>

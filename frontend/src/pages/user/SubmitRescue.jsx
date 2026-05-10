@@ -197,20 +197,21 @@ const SubmitRescue = () => {
 
     if (isNewUI) {
         return (
-            <div className="resqpet-obsidian-theme w-full text-[#e5e2e1] space-y-12 pb-20">
+            <div className="resqpet-obsidian-theme w-full space-y-12 pb-20" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)' }}>
                 {/* Header Section */}
                 <section className="space-y-4">
                     <button 
                         onClick={() => navigate(-1)} 
-                        className="flex items-center gap-2 text-[#e5e2e1]/40 hover:text-[#76d6d5] transition-colors group"
+                        className="flex items-center gap-2 transition-colors group"
+                        style={{ color: 'var(--text-muted)' }}
                     >
                         <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         <span className="text-[10px] font-black uppercase tracking-widest">Back to Mission</span>
                     </button>
                     <div className="space-y-2">
-                        <span className="text-[#fd8b00] text-[10px] font-black uppercase tracking-[0.3em]">Rescue Emergency</span>
-                        <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">Report <span className="text-[#76d6d5]">Animal Emergency</span></h1>
-                        <p className="text-[#e5e2e1]/50 max-w-lg">A nominal service charge of <span className="text-[#76d6d5] font-bold">Rs 30</span> applies for coordination and logistics.</p>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--accent-primary)' }}>Rescue Emergency</span>
+                        <h1 className="font-headline text-4xl md:text-5xl font-extrabold tracking-tight">Report <span style={{ color: 'var(--primary-dim)' }}>Animal Emergency</span></h1>
+                        <p className="max-w-lg" style={{ color: 'var(--text-muted)' }}>A nominal service charge of <span style={{ color: 'var(--primary-dim)', fontWeight: 'bold' }}>Rs 30</span> applies for coordination and logistics.</p>
                     </div>
                 </section>
 
@@ -218,16 +219,16 @@ const SubmitRescue = () => {
                     {/* Left Column: Details & Description */}
                     <div className="lg:col-span-7 space-y-8">
                         {/* Animal Type Selection */}
-                        <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b]/50 p-8 space-y-6">
+                        <div className="glass-card rounded-[2.5rem] border p-8 space-y-6">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="w-10 h-10 rounded-xl bg-[#76d6d5]/10 flex items-center justify-center text-[#76d6d5]">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(var(--brand-primary-rgb), 0.1)', color: 'var(--primary-dim)' }}>
                                     <span className="material-symbols-outlined">pets</span>
                                 </div>
-                                <h3 className="font-headline text-xl font-bold">Who needs help?</h3>
+                                <h3 className="font-headline text-xl font-bold" style={{ color: 'var(--text-on-surface)' }}>Who needs help?</h3>
                             </div>
 
                             <div className="space-y-2 px-2">
-                                <label className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-widest block mb-4">Animal Type</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest block mb-4" style={{ color: 'var(--text-muted)' }}>Animal Type</label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                     {animalOptions.map((opt) => (
                                         <button
@@ -236,9 +237,13 @@ const SubmitRescue = () => {
                                             onClick={() => setForm(c => ({ ...c, animalType: opt.value }))}
                                             className={`h-16 rounded-2xl border transition-all flex items-center justify-center gap-2 font-bold text-sm ${
                                                 form.animalType === opt.value 
-                                                ? 'bg-[#76d6d5] border-[#76d6d5] text-[#131313] shadow-[0_0_20px_rgba(118,214,213,0.3)]' 
-                                                : 'bg-white/5 border-white/5 text-[#e5e2e1]/40 hover:border-white/10'
+                                                ? 'shadow-[0_0_20px_rgba(118,214,213,0.3)]' 
+                                                : 'hover:border-white/10'
                                             }`}
+                                            style={form.animalType === opt.value 
+                                                ? { backgroundColor: 'var(--primary-dim)', borderColor: 'var(--primary-dim)', color: 'var(--on-surface-inverse)' }
+                                                : { backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }
+                                            }
                                         >
                                             {opt.label}
                                         </button>
@@ -247,14 +252,15 @@ const SubmitRescue = () => {
                             </div>
 
                             {form.animalType === 'other' && (
-                                <div className="mt-6 p-6 rounded-3xl bg-[#fd8b00]/5 border border-[#fd8b00]/20 space-y-4 animate-slide-up">
-                                    <p className="text-xs text-[#fd8b00] font-bold leading-relaxed uppercase tracking-wide">
+                                <div className="mt-6 p-6 rounded-3xl border space-y-4 animate-slide-up" style={{ backgroundColor: 'rgba(249,115,22,0.05)', borderColor: 'rgba(249,115,22,0.2)' }}>
+                                    <p className="text-xs font-bold leading-relaxed uppercase tracking-wide" style={{ color: '#f97316' }}>
                                         Limited Support Notice: We currently prioritize dogs and cats. We will attempt coordination for other species if possible.
                                     </p>
                                     <input
                                         type="text"
                                         placeholder="What kind of animal? (e.g. Cow, Bird)"
-                                        className="w-full h-14 rounded-2xl bg-[#131313] border border-white/5 px-6 font-bold text-[#e5e2e1] focus:ring-2 focus:ring-[#fd8b00]/20 outline-none"
+                                        className="w-full h-14 rounded-2xl border px-6 font-bold focus:ring-2 outline-none"
+                                        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-surface)', color: 'var(--text-on-surface)' }}
                                         value={form.animalTypeOther}
                                         onChange={(e) => setForm(c => ({ ...c, animalTypeOther: e.target.value }))}
                                     />
@@ -262,30 +268,31 @@ const SubmitRescue = () => {
                             )}
 
                             <div className="space-y-2 px-2 pt-4">
-                                <label className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-widest block mb-4">What's the situation?</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest block mb-4" style={{ color: 'var(--text-muted)' }}>What's the situation?</label>
                                 <textarea
-                                    className="w-full h-40 rounded-3xl bg-white/5 border border-white/5 p-8 font-bold text-[#e5e2e1] focus:ring-2 focus:ring-[#76d6d5]/20 outline-none resize-none transition-all"
+                                    className="w-full h-40 rounded-3xl border p-8 font-bold outline-none resize-none transition-all"
+                                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.05)', color: 'var(--text-on-surface)' }}
                                     placeholder="Tell us about the animal's condition or injuries..."
                                     value={form.description}
                                     onChange={(e) => setForm(c => ({ ...c, description: e.target.value }))}
                                     required
                                 />
                                 <div className="flex justify-end pr-4 mt-2">
-                                    <span className="text-[10px] font-black font-mono text-[#e5e2e1]/20 uppercase tracking-widest">{form.description.length}/1000 characters</span>
+                                    <span className="text-[10px] font-black font-mono uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{form.description.length}/1000 characters</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Media Upload Section */}
-                        <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b]/50 p-8 space-y-8">
+                        <div className="glass-card rounded-[2.5rem] border p-8 space-y-8">
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(59,130,246,0.1)', color: '#60a5fa' }}>
                                         <CameraIcon className="w-6 h-6" />
                                     </div>
-                                    <h3 className="font-headline text-xl font-bold">Photos & Videos</h3>
+                                    <h3 className="font-headline text-xl font-bold" style={{ color: 'var(--text-on-surface)' }}>Photos & Videos</h3>
                                 </div>
-                                <div className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-[0.2em]">
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>
                                     {mediaItems.length} / 6 FILES
                                 </div>
                              </div>
@@ -294,12 +301,12 @@ const SubmitRescue = () => {
                              <input ref={cameraRef} type="file" accept="image/*,video/*" capture="environment" className="hidden" onChange={handleMediaPick} />
 
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button type="button" onClick={() => galleryRef.current?.click()} className="h-20 rounded-2xl border border-white/5 bg-white/5 flex items-center justify-center gap-3 hover:bg-white/10 transition-all font-bold group">
-                                    <PhotoIcon className="w-6 h-6 text-[#e5e2e1]/40 group-hover:text-[#76d6d5]" />
+                                <button type="button" onClick={() => galleryRef.current?.click()} className="h-20 rounded-2xl border flex items-center justify-center gap-3 hover:bg-white/10 transition-all font-bold group" style={{ borderColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                                    <PhotoIcon className="w-6 h-6 group-hover:text-[#76d6d5]" style={{ color: 'var(--text-muted)' }} />
                                     Choose from Gallery
                                 </button>
-                                <button type="button" onClick={() => cameraRef.current?.click()} className="h-20 rounded-2xl border border-[#76d6d5]/20 bg-[#76d6d5]/5 flex items-center justify-center gap-3 hover:bg-[#76d6d5]/10 transition-all font-bold text-[#76d6d5] group">
-                                    <CameraIcon className="w-6 h-6 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(118,214,213,0.3)]" />
+                                <button type="button" onClick={() => cameraRef.current?.click()} className="h-20 rounded-2xl border flex items-center justify-center gap-3 hover:opacity-80 transition-all font-bold group" style={{ borderColor: 'rgba(118,214,213,0.2)', backgroundColor: 'rgba(118,214,213,0.05)', color: 'var(--primary-dim)' }}>
+                                    <CameraIcon className="w-6 h-6 group-hover:scale-110 transition-transform" style={{ filter: 'drop-shadow(0 0 8px rgba(118,214,213,0.3))' }} />
                                     Take a Photo
                                 </button>
                              </div>
@@ -307,18 +314,18 @@ const SubmitRescue = () => {
                              {mediaItems.length > 0 && (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in">
                                     {mediaItems.map(item => (
-                                        <div key={item.id} className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 group">
+                                        <div key={item.id} className="relative aspect-square rounded-2xl overflow-hidden border group" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
                                             {item.kind === 'video' ? (
                                                 <video src={item.preview} className="w-full h-full object-cover" />
                                             ) : (
                                                 <img src={item.preview} alt="Upload" className="w-full h-full object-cover" />
                                             )}
-                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <button type="button" onClick={() => handleRemoveMedia(item.id)} className="w-10 h-10 rounded-full bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+                                                <button type="button" onClick={() => handleRemoveMedia(item.id)} className="w-10 h-10 rounded-full flex items-center justify-center transition-all" style={{ backgroundColor: 'rgba(239,68,68,0.2)', color: '#f87171' }}>
                                                     <TrashIcon className="w-5 h-5" />
                                                 </button>
                                             </div>
-                                            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-black/40 text-[8px] font-black uppercase tracking-widest text-white/60">
+                                            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest" style={{ backgroundColor: 'rgba(0,0,0,0.4)', color: 'rgba(255,255,255,0.6)' }}>
                                                 {item.kind}
                                             </div>
                                         </div>
@@ -330,28 +337,30 @@ const SubmitRescue = () => {
 
                     {/* Right Column: Mission Control & Location */}
                     <div className="lg:col-span-5 space-y-8">
-                        <div className="glass-card rounded-[2.5rem] border border-white/5 bg-[#1c1b1b] p-8 space-y-8 sticky top-32">
+                        <div className="glass-card rounded-[2.5rem] border p-8 space-y-8 sticky top-32">
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(244,63,94,0.1)', color: '#fb7185' }}>
                                             <MapPinIcon className="w-6 h-6" />
                                         </div>
-                                        <h3 className="font-headline text-xl font-bold">Where is the animal?</h3>
+                                        <h3 className="font-headline text-xl font-bold" style={{ color: 'var(--text-on-surface)' }}>Where is the animal?</h3>
                                     </div>
                                     <button 
                                         type="button" 
                                         onClick={() => detectLocation(false)} 
                                         disabled={geoLoading}
-                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                            geoLoading ? 'bg-white/5 text-white/20' : 'bg-[#76d6d5]/10 text-[#76d6d5] hover:bg-[#76d6d5]/20'
-                                        }`}
+                                        className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        style={geoLoading 
+                                            ? { backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.2)' }
+                                            : { backgroundColor: 'rgba(118,214,213,0.1)', color: 'var(--primary-dim)', cursor: 'pointer' }
+                                        }
                                     >
                                         {geoLoading ? 'Finding you...' : 'Check again'}
                                     </button>
                                 </div>
 
-                                <div className="h-64 rounded-3xl border border-white/10 overflow-hidden relative shadow-2xl">
+                                <div className="h-64 rounded-3xl border overflow-hidden relative shadow-2xl" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
                                     <MapContainer 
                                         center={defaultCenter} 
                                         zoom={15} 
@@ -365,12 +374,12 @@ const SubmitRescue = () => {
                                         <LocationPicker onPick={(lat, lng) => setForm(c => ({ ...c, lat, lng }))} />
                                         {form.lat && (
                                             <Marker position={[form.lat, form.lng]}>
-                                                <div className="w-4 h-4 rounded-full bg-[#76d6d5] shadow-[0_0_15px_rgba(118,214,213,1)] border-2 border-[#131313]" />
+                                                <div className="w-4 h-4 rounded-full shadow-[0_0_15px_rgba(118,214,213,1)]" style={{ backgroundColor: 'var(--primary-dim)', border: '2px solid var(--bg-surface)' }} />
                                             </Marker>
                                         )}
                                     </MapContainer>
                                     <div className="absolute inset-x-0 bottom-4 flex justify-center pointer-events-none">
-                                        <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-[#76d6d5]">
+                                        <div className="px-4 py-2 rounded-full border text-[9px] font-black uppercase tracking-widest" style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderColor: 'rgba(255,255,255,0.1)', color: 'var(--primary-dim)' }}>
                                             Tap the map to mark exactly where the animal is
                                         </div>
                                     </div>
@@ -378,10 +387,11 @@ const SubmitRescue = () => {
 
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-[#e5e2e1]/30 uppercase tracking-widest block ml-2">Nearby landmark</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest block ml-2" style={{ color: 'var(--text-muted)' }}>Nearby landmark</label>
                                         <input
                                             type="text"
-                                            className="w-full h-14 rounded-2xl bg-white/5 border border-white/5 px-6 font-bold text-[#e5e2e1] focus:ring-2 focus:ring-[#76d6d5]/20 outline-none transition-all placeholder:text-white/10"
+                                            className="w-full h-14 rounded-2xl border px-6 font-bold outline-none transition-all"
+                                            style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.05)', color: 'var(--text-on-surface)' }}
                                             placeholder="Near the tea stall, second floor, shop name, etc."
                                             value={form.address}
                                             onChange={(e) => setForm(c => ({ ...c, address: e.target.value }))}
@@ -389,9 +399,9 @@ const SubmitRescue = () => {
                                     </div>
 
                                     {form.lat && (
-                                        <div className="flex items-center gap-4 px-4 py-3 rounded-2xl bg-white/5 border border-white/5">
-                                            <div className="text-[10px] font-black text-[#76d6d5] uppercase tracking-widest">Location Marked</div>
-                                            <div className="text-[10px] font-mono text-[#e5e2e1]/40">
+                                        <div className="flex items-center gap-4 px-4 py-3 rounded-2xl border" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.05)' }}>
+                                            <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--primary-dim)' }}>Location Marked</div>
+                                            <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
                                                 {form.lat.toFixed(6)}, {form.lng.toFixed(6)}
                                             </div>
                                         </div>
@@ -399,47 +409,50 @@ const SubmitRescue = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 pt-4 border-t border-white/5">
-                                <label className="flex items-start gap-4 p-4 rounded-2xl bg-[#fd8b00]/5 border border-[#fd8b00]/20 cursor-pointer group">
+                            <div className="space-y-4 pt-4 border-t" style={{ borderColor: 'var(--border-surface)' }}>
+                                <label className="flex items-start gap-4 p-4 rounded-2xl border cursor-pointer group" style={{ backgroundColor: 'rgba(249,115,22,0.05)', borderColor: 'rgba(249,115,22,0.2)' }}>
                                     <input 
                                         type="checkbox" 
                                         checked={form.willingToPay}
                                         onChange={(e) => setForm(c => ({ ...c, willingToPay: e.target.checked }))}
-                                        className="mt-1 w-5 h-5 rounded border-white/10 bg-black/50 text-[#fd8b00] focus:ring-[#fd8b00] focus:ring-offset-0"
+                                        className="mt-1 w-5 h-5 rounded"
+                                        style={{ borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'var(--bg-surface)', color: '#f97316' }}
                                     />
                                     <div className="flex-1 space-y-1">
-                                        <div className="text-sm font-bold text-[#e5e2e1] group-hover:text-white transition-colors">I can cover hospital costs</div>
-                                        <div className="text-[10px] text-[#e5e2e1]/50 font-medium leading-relaxed">
+                                        <div className="text-sm font-bold transition-colors" style={{ color: 'var(--text-on-surface)' }}>I can cover hospital costs</div>
+                                        <div className="text-[10px] font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                                             If no free NGO can take the case, checking this allows us to immediately send a private ambulance and admit to a paid hospital at your expense.
                                         </div>
                                     </div>
                                 </label>
 
-                                <label className="flex items-start gap-4 p-4 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/20 cursor-pointer group">
+                                <label className="flex items-start gap-4 p-4 rounded-2xl border cursor-pointer group" style={{ backgroundColor: 'rgba(118,214,213,0.05)', borderColor: 'rgba(118,214,213,0.2)' }}>
                                     <input 
                                         type="checkbox" 
                                         checked={form.willingToGo}
                                         onChange={(e) => setForm(c => ({ ...c, willingToGo: e.target.checked }))}
-                                        className="mt-1 w-5 h-5 rounded border-white/10 bg-black/50 text-[#76d6d5] focus:ring-[#76d6d5] focus:ring-offset-0"
+                                        className="mt-1 w-5 h-5 rounded"
+                                        style={{ borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'var(--bg-surface)', color: 'var(--primary-dim)' }}
                                     />
                                     <div className="flex-1 space-y-1">
-                                        <div className="text-sm font-bold text-[#e5e2e1] group-hover:text-white transition-colors">I can escort the animal</div>
-                                        <div className="text-[10px] text-[#e5e2e1]/50 font-medium leading-relaxed">
+                                        <div className="text-sm font-bold transition-colors" style={{ color: 'var(--text-on-surface)' }}>I can escort the animal</div>
+                                        <div className="text-[10px] font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                                             If an ambulance is dispatched but no NGO agent is available to coordinate, checking this indicates you will travel in the ambulance with the animal.
                                         </div>
                                     </div>
                                 </label>
                             </div>
 
-                            <div className="space-y-4 pt-4 border-t border-white/5">
+                            <div className="space-y-4 pt-4 border-t" style={{ borderColor: 'var(--border-surface)' }}>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full h-20 bg-[#76d6d5] text-[#131313] rounded-3xl font-black text-sm uppercase tracking-[0.2em] shadow-[0_20px_40px_-10px_rgba(118,214,213,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                    className="w-full h-20 rounded-3xl font-black text-sm uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                    style={{ backgroundColor: 'var(--primary-dim)', color: 'var(--on-surface-inverse)', boxShadow: '0 20px 40px -10px rgba(118,214,213,0.3)' }}
                                 >
                                     {loading ? 'Sending Request...' : 'Request Help Now'}
                                 </button>
-                                <p className="text-center text-[9px] font-black text-[#e5e2e1]/20 uppercase tracking-widest">
+                                <p className="text-center text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
                                     Your request is being sent securely
                                 </p>
                             </div>
