@@ -268,18 +268,55 @@ const NGODashboard = () => {
 
         setPaying(true);
         try {
-            // Use mock payment since Razorpay keys are not configured yet
-            console.log('[NGODashboard] Mock top-up for ₹', amount);
-            const { data } = await api.post('/payment/mock-topup', { amount });
-            toast.success(data.message);
-            updateUser({ walletBalance: data.walletBalance });
-            setWallet((p) => ({ ...p, walletBalance: data.walletBalance }));
-            setTopupAmt('');
-            fetchAll();
+            console.log('[NGODashboard] Initiating Razorpay top-up for ₹', amount);
+            const loaded = await loadRazorpay();
+            if (!loaded) { toast.error('Failed to load Razorpay. Check your internet connection.'); return; }
+
+            const { data } = await api.post('/payment/create-order', { amount });
+
+            if (!data.success || !data.order) {
+                throw new Error(data.message || 'Failed to create payment order');
+            }
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || data.keyId,
+                amount: data.order.amount,
+                currency: 'INR',
+                name: 'VetsCue',
+                description: 'Wallet Top-up',
+                order_id: data.order.id,
+                handler: async (response) => {
+                    try {
+                        console.log('[NGODashboard] Razorpay payment successful, verifying...');
+                        const verifyRes = await api.post('/payment/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            amount,
+                        });
+                        toast.success(`₹${amount} added to wallet!`);
+                        updateUser({ walletBalance: verifyRes.data.walletBalance });
+                        setWallet((p) => ({ ...p, walletBalance: verifyRes.data.walletBalance }));
+                        setTopupAmt('');
+                        fetchAll();
+                    } catch (verifyErr) {
+                        console.error('[NGODashboard] Payment verification failed:', verifyErr.message);
+                        toast.error('Payment verification failed. Contact support.');
+                    }
+                },
+                prefill: { name: user?.name, email: user?.email },
+                theme: { color: '#0d9488' },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (resp) => {
+                console.error('[NGODashboard] Razorpay payment failed:', resp.error);
+                toast.error(`Payment failed: ${resp.error.description}`);
+            });
+            rzp.open();
         } catch (error) {
             console.error('[NGODashboard] Top-up error:', error);
-            const errorMsg = error.response?.data?.message || error.message || 'Failed to add amount to wallet.';
-            toast.error(errorMsg);
+            toast.error(error.message || 'Failed to add amount to wallet.');
         } finally {
             setPaying(false);
         }

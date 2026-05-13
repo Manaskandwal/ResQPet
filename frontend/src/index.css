@@ -35,6 +35,30 @@
   --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.06);
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --hover-bg-overlay: rgba(0, 0, 0, 0.05);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-track: rgba(0, 0, 0, 0.02);
+  --inverse-surface: #1e293b;
+  --on-surface-inverse: #f1f5f9;
+  --primary-dim: #008080;
+  --surface-dim: #e5e2e1;
+  --surface-tint: #76d6d5;
+  --tertiary-fixed: #79f6ed;
+  --tertiary: #59dad1;
+  --tertiary-container: #00817b;
+  --on-tertiary: #003734;
+  --on-tertiary-fixed: #00201e;
+  --on-tertiary-container: #e7fffc;
+  --on-tertiary-fixed-variant: #00504c;
+  --tertiary-fixed-dim: #59dad1;
+}
+
+:root {
+  --hover-bg-overlay: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb: rgba(118, 214, 213, 0.3);
+  --scrollbar-track: rgba(255, 255, 255, 0.02);
+  --inverse-surface: #e5e2e1;
+  --on-surface-inverse: #1e293b;
 }
 
 @tailwind base;
@@ -100,16 +124,17 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--scrollbar-track);
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(118, 214, 213, 0.2);
+    background: var(--scrollbar-thumb);
     border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(118, 214, 213, 0.4);
+    background: var(--scrollbar-thumb);
+    opacity: 0.8;
   }
 
   * {
@@ -182,24 +207,38 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 active:scale-95 shadow-sm hover:shadow-md;
+    @apply btn text-white active:scale-95 shadow-sm hover:shadow-md;
+    background-color: var(--brand-primary);
+  }
+  .btn-primary:hover {
+    background-color: var(--brand-primary-dark);
   }
 
   .btn-accent {
-    @apply btn bg-accent-500 text-white hover:bg-accent-600 active:scale-95 shadow-sm hover:shadow-md;
+    @apply btn text-white active:scale-95 shadow-sm hover:shadow-md;
+    background-color: #f97316; /* accent-500 - hardcoded for contrast */
+  }
+  .btn-accent:hover {
+    background-color: #ea580c; /* accent-600 */
   }
 
   .btn-outline {
     border: 1px solid var(--border-main);
     color: var(--text-main);
-    @apply btn hover:bg-black/5 active:scale-95;
+    @apply btn active:scale-95;
+    background-color: transparent;
+  }
+  .btn-outline:hover {
+    background-color: var(--hover-bg-overlay);
   }
 
   /* Variant for buttons on black cards */
   .card .btn-outline {
     border: 1px solid var(--border-surface);
     color: var(--text-on-surface);
-    @apply hover:bg-white/5;
+  }
+  .card .btn-outline:hover {
+    background-color: var(--hover-bg-overlay);
   }
 
   .btn-danger {
@@ -208,12 +247,18 @@
 
   .btn-ghost {
     color: var(--text-main);
-    @apply btn hover:bg-black/5 active:scale-95;
+    @apply btn active:scale-95;
+    background-color: transparent;
+  }
+  .btn-ghost:hover {
+    background-color: var(--hover-bg-overlay);
   }
 
   .card .btn-ghost {
     color: var(--text-on-surface);
-    @apply hover:bg-white/5;
+  }
+  .card .btn-ghost:hover {
+    background-color: var(--hover-bg-overlay);
   }
 
   .btn-sm {
@@ -255,45 +300,55 @@
   }
 
   .badge-pending {
-    @apply badge bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300;
+    @apply badge bg-amber-100 text-amber-700;
+    @apply dark:bg-amber-900/30 dark:text-amber-300;
   }
 
   .badge-accepted {
-    @apply badge bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300;
+    @apply badge bg-teal-100 text-teal-700;
+    @apply dark:bg-teal-900/30 dark:text-teal-300;
   }
 
   .badge-escalated {
-    @apply badge bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300;
+    @apply badge bg-orange-100 text-orange-700;
+    @apply dark:bg-orange-900/30 dark:text-orange-300;
   }
 
   .badge-assigned {
-    @apply badge bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300;
+    @apply badge bg-blue-100 text-blue-700;
+    @apply dark:bg-blue-900/30 dark:text-blue-300;
   }
 
   .badge-enroute {
-    @apply badge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300;
+    @apply badge bg-indigo-100 text-indigo-700;
+    @apply dark:bg-indigo-900/30 dark:text-indigo-300;
   }
 
   .badge-pickedup {
-    @apply badge bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300;
+    @apply badge bg-purple-100 text-purple-700;
+    @apply dark:bg-purple-900/30 dark:text-purple-300;
   }
 
   .badge-completed {
-    @apply badge bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+    @apply badge bg-green-100 text-green-700;
+    @apply dark:bg-green-900/30 dark:text-green-300;
   }
 
   .badge-cancelled {
-    @apply badge bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300;
+    @apply badge bg-red-100 text-red-700;
+    @apply dark:bg-red-900/30 dark:text-red-300;
   }
 
   /* ── Sidebar nav ─────────────────────────────────────── */
   .nav-link {
     color: var(--text-muted);
-    @apply flex items-center gap-2.5 px-3 py-2 rounded-btn text-sm font-medium hover:bg-surface-hover transition-all duration-150 whitespace-nowrap overflow-hidden;
+    background-color: transparent;
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-btn text-sm font-medium transition-all duration-150 whitespace-nowrap overflow-hidden;
   }
 
   .nav-link:hover {
     color: var(--text-main);
+    background-color: var(--hover-bg-overlay);
   }
 
   .nav-link-active {

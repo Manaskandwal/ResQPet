@@ -139,7 +139,7 @@ app.use('/api/payment/verify', paymentVerifyLimiter);
             initializeActiveDispatches().catch((error) => {
                 console.error('[Server] Failed to rehydrate active ambulance dispatches:', error.message);
             });
-        });
+        }); 
     } catch (error) {
         console.error('[Server] Critical startup error:', error.message);
         process.exit(1);
