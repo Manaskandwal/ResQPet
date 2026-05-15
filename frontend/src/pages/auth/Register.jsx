@@ -99,7 +99,7 @@ const Register = () => {
             <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-surface min-h-screen">
                 <div className="absolute inset-0 z-0">
                     <img src="/auth_splash.png" alt="Rescue Mission" className="w-full h-full object-cover opacity-30 grayscale saturate-50 contrast-125" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background pointer-events-none" />
                 </div>
 
                 <div className="relative z-10 p-16 space-y-6 max-w-2xl">
@@ -119,7 +119,7 @@ const Register = () => {
                 {/* Back Button */}
                 <button
                     onClick={() => navigate('/')}
-                    className="absolute top-6 left-6 p-2 rounded-full hover:bg-white/5 text-[#e5e2e1]/40 hover:text-[#e5e2e1] transition-all border border-transparent hover:border-white/5 flex items-center gap-2 group"
+                    className="absolute top-6 left-6 p-2 rounded-full hover:bg-[var(--hover-surface)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all border border-transparent hover:border-[var(--border-surface)] flex items-center gap-2 group"
                 >
                     <ArrowLeftIcon className="w-4 h-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Back to Home</span>
@@ -170,30 +170,30 @@ const Register = () => {
                                 </div>
                                 {isOrg && (
                                     <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[#76d6d5] ml-1">Organisation / Hospital Name</label>
-                                        <input name="orgName" type="text" required className="w-full px-4 py-3 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/10 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/20 outline-none transition-all" value={form.orgName} onChange={handleChange} />
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--brand-primary)] ml-1">Organisation / Hospital Name</label>
+                                        <input name="orgName" type="text" required className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-1 focus:ring-primary/10 outline-none transition-all" value={form.orgName} onChange={handleChange} />
                                     </div>
                                 )}
                                 {form.role === 'hospital' && (
                                     <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[#76d6d5] ml-1">Hospital Type</label>
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--brand-primary)] ml-1">Hospital Type</label>
                                         <select
                                             name="hospitalType"
                                             required
                                             value={form.hospitalType}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-2xl bg-[#76d6d5]/5 border border-[#76d6d5]/10 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/20 outline-none transition-all appearance-none"
+                                            className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-1 focus:ring-primary/10 outline-none transition-all appearance-none"
                                         >
-                                            <option value="" disabled className="bg-[#1c1b1b]">Select hospital type</option>
-                                            <option value="private" className="bg-[#1c1b1b]">Private Hospital</option>
-                                            <option value="government" className="bg-[#1c1b1b]">Government Hospital</option>
+                                            <option value="" disabled className="bg-[var(--bg-surface)]">Select hospital type</option>
+                                            <option value="private" className="bg-[var(--bg-surface)]">Private Hospital</option>
+                                            <option value="government" className="bg-[var(--bg-surface)]">Government Hospital</option>
                                         </select>
                                     </div>
                                 )}
                                 {form.role === 'ambulance' && (
                                     <div className="col-span-1 sm:col-span-2 space-y-1.5 animate-slide-up">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Ambulance Vehicle ID</label>
-                                        <input name="vehicleNumber" type="text" required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 focus:ring-1 outline-none transition-all" value={form.vehicleNumber} onChange={handleChange} />
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-on-background/30 ml-1">Ambulance Vehicle ID</label>
+                                        <input name="vehicleNumber" type="text" required className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-1 outline-none transition-all" value={form.vehicleNumber} onChange={handleChange} />
                                     </div>
                                 )}
                                 <div className="col-span-1 sm:col-span-2 space-y-1.5">
@@ -201,18 +201,18 @@ const Register = () => {
                                     <input name="email" type="email" required className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 outline-none font-bold" placeholder="guardian@example.com" value={form.email} onChange={handleChange} />
                                 </div>
                                 <div className="col-span-1 sm:col-span-2 space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30 ml-1">Secure Password</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-on-background/30 ml-1">Secure Password</label>
                                     <div className="relative">
-                                        <input name="password" type={showPass ? 'text' : 'password'} required className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-sm text-white focus:border-[#76d6d5]/30 outline-none pr-10" placeholder="Min. 6 chars" value={form.password} onChange={handleChange} />
-                                        <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-[#76d6d5] transition-colors p-1">
+                                        <input name="password" type={showPass ? 'text' : 'password'} required className="w-full px-4 py-3 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 outline-none pr-10" placeholder="Min. 6 chars" value={form.password} onChange={handleChange} />
+                                        <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-primary transition-colors p-1">
                                             <span className="material-symbols-outlined text-lg">{showPass ? 'visibility_off' : 'visibility'}</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <button type="submit" disabled={loading} className="w-full py-4 mt-2 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(118,214,213,0.3)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                                {loading ? <span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> : 'Confirm Registration'}
+                            <button type="submit" disabled={loading} className="w-full py-4 mt-2 rounded-2xl btn-primary text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                                {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Confirm Registration'}
                             </button>
                         </form>
                     </div>

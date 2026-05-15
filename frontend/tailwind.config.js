@@ -8,7 +8,46 @@ export default {
     theme: {
         extend: {
             colors: {
-                // Legacy / Primitive colors
+                // Brand Colors - using CSS variables
+                primary: {
+                    DEFAULT: 'var(--brand-primary)',
+                    dark: 'var(--brand-primary-dark)',
+                    dim: 'var(--brand-primary-dim)',
+                    rgb: 'var(--brand-primary-rgb)',
+                },
+                brand: {
+                    DEFAULT: 'var(--brand-primary)',
+                    dark: 'var(--brand-primary-dark)',
+                    dim: 'var(--brand-primary-dim)',
+                    rgb: 'var(--brand-primary-rgb)',
+                },
+
+                // Background Colors - using CSS variables
+                background: 'var(--bg-main)',
+                surface: {
+                    DEFAULT: 'var(--bg-surface)',
+                    hover: 'var(--bg-surface-hover)',
+                    elevated: 'var(--bg-surface-elevated)',
+                },
+                'surface-card': 'var(--bg-surface)',
+                'surface-hover': 'var(--bg-surface-hover)',
+
+                // Text Colors - using CSS variables
+                'on-background': 'var(--text-main)',
+                'on-surface': 'var(--text-on-surface)',
+                'surface-muted': 'var(--text-muted)',
+
+                // Border Colors - using CSS variables
+                'surface-border': 'var(--border-surface)',
+                'border-subtle': 'var(--border-subtle)',
+
+                // Semantic Colors - using CSS variables
+                success: 'var(--color-success)',
+                warning: 'var(--color-warning)',
+                error: 'var(--color-error)',
+                info: 'var(--color-info)',
+
+                // Legacy primary scale (for specific use cases)
                 primary: {
                     50: '#f0fdfa',
                     100: '#ccfbf1',
@@ -21,6 +60,8 @@ export default {
                     800: '#115e59',
                     900: '#134e4a',
                 },
+
+                // Accent colors (for specific use cases)
                 accent: {
                     50: '#fff7ed',
                     100: '#ffedd5',
@@ -33,84 +74,34 @@ export default {
                     800: '#9a3412',
                     900: '#7c2d12',
                 },
-                // Semantic & New Obsidian System (Flat structure for reliable build)
-                'brand': {
-                    DEFAULT: 'var(--brand-primary)',
-                    dark: 'var(--brand-primary-dark)',
-                    rgb: 'var(--brand-primary-rgb)',
-                },
-                'surface-card': 'var(--bg-surface)',
-                'surface-hover': 'var(--bg-surface-hover)',
-                'surface-border': 'var(--border-surface)',
-                'surface-muted': 'var(--text-muted-on-surface)',
-                'primary-dim': 'var(--primary-dim)',
-                "inverse-primary": "#006a6a",
-                "inverse-surface": "#e5e2e1",
-                "outline-variant": "#3e4949",
-                "surface-variant": "#353534",
-                "secondary-fixed": "#ffdcc3",
-                "on-primary-container": "#e3fffe",
-                "on-surface-variant": "#bdc9c8",
-                "surface-container-low": "#1c1b1b",
-                "secondary-fixed-dim": "#ffb77d",
-                "surface": "var(--bg-surface)",
-                "on-secondary": "#4d2600",
-                "on-secondary-fixed-variant": "#6e3900",
-                "surface-container-highest": "#353534",
-                "secondary-container": "#fd8b00",
-                "on-tertiary": "#003734",
-                "error-container": "#93000a",
-                "on-error": "#690005",
-                "tertiary-fixed": "#79f6ed",
-                "outline": "#879392",
-                "tertiary-container": "#00817b",
-                "primary-fixed-dim": "#76d6d5",
-                "error": "#ffb4ab",
-                "on-tertiary-fixed-variant": "#00504c",
-                "surface-dim": "var(--bg-main)",
-                "tertiary": "#59dad1",
-                "on-secondary-container": "#603100",
-                "on-tertiary-fixed": "#00201e",
-                "primary-container": "#008080",
-                "on-error-container": "#ffdad6",
-                "surface-container": "var(--bg-surface)",
-                "tertiary-fixed-dim": "#59dad1",
-                "surface-container-high": "var(--bg-surface-hover)",
-                "on-background": "var(--text-main)",
-                "on-secondary-fixed": "#2f1500",
-                "background": "var(--bg-main)",
-                "surface-tint": "#76d6d5",
-                "on-tertiary-container": "#e7fffc",
-                "on-primary-fixed": "#002020",
-                "on-surface": "var(--text-on-surface)",
-                "inverse-on-surface": "#313030",
-                "on-primary": "#003737",
-                "on-primary-fixed-variant": "#004f4f",
-                "primary-fixed": "#93f2f2",
-                "surface-container-lowest": "var(--bg-main)",
-                "surface-bright": "var(--bg-surface-hover)"
             },
+
             borderRadius: {
                 card: '16px',
                 btn: '10px',
             },
+
             boxShadow: {
                 card: 'var(--shadow-card)',
                 'card-hover': 'var(--shadow-card-hover)',
                 toast: '0 8px 24px 0 rgba(0,0,0,0.15)',
                 soft: 'var(--shadow-soft)',
+                sm: 'var(--shadow-sm)',
             },
+
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],
                 headline: ['Manrope', 'sans-serif'],
                 body: ['Inter', 'sans-serif'],
             },
+
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-out',
                 'slide-up': 'slideUp 0.3s ease-out',
                 'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
                 'spin-slow': 'spin 3s linear infinite',
             },
+
             keyframes: {
                 fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
                 slideUp: { from: { opacity: 0, transform: 'translateY(12px)' }, to: { opacity: 1, transform: 'translateY(0)' } },

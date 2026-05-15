@@ -4,7 +4,9 @@
       "Bash(node -e \"console.log\\('RAZORPAY_KEY_ID: ' + process.env.RAZORPAY_KEY_ID\\); console.log\\('RAZORPAY_KEY_SECRET: ' + process.env.RAZORPAY_KEY_SECRET\\);\")",
       "Bash(node *)",
       "Bash(python .graphify_step_1_check.py)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:5173/src/index.css)"
     ]
   }
 }
