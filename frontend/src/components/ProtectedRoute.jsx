@@ -10,10 +10,10 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
                 <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-                    <p className="text-sm text-surface-muted font-medium">Loading VetsCue...</p>
+                    <div className="w-10 h-10 border-4 border-[var(--brand-primary)]/30 border-t-[var(--brand-primary)] rounded-full animate-spin" />
+                    <p className="text-sm text-[var(--text-muted)] font-medium">Loading VetsCue...</p>
                 </div>
             </div>
         );

@@ -91,7 +91,7 @@ const Login = () => {
         }
     };
 
-    if (authLoading) return <div className="min-h-screen bg-[#131313] flex items-center justify-center"><PawLoader /></div>;
+    if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><PawLoader /></div>;
 
     return (
         <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-x-hidden font-body relative transition-colors duration-300">
@@ -99,8 +99,8 @@ const Login = () => {
             <div className="hidden lg:flex lg:w-3/5 relative items-center justify-center bg-surface min-h-screen">
                 <div className="absolute inset-0 z-0">
                     <img src="/auth_splash.png" alt="Rescue Mission" className="w-full h-full object-cover opacity-60 mix-blend-luminosity grayscale hover:grayscale-0 transition-all duration-1000" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#131313]/20 via-transparent to-[#131313]/50 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/50 pointer-events-none" />
                 </div>
 
                 <div className="relative z-10 p-16 space-y-6 max-w-2xl">
@@ -172,8 +172,8 @@ const Login = () => {
                             </div>
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center ml-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30" htmlFor="password">Password</label>
-                                    <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:text-[#76d6d5]/80 pointer-events-none opacity-50">Forgot?</Link>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-on-background/30" htmlFor="password">Password</label>
+                                    <Link to="/forgot-password" disabled className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-80 pointer-events-none opacity-50">Forgot?</Link>
                                 </div>
                                 <div className="relative group">
                                     <input id="password" name="password" type={showPass ? 'text' : 'password'} required className="w-full px-5 py-4 rounded-2xl bg-surface-hover border border-surface-border text-sm text-on-background focus:border-primary/30 focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-on-background/10 pr-12" placeholder="••••••••" value={form.password} onChange={handleChange} />
@@ -183,8 +183,8 @@ const Login = () => {
                                 </div>
                             </div>
 
-                            <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(118,214,213,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                                {loading ? <span className="w-4 h-4 border-2 border-[#131313]/30 border-t-[#131313] rounded-full animate-spin" /> : 'Log In Account'}
+                            <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl btn-primary text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                                {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Log In Account'}
                             </button>
                         </form>
                     </div>

@@ -29,13 +29,8 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const AudioAlert = lazy(() => import('./components/AudioAlert'));
 const ChatbotWidget = lazy(() => import('./components/ChatbotWidget'));
 
-// New Design Previews (landing only - other pages use isNewUI flag internally)
-const LandingUIDesign = lazy(() => import('./pages/new-designs/LandingUIDesign'));
-
-const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
-
 const RouteFallback = () => (
-  <div className={`min-h-screen flex items-center justify-center ${isNewUI ? 'bg-background' : 'bg-slate-50'}`}>
+  <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
     <PawLoader />
   </div>
 );
@@ -67,7 +62,7 @@ export default function App() {
   return (
     <>
     <Routes>
-      <Route path="/" element={isNewUI ? withSuspense(<LandingUIDesign />) : <Home />} />
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={withSuspense(<Login />)} />
       <Route path="/register" element={withSuspense(<Register />)} />
       <Route path="/dashboard" element={<DashboardRedirect />} />

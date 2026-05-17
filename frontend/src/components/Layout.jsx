@@ -13,17 +13,14 @@ const Layout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const location = useLocation();
-    const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
-
-    // Integrated shell for both old and new designs
 
     return (
-        <div className="min-h-screen flex bg-background transition-colors duration-300">
+        <div className="min-h-screen flex bg-[var(--bg-main)] transition-colors duration-300">
             <AudioAlert />
             {/* Sidebar — desktop always visible, mobile overlay */}
-            <Sidebar 
-                open={sidebarOpen} 
-                onClose={() => setSidebarOpen(false)} 
+            <Sidebar
+                open={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
                 onNotificationsClick={() => setShowNotifications(true)}
             />
 
@@ -37,8 +34,8 @@ const Layout = () => {
 
             {/* Main content */}
             <div className="flex-1 flex flex-col lg:ml-64 min-w-0">
-                <Navbar 
-                    onMenuClick={() => setSidebarOpen(true)} 
+                <Navbar
+                    onMenuClick={() => setSidebarOpen(true)}
                     onNotificationsClick={() => setShowNotifications(true)}
                 />
                 <main className="flex-1 p-5 md:p-8 max-w-7xl mx-auto w-full animate-fade-in">
