@@ -327,7 +327,7 @@ const UserDashboard = () => {
                             </div>
                             <h3 className="text-xl font-bold mb-2">No rescue reports yet</h3>
                             <p className="text-on-surface/40 mb-8 max-w-sm">Every report matters. Start by submitting your first animal rescue report today.</p>
-                            <Link to="/user/submit-rescue" className="px-8 py-3 bg-surface-hover border border-surface-border rounded-full font-bold hover:bg-surface-hover transition-all">
+                            <Link to="/user/submit-rescue" className="px-8 py-3 bg-[#76d6d5] text-[#131313] rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#76d6d5]/10">
                                 Get Started
                             </Link>
                         </div>

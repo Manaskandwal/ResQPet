@@ -629,7 +629,7 @@ const AdminDashboard = () => {
                                                 Daily Rescues <span className="text-[10px] text-[#e5e2e1]/40 font-black tracking-widest uppercase">(Last 30 Days)</span>
                                             </h3>
                                             <div className="h-64">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                                <ResponsiveContainer width="100%" height={256}>
                                                     <BarChart data={analytics.chartData.dailyCases}>
                                                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                                                         <XAxis dataKey="_id" stroke="#ffffff40" fontSize={10} tickMargin={10} axisLine={false} />
@@ -650,7 +650,7 @@ const AdminDashboard = () => {
                                                 Daily Donations <span className="text-[10px] text-[#e5e2e1]/40 font-black tracking-widest uppercase">(Last 30 Days INR)</span>
                                             </h3>
                                             <div className="h-64">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                                <ResponsiveContainer width="100%" height={256}>
                                                     <LineChart data={analytics.chartData.dailyDonations}>
                                                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                                                         <XAxis dataKey="_id" stroke="#ffffff40" fontSize={10} tickMargin={10} axisLine={false} />

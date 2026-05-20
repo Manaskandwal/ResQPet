@@ -427,6 +427,353 @@
   .text-theme-on-surface { color: var(--text-on-surface); }
   .border-theme { border-color: var(--border-main); }
   .border-theme-surface { border-color: var(--border-surface); }
+
+  /* ══════════════════════════════════════════════════════
+     NAVBAR  —  Linear / Vercel / Notion style
+  ══════════════════════════════════════════════════════ */
+
+  /* ── Shell ─────────────────────────────────────────── */
+  .navbar-shell {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: 60px;
+    /* Translucent surface — NOT a solid box */
+    background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    /* Only a very subtle bottom line, no heavy border */
+    border-bottom: 1px solid var(--border-surface);
+    /* No box-shadow by default — it appears on scroll via JS if needed */
+    transition: box-shadow 0.25s ease;
+  }
+
+  .navbar-shell:has(+ *:hover),
+  .navbar-shell.is-scrolled {
+    box-shadow: 0 1px 0 var(--border-surface),
+                0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  /* ── Inner layout ────────────────────────────────── */
+  .navbar-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    gap: 8px;
+  }
+
+  /* ── Logo ─────────────────────────────────────────── */
+  .nb-logo-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .nb-logo-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.32);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .nb-logo-link:hover .nb-logo-icon {
+    transform: scale(1.08) rotate(-4deg);
+    box-shadow: 0 4px 14px rgba(var(--brand-primary-rgb), 0.45);
+  }
+
+  .nb-logo-text {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: opacity 0.15s ease;
+  }
+
+  .nb-logo-link:hover .nb-logo-text {
+    opacity: 0.8;
+  }
+
+  /* ── Icon buttons ────────────────────────────────── */
+  .nb-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  }
+  .nb-icon-btn:hover {
+    color: var(--text-main);
+    background: var(--hover-surface);
+    transform: scale(1.06);
+  }
+  .nb-icon-btn:active { transform: scale(0.94); }
+
+  /* ── Notification badge ──────────────────────────── */
+  .nb-notif-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 15px;
+    height: 15px;
+    border-radius: 99px;
+    padding: 0 3px;
+    background: var(--brand-primary);
+    border: 1.5px solid var(--bg-surface);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    animation: nb-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes nb-pop {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  /* ── Warning / info pill ─────────────────────────── */
+  .nb-warning-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.22);
+    color: #f59e0b;
+    white-space: nowrap;
+  }
+  .nb-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  .nb-pill-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #f59e0b;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s;
+  }
+  .nb-pill-action:hover { opacity: 1; }
+
+  /* ── Chip (Switch Account etc.) ─────────────────── */
+  .nb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(var(--brand-primary-rgb), 0.08);
+    border: 1px solid rgba(var(--brand-primary-rgb), 0.2);
+    color: var(--brand-primary);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .nb-chip:hover {
+    background: rgba(var(--brand-primary-rgb), 0.14);
+    border-color: rgba(var(--brand-primary-rgb), 0.4);
+    transform: scale(1.02);
+  }
+
+  /* ── Separator ───────────────────────────────────── */
+  .nb-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border-surface);
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
+  /* ── Profile trigger ─────────────────────────────── */
+  .nb-profile-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px 4px 4px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .nb-profile-trigger:hover {
+    background: var(--hover-surface);
+    border-color: var(--border-surface);
+  }
+
+  /* ── Avatar (small) ──────────────────────────────── */
+  .nb-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    font-family: 'Manrope', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.3);
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+  .nb-profile-trigger:hover .nb-avatar {
+    box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.42);
+    transform: scale(1.05);
+  }
+
+  /* ── Avatar (large — dropdown header) ───────────── */
+  .nb-avatar-lg {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    font-family: 'Manrope', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(var(--brand-primary-rgb), 0.38);
+  }
+
+  /* ── Role badge ──────────────────────────────────── */
+  .nb-role-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+    color: var(--brand-primary);
+    background: rgba(var(--brand-primary-rgb), 0.1);
+    border: 1px solid rgba(var(--brand-primary-rgb), 0.22);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Dropdown panel ──────────────────────────────── */
+  .nb-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 232px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border-surface);
+    background: var(--bg-surface);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.04),
+      0 8px 24px rgba(0,0,0,0.16),
+      0 24px 48px rgba(0,0,0,0.14);
+    z-index: 50;
+    outline: none;
+    /* Subtle tinted glass feel */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  [data-theme="light"] .nb-dropdown {
+    box-shadow:
+      0 0 0 1px rgba(15,118,110,0.06),
+      0 8px 24px rgba(15,118,110,0.08),
+      0 24px 48px rgba(0,0,0,0.06);
+  }
+
+  /* Dropdown header */
+  .nb-dd-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    /* Very subtle gradient to hint at branding */
+    background: linear-gradient(135deg,
+      rgba(var(--brand-primary-rgb), 0.06) 0%,
+      transparent 60%
+    );
+  }
+
+  /* Divider */
+  .nb-dd-sep {
+    height: 1px;
+    background: var(--border-surface);
+    margin: 4px 12px;
+  }
+
+  /* Dropdown items */
+  .nb-dd-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 6px;
+    margin: 1px 8px;
+    width: calc(100% - 16px);
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .nb-dd-item:hover { color: var(--text-main); background: var(--hover-surface); }
+  .nb-dd-item--active { color: var(--text-main) !important; background: var(--hover-surface) !important; }
+  .nb-dd-item--warn  { color: #f59e0b !important; background: rgba(245,158,11,0.07) !important; }
+  .nb-dd-item--danger { color: var(--color-error) !important; }
+  .nb-dd-item--danger:hover, .nb-dd-item--danger-active { background: rgba(239,68,68,0.07) !important; }
+
+  /* Icon inside dropdown item */
+  .nb-dd-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+
+  /* Last item margin */
+  .nb-dd-item:last-of-type { margin-bottom: 6px; }
+  .nb-dd-item:first-of-type { margin-top: 6px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -629,3 +976,71 @@
 [data-theme="light"] .resqpet-obsidian-theme [class*="bg-[#131313]/80"] {
   background-color: rgba(22, 49, 58, 0.28) !important;
 }
+
+/* Universal Light Theme Arbitrary Class Overrides */
+[data-theme="light"] .bg-\[\#131313\] {
+  background-color: var(--bg-surface) !important;
+}
+[data-theme="light"] .bg-\[\#1c1b1b\] {
+  background-color: var(--bg-surface) !important;
+}
+[data-theme="light"] .text-\[\#76d6d5\] {
+  color: var(--brand-primary) !important;
+}
+[data-theme="light"] .text-\[\#e5e2e1\] {
+  color: var(--text-main) !important;
+}
+[data-theme="light"] .text-\[\#e5e2e1\]\/40 {
+  color: var(--text-muted) !important;
+  opacity: 0.65 !important;
+}
+[data-theme="light"] .bg-\[\#76d6d5\]\/10 {
+  background-color: rgba(15, 118, 110, 0.1) !important;
+}
+[data-theme="light"] .bg-\[\#76d6d5\]\/20 {
+  background-color: rgba(15, 118, 110, 0.18) !important;
+}
+[data-theme="light"] .bg-\[\#76d6d5\]\/5 {
+  background-color: rgba(15, 118, 110, 0.04) !important;
+}
+[data-theme="light"] .border-\[\#76d6d5\]\/20 {
+  border-color: rgba(15, 118, 110, 0.2) !important;
+}
+[data-theme="light"] .border-\[\#76d6d5\]\/30 {
+  border-color: rgba(15, 118, 110, 0.3) !important;
+}
+[data-theme="light"] .bg-\[\#76d6d5\] {
+  background-color: var(--brand-primary) !important;
+  color: #ffffff !important;
+}
+[data-theme="light"] .shadow-\[\#e5e2e1\]\/5 {
+  box-shadow: var(--shadow-sm) !important;
+}
+[data-theme="light"] .bg-\[\#e5e2e1\] {
+  background-color: var(--brand-primary) !important;
+}
+[data-theme="light"] .text-\[\#131313\] {
+  color: #ffffff !important;
+}
+[data-theme="light"] .border-white\/10 {
+  border-color: var(--border-subtle) !important;
+}
+[data-theme="light"] .bg-white\/5 {
+  background-color: var(--hover-surface) !important;
+}
+[data-theme="light"] .bg-white\/10 {
+  background-color: var(--hover-bg-overlay) !important;
+}
+[data-theme="light"] .border-white\/5 {
+  border-color: var(--border-subtle) !important;
+}
+[data-theme="light"] .text-white\/90,
+[data-theme="light"] .text-white\/70,
+[data-theme="light"] .text-white {
+  color: var(--text-main) !important;
+}
+[data-theme="light"] .text-white\/50,
+[data-theme="light"] .text-white\/40 {
+  color: var(--text-muted) !important;
+}
+

@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect, useRef } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +11,13 @@ import {
     CreditCardIcon,
 } from '@heroicons/react/24/outline';
 import AdminUserSwitcher from './AdminUserSwitcher';
-import { BellIcon, SunIcon, MoonIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
+import {
+    BellIcon,
+    SunIcon,
+    MoonIcon,
+    SpeakerWaveIcon,
+    SpeakerXMarkIcon,
+} from '@heroicons/react/24/outline';
 import { useTheme } from '../context/ThemeContext';
 import api from '../api/axios';
 
@@ -28,209 +34,196 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
             api.get('/notifications?unreadOnly=true')
                 .then(res => setUnreadCount(res.data.unreadCount || 0))
                 .catch(err => console.error(err));
-
-            const handleNewNotification = () => {
-                setUnreadCount(prev => prev + 1);
-            };
-            window.addEventListener('new-notification', handleNewNotification);
-            return () => window.removeEventListener('new-notification', handleNewNotification);
+            const handleNew = () => setUnreadCount(p => p + 1);
+            window.addEventListener('new-notification', handleNew);
+            return () => window.removeEventListener('new-notification', handleNew);
         } else {
             setUnreadCount(0);
         }
     }, [user]);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
-    const handleBackToAdmin = async () => {
-        await stopImpersonating();
-        navigate('/admin/dashboard');
-    };
-
+    const handleLogout = () => { logout(); navigate('/login'); };
+    const handleBackToAdmin = async () => { await stopImpersonating(); navigate('/admin/dashboard'); };
     const toggleMute = () => {
-        const newMuted = !isMuted;
-        setIsMuted(newMuted);
-        localStorage.setItem('isMuted', newMuted);
+        const next = !isMuted;
+        setIsMuted(next);
+        localStorage.setItem('isMuted', next);
         window.dispatchEvent(new Event('mute-change'));
     };
 
+    const initial = user?.name?.charAt(0)?.toUpperCase() || 'U';
+
     return (
         <>
-            <header className="sticky top-0 z-10 transition-all duration-300 bg-[var(--bg-surface)]/90 backdrop-blur-xl border-b border-[var(--border-surface)]">
-                <div className="flex items-center justify-between px-5 md:px-8 h-16">
-                    {/* Mobile hamburger */}
-                    <button
-                        onClick={onMenuClick}
-                        className="lg:hidden p-2 rounded-btn transition hover:bg-[var(--hover-surface)] text-[var(--text-muted)]"
-                        aria-label="Open menu"
-                    >
-                        <Bars3Icon className="w-5 h-5" />
-                    </button>
+            {/* ── Navbar shell ─────────────────────────────── */}
+            <header className="navbar-shell">
+                <div className="navbar-inner">
 
-                    {/* Logo */}
-                    <Link to="/" className="flex items-center ml-2 lg:ml-0">
-                        <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[var(--brand-primary)] text-2xl">pets</span>
-                            <p className="text-xl font-headline font-black text-[var(--brand-primary)] tracking-tight">VetsCue</p>
-                        </div>
-                    </Link>
+                    {/* Left ─ hamburger + logo */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={onMenuClick}
+                            className="nb-icon-btn lg:hidden"
+                            aria-label="Open sidebar"
+                        >
+                            <Bars3Icon className="w-[18px] h-[18px]" />
+                        </button>
 
-                    {/* Right side */}
-                    <div className="flex items-center gap-3 ml-auto">
-                        {/* Impersonating banner */}
+                        {/* Brand logo */}
+                        <Link to="/" className="nb-logo-link">
+                            <div className="nb-logo-icon">
+                                <span className="material-symbols-outlined text-white" style={{ fontSize: '17px', lineHeight: 1 }}>pets</span>
+                            </div>
+                            <span className="nb-logo-text">VetsCue</span>
+                        </Link>
+                    </div>
+
+                    {/* Centre spacer */}
+                    <div className="flex-1" />
+
+                    {/* Right ─ action row */}
+                    <div className="flex items-center gap-1">
+
+                        {/* Impersonating pill */}
                         {isImpersonating && (
-                            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border bg-[var(--hover-bg-overlay)] border-[var(--border-surface)]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-warning)] animate-pulse" />
-                                <span className="text-xs font-semibold text-[var(--color-warning)]">
-                                    Viewing as {user?.impersonating?.name}
-                                </span>
-                                <button
-                                    onClick={handleBackToAdmin}
-                                    className="ml-1 flex items-center gap-1 text-xs font-bold transition text-[var(--color-warning)] hover:opacity-80"
-                                    title="Return to admin view"
-                                >
+                            <div className="nb-warning-pill hidden sm:flex">
+                                <span className="nb-pulse-dot bg-amber-400" />
+                                <span>Viewing as {user?.impersonating?.name}</span>
+                                <button onClick={handleBackToAdmin} className="nb-pill-action">
                                     <ArrowUturnLeftIcon className="w-3 h-3" />
-                                    Back
+                                    Exit
                                 </button>
                             </div>
                         )}
 
-                        {/* Approval pending banner */}
+                        {/* Pending approval pill */}
                         {user && !user.isApproved && user.role !== 'user' && user.role !== 'admin' && (
-                            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 border text-xs font-semibold rounded-full bg-[var(--hover-bg-overlay)] border-[var(--border-surface)] text-[var(--color-warning)]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-warning)] animate-pulse-soft" />
+                            <span className="nb-warning-pill hidden sm:flex">
+                                <span className="nb-pulse-dot bg-amber-400" />
                                 Pending Approval
                             </span>
                         )}
 
-                        {/* Mute Toggle */}
+                        {/* Mute */}
                         {(user?.role === 'ngo' || user?.role === 'ambulance') && (
-                            <button
-                                onClick={toggleMute}
-                                className="p-2 rounded-full transition-all hover:bg-[var(--hover-surface)] text-[var(--text-muted)]"
-                                title={isMuted ? "Unmute alerts" : "Mute alerts"}
-                            >
-                                {isMuted ? (
-                                    <SpeakerXMarkIcon className="w-5 h-5 text-[var(--color-error)]" />
-                                ) : (
-                                    <SpeakerWaveIcon className="w-5 h-5 text-[var(--brand-primary)]" />
-                                )}
+                            <button onClick={toggleMute} className="nb-icon-btn" title={isMuted ? 'Unmute alerts' : 'Mute alerts'}>
+                                {isMuted
+                                    ? <SpeakerXMarkIcon className="w-[18px] h-[18px] text-red-400" />
+                                    : <SpeakerWaveIcon className="w-[18px] h-[18px] text-[var(--brand-primary)]" />
+                                }
                             </button>
                         )}
 
-                        {/* Notification Bell */}
-                        <button
-                            onClick={onNotificationsClick}
-                            className="p-2 rounded-full transition-all relative hover:bg-[var(--hover-surface)] text-[var(--text-muted)]"
-                        >
-                            <BellIcon className="w-5 h-5" />
+                        {/* Notifications */}
+                        <button onClick={onNotificationsClick} className="nb-icon-btn relative" aria-label="Notifications">
+                            <BellIcon className="w-[18px] h-[18px]" />
                             {unreadCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border animate-pulse bg-[var(--brand-primary)] border-[var(--bg-surface)]"></span>
+                                <span className="nb-notif-badge">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
                             )}
                         </button>
 
-                        {/* Admin account switcher button */}
+                        {/* Admin switch */}
                         {user?.isAdmin && (
-                            <button
-                                onClick={() => setShowSwitcher(true)}
-                                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all rounded-full border text-[var(--brand-primary)] bg-[var(--brand-primary)]/10 border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary)]/20"
-                            >
+                            <button onClick={() => setShowSwitcher(true)} className="nb-chip hidden sm:flex">
                                 <UserGroupIcon className="w-3.5 h-3.5" />
-                                Switch Account
+                                Switch
                             </button>
                         )}
 
-                        {/* Theme Toggle Button */}
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 rounded-full transition-all hover:bg-[var(--hover-surface)] text-[var(--text-muted)]"
-                        >
-                            {theme === 'dark' ? (
-                                <SunIcon className="w-5 h-5" />
-                            ) : (
-                                <MoonIcon className="w-5 h-5" />
-                            )}
+                        {/* Theme */}
+                        <button onClick={toggleTheme} className="nb-icon-btn" aria-label="Toggle theme">
+                            {theme === 'dark'
+                                ? <SunIcon className="w-[18px] h-[18px]" />
+                                : <MoonIcon className="w-[18px] h-[18px]" />
+                            }
                         </button>
 
-                        {/* Profile dropdown */}
-                        <div className="relative flex items-center gap-1">
-                            <Menu as="div" className="relative">
-                                <Menu.Button className="flex items-center gap-2 px-3 py-2 rounded-btn transition-all duration-150 hover:bg-[var(--hover-surface)]">
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center border-2 border-[var(--border-surface)] text-[var(--text-on-surface)] transition-transform duration-300 hover:scale-105 bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-primary-dark)]">
-                                        <span className="text-white text-sm font-bold">
-                                            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                                        </span>
-                                    </div>
-                                    <div className="hidden sm:block text-left">
-                                        <p className="text-sm font-extrabold leading-none text-[var(--text-main)]">{user?.name}</p>
-                                        <p className="text-[10px] uppercase font-black tracking-tight text-[var(--text-muted)]">
-                                            {isImpersonating ? `${user?.role} (admin)` : user?.role}
-                                        </p>
-                                    </div>
-                                    <ChevronDownIcon className="w-4 h-4 text-[var(--text-muted)]" />
-                                </Menu.Button>
+                        {/* Separator */}
+                        <div className="nb-sep" />
 
-                                <Transition
-                                    as={Fragment}
-                                    enter="transition ease-out duration-100"
-                                    enterFrom="transform opacity-0 scale-95"
-                                    enterTo="transform opacity-100 scale-100"
-                                    leave="transition ease-in duration-75"
-                                    leaveFrom="transform opacity-100 scale-100"
-                                    leaveTo="transform opacity-0 scale-95"
-                                >
-                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-card focus:outline-none z-50 transition-all border bg-[var(--bg-surface)] border-[var(--border-surface)] shadow-[var(--shadow-card-hover)]">
-                                        <div className="p-2">
-                                            <div className="px-3 py-2 mb-1 border-b border-[var(--border-surface)]">
-                                                <p className="text-sm font-semibold truncate text-[var(--text-main)]">{user?.name}</p>
-                                                <p className="text-xs truncate text-[var(--text-muted)]">{user?.email}</p>
-                                                {user?.isAdmin && (
-                                                    <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full text-[var(--brand-primary)] bg-[var(--brand-primary)]/10">
-                                                        Admin
-                                                    </span>
-                                                )}
+                        {/* Profile menu */}
+                        <Menu as="div" className="relative">
+                            {({ open }) => (
+                                <>
+                                    <Menu.Button className="nb-profile-trigger group" aria-label="Profile menu">
+                                        {/* Avatar */}
+                                        <div className="nb-avatar">
+                                            <span>{initial}</span>
+                                        </div>
+                                        {/* Name + role */}
+                                        <div className="hidden sm:flex flex-col items-start leading-none min-w-0">
+                                            <span className="text-[13px] font-semibold text-[var(--text-main)] truncate max-w-[96px]">{user?.name}</span>
+                                            <span className="text-[10px] font-medium text-[var(--text-muted)] capitalize mt-[2px]">
+                                                {isImpersonating ? `${user?.role} · admin` : user?.role}
+                                            </span>
+                                        </div>
+                                        {/* Chevron */}
+                                        <ChevronDownIcon
+                                            className={`w-3.5 h-3.5 text-[var(--text-muted)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                                        />
+                                    </Menu.Button>
+
+                                    <Transition
+                                        as={Fragment}
+                                        enter="transition ease-out duration-200"
+                                        enterFrom="opacity-0 scale-95 translate-y-1"
+                                        enterTo="opacity-100 scale-100 translate-y-0"
+                                        leave="transition ease-in duration-100"
+                                        leaveFrom="opacity-100 scale-100 translate-y-0"
+                                        leaveTo="opacity-0 scale-95 translate-y-1"
+                                    >
+                                        <Menu.Items className="nb-dropdown" static>
+
+                                            {/* Profile header */}
+                                            <div className="nb-dd-header">
+                                                <div className="nb-avatar-lg">{initial}</div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-bold text-[var(--text-main)] truncate">{user?.name}</p>
+                                                    <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">{user?.email}</p>
+                                                    {user?.isAdmin && (
+                                                        <span className="nb-role-badge mt-1.5">✦ Admin</span>
+                                                    )}
+                                                </div>
                                             </div>
 
-                                            {/* Admin-only quick actions */}
+                                            <div className="nb-dd-sep" />
+
+                                            {/* Admin actions */}
                                             {user?.isAdmin && (
-                                                <div className="py-1 border-b mb-1 border-[var(--border-surface)]">
+                                                <>
                                                     {isImpersonating && (
                                                         <Menu.Item>
                                                             {({ active }) => (
-                                                                <button
-                                                                    onClick={handleBackToAdmin}
-                                                                    className={`${active ? 'bg-[var(--hover-surface)] text-[var(--color-warning)]' : 'text-[var(--color-warning)]'} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
-                                                                >
-                                                                    <ArrowUturnLeftIcon className="w-4 h-4" />
-                                                                    Back to Admin View
+                                                                <button onClick={handleBackToAdmin}
+                                                                    className={`nb-dd-item ${active ? 'nb-dd-item--warn' : ''}`}>
+                                                                    <ArrowUturnLeftIcon className="nb-dd-icon text-amber-400" />
+                                                                    Back to Admin
                                                                 </button>
                                                             )}
                                                         </Menu.Item>
                                                     )}
                                                     <Menu.Item>
                                                         {({ active }) => (
-                                                            <button
-                                                                onClick={() => setShowSwitcher(true)}
-                                                                className={`${active ? 'bg-[var(--hover-surface)] text-[var(--brand-primary)]' : 'text-[var(--text-muted)]'} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
-                                                            >
-                                                                <UserGroupIcon className="w-4 h-4" />
+                                                            <button onClick={() => setShowSwitcher(true)}
+                                                                className={`nb-dd-item ${active ? 'nb-dd-item--active' : ''}`}>
+                                                                <UserGroupIcon className="nb-dd-icon text-[var(--brand-primary)]" />
                                                                 Switch Account
                                                             </button>
                                                         )}
                                                     </Menu.Item>
-                                                </div>
+                                                    <div className="nb-dd-sep" />
+                                                </>
                                             )}
 
+                                            {/* Role-specific */}
                                             {user?.role === 'user' && (
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <Link
-                                                            to="/user/payments"
-                                                            className={`${active ? 'bg-[var(--hover-surface)] text-[var(--text-main)]' : 'text-[var(--text-muted)]'} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
-                                                        >
-                                                            <CreditCardIcon className="w-4 h-4" />
+                                                        <Link to="/user/payments"
+                                                            className={`nb-dd-item ${active ? 'nb-dd-item--active' : ''}`}>
+                                                            <CreditCardIcon className="nb-dd-icon text-[var(--brand-primary)]" />
                                                             Payment History
                                                         </Link>
                                                     )}
@@ -240,38 +233,37 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                             {user?.role === 'ngo' && (
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <Link
-                                                            to="/ngo/fundraisers"
-                                                            className={`${active ? 'bg-[var(--hover-surface)] text-[var(--brand-primary)]' : 'text-[var(--text-muted)]'} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
-                                                        >
-                                                            <CreditCardIcon className="w-4 h-4" />
+                                                        <Link to="/ngo/fundraisers"
+                                                            className={`nb-dd-item ${active ? 'nb-dd-item--active' : ''}`}>
+                                                            <CreditCardIcon className="nb-dd-icon text-[var(--brand-primary)]" />
                                                             Fundraisers
                                                         </Link>
                                                     )}
                                                 </Menu.Item>
                                             )}
 
+                                            <div className="nb-dd-sep" />
+
+                                            {/* Sign out */}
                                             <Menu.Item>
                                                 {({ active }) => (
-                                                    <button
-                                                        onClick={handleLogout}
-                                                        className={`${active ? 'bg-[var(--hover-surface)] text-[var(--color-error)]' : 'text-[var(--text-muted)]'} w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium transition-all`}
-                                                    >
-                                                        <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                                                    <button onClick={handleLogout}
+                                                        className={`nb-dd-item nb-dd-item--danger ${active ? 'nb-dd-item--danger-active' : ''}`}>
+                                                        <ArrowRightOnRectangleIcon className="nb-dd-icon" />
                                                         Sign Out
                                                     </button>
                                                 )}
                                             </Menu.Item>
-                                        </div>
-                                    </Menu.Items>
-                                </Transition>
-                            </Menu>
-                        </div>
+
+                                        </Menu.Items>
+                                    </Transition>
+                                </>
+                            )}
+                        </Menu>
                     </div>
                 </div>
             </header>
 
-            {/* Account Switcher Modal */}
             {showSwitcher && <AdminUserSwitcher onClose={() => setShowSwitcher(false)} />}
         </>
     );

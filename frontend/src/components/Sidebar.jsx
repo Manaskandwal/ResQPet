@@ -100,7 +100,7 @@ const Sidebar = ({ open, onClose, onNotificationsClick }) => {
                 lg:translate-x-0
             `}
         >
-            <div className="flex items-center justify-between px-4 py-4 border-b border-[var(--border-surface)]">
+            <div className="flex items-center justify-between px-4 h-[60px] border-b border-[var(--border-surface)] flex-shrink-0">
                 <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[var(--brand-primary)] text-xl">pets</span>
                     <span className="text-lg font-black text-[var(--brand-primary)] tracking-tighter font-headline leading-none">VetsCue</span>

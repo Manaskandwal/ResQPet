@@ -22,24 +22,25 @@ const seedAdmin = async () => {
         const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
 
         // Check if admin already exists
-        const existingAdmin = await User.findOne({ role: 'admin' });
-        if (existingAdmin) {
-            console.log(`[Seeder] Admin already exists: ${existingAdmin.email}`);
-            console.log('[Seeder] Skipping seed. Delete the existing admin to re-seed.');
-            process.exit(0);
+        let admin = await User.findOne({ role: 'admin' });
+        if (admin) {
+            console.log(`[Seeder] Admin already exists: ${admin.email}. Updating credentials...`);
+            admin.name = adminName;
+            admin.email = adminEmail;
+            admin.password = adminPassword; // Pre-save hook hashes password automatically
+            await admin.save();
+        } else {
+            console.log(`[Seeder] Creating new admin account...`);
+            admin = new User({
+                name: adminName,
+                email: adminEmail,
+                password: adminPassword,
+                role: 'admin',
+                isAdmin: true, // Grants superadmin/impersonation privileges
+                isApproved: true,
+            });
+            await admin.save();
         }
-
-        // Create admin (password will be hashed by the User model pre-save hook)
-        const admin = new User({
-            name: adminName,
-            email: adminEmail,
-            password: adminPassword,
-            role: 'admin',
-            isAdmin: true, // Grants superadmin/impersonation privileges
-            isApproved: true,
-        });
-
-        await admin.save();
 
         console.log('');
         console.log('==============================================');

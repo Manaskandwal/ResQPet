@@ -33,7 +33,7 @@ const Layout = () => {
             )}
 
             {/* Main content */}
-            <div className="flex-1 flex flex-col lg:ml-64 min-w-0">
+            <div className="flex-1 flex flex-col lg:ml-60 min-w-0">
                 <Navbar
                     onMenuClick={() => setSidebarOpen(true)}
                     onNotificationsClick={() => setShowNotifications(true)}
