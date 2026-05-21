@@ -5,10 +5,12 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "vetscue",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0e0e0e",
     "assetBundlePatterns": [
       "**/*"
     ],
+
     "android": {
       "package": "com.vetscue.app",
       "permissions": [

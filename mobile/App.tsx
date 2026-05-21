@@ -1,7 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Dimensions,
   Image,
   Platform,
   Pressable,
@@ -12,6 +14,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
@@ -22,6 +25,13 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import {
+  useFonts,
+  Manrope_400Regular,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+} from '@expo-google-fonts/manrope';
 import axios, { AxiosInstance } from 'axios';
 import { io, Socket } from 'socket.io-client';
 import RazorpayCheckout from 'react-native-razorpay';
@@ -30,6 +40,9 @@ import { WebView } from 'react-native-webview';
 
 WebBrowser.maybeCompleteAuthSession();
 
+const { width: SW } = Dimensions.get('window');
+
+// ─── Config ────────────────────────────────────────────────────────────────
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://resqpet-backend.onrender.com/api';
 const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || API_URL.replace('/api', '');
 const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '';
@@ -41,7 +54,30 @@ const TOKEN_KEY = 'vetscue_token';
 const ADMIN_TOKEN_KEY = 'vetscue_admin_token';
 const USER_KEY = 'vetscue_user';
 
+// ─── Design Tokens ──────────────────────────────────────────────────────────
+const C = {
+  bgMain: '#0e0e0e',
+  bgSurface: '#1c1b1b',
+  bgElevated: '#242323',
+  bgHover: '#2a2a2a',
+  brand: '#76d6d5',
+  brandDark: '#5cb8b7',
+  brandDim: '#76d6d5',
+  brandRgb: '118,214,213',
+  textMain: '#e5e2e1',
+  textMuted: '#879392',
+  borderMain: 'rgba(255,255,255,0.06)',
+  borderSurface: 'rgba(255,255,255,0.10)',
+  success: '#4ade80',
+  warning: '#fbbf24',
+  error: '#f87171',
+  info: '#60a5fa',
+  white: '#ffffff',
+} as const;
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 type Role = 'user' | 'ngo' | 'hospital' | 'ambulance' | 'admin';
+type Tab = 'home' | 'cases' | 'map' | 'wallet' | 'alerts' | 'admin' | 'profile';
 
 type User = {
   _id: string;
@@ -76,12 +112,8 @@ type Rescue = {
   assignedAmbulance?: { name?: string; vehicleNumber?: string; phone?: string };
 };
 
-type Tab = 'home' | 'cases' | 'map' | 'wallet' | 'alerts' | 'admin' | 'profile';
-
-const api: AxiosInstance = axios.create({
-  baseURL: API_URL,
-  timeout: 20000,
-});
+// ─── API Client ─────────────────────────────────────────────────────────────
+const api: AxiosInstance = axios.create({ baseURL: API_URL, timeout: 20000 });
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -93,28 +125,79 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+const statusColor = (status?: string): string => {
+  if (!status) return C.textMuted;
+  if (['completed', 'resolved_on_spot', 'delivered', 'approved'].includes(status)) return C.success;
+  if (['pending', 'hospital_broadcasted', 'ambulance_pinged', 'fundraiser_active'].includes(status)) return C.warning;
+  if (['cancelled', 'closed_unresolved', 'rejected'].includes(status)) return C.error;
+  return C.brand;
+};
+
+const statusBg = (status?: string): string => {
+  const c = statusColor(status);
+  return `${c}1A`; // ~10% opacity
+};
+
+const compactDate = (value?: string): string => {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const roleLabel: Record<Role, string> = {
+  user: 'Citizen',
+  ngo: 'NGO',
+  hospital: 'Hospital',
+  ambulance: 'Ambulance',
+  admin: 'Admin',
+};
+
 const titleForRole: Record<Role, string> = {
   user: 'Citizen Rescue',
-  ngo: 'NGO Response',
+  ngo: 'NGO Response Board',
   hospital: 'Hospital Desk',
   ambulance: 'Ambulance Crew',
   admin: 'Admin Command',
 };
 
-const statusColor = (status?: string) => {
-  if (!status) return '#64748b';
-  if (['completed', 'resolved_on_spot', 'delivered', 'approved'].includes(status)) return '#047857';
-  if (['pending', 'hospital_broadcasted', 'ambulance_pinged', 'fundraiser_active'].includes(status)) return '#b45309';
-  if (['cancelled', 'closed_unresolved', 'rejected'].includes(status)) return '#b91c1c';
-  return '#0f766e';
-};
+// ─── Animated Pressable ─────────────────────────────────────────────────────
+function AnimatedPress({
+  children,
+  onPress,
+  style,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onPress?: () => void;
+  style?: any;
+  disabled?: boolean;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const handleIn = () =>
+    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 50 }).start();
+  const handleOut = () =>
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
+  return (
+    <Pressable
+      onPress={disabled ? undefined : onPress}
+      onPressIn={handleIn}
+      onPressOut={handleOut}
+      style={[{ opacity: disabled ? 0.45 : 1 }]}
+    >
+      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+    </Pressable>
+  );
+}
 
-const compactDate = (value?: string) => {
-  if (!value) return '';
-  return new Date(value).toLocaleString();
-};
-
+// ─── Root App ───────────────────────────────────────────────────────────────
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Manrope_400Regular,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
+  });
+
   const [token, setToken] = useState<string | null>(null);
   const [adminToken, setAdminToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -139,18 +222,10 @@ export default function App() {
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch {
-      // Local logout should still complete if the network is unavailable.
-    }
-    const currentPushToken = await SecureStore.getItemAsync('vetscue_push_token');
-    if (currentPushToken) {
-      try {
-        await api.delete('/user/push-token', { data: { token: currentPushToken } });
-      } catch {
-        // Push-token cleanup is best effort.
-      }
+    try { await api.post('/auth/logout'); } catch {}
+    const pushToken = await SecureStore.getItemAsync('vetscue_push_token');
+    if (pushToken) {
+      try { await api.delete('/user/push-token', { data: { token: pushToken } }); } catch {}
     }
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(ADMIN_TOKEN_KEY);
@@ -207,57 +282,42 @@ export default function App() {
   useEffect(() => {
     if (!token || !user) return;
     registerPushToken().catch(() => undefined);
-
     const socket = io(SOCKET_URL, {
       autoConnect: true,
       transports: ['websocket'],
       auth: { token },
     });
     socketRef.current = socket;
-    socket.on('connect', () => {
-      socket.emit('join', { userId: user._id, role: user.role });
-    });
-    socket.on('new_rescue_alert', (payload) => {
-      Alert.alert('New rescue nearby', payload?.description || 'A new case needs attention.');
-    });
-    socket.on('new_dispatch_alert', (payload) => {
-      Alert.alert('New dispatch', payload?.description || 'A new ambulance dispatch is available.');
-    });
-    socket.on('status_update', (payload) => {
-      Alert.alert('Case updated', payload?.message || `Status changed to ${payload?.status}`);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    socket.on('connect', () => socket.emit('join', { userId: user._id, role: user.role }));
+    socket.on('new_rescue_alert', (p) => Alert.alert('🚨 New rescue nearby', p?.description || 'A new case needs attention.'));
+    socket.on('new_dispatch_alert', (p) => Alert.alert('🚑 New dispatch', p?.description || 'A new ambulance dispatch is available.'));
+    socket.on('status_update', (p) => Alert.alert('📋 Case updated', p?.message || `Status changed to ${p?.status}`));
+    return () => { socket.disconnect(); };
   }, [registerPushToken, token, user]);
 
-  if (booting) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0f766e" />
-        <Text style={styles.muted}>Opening VetsCue</Text>
-      </View>
-    );
-  }
+  if (booting || !fontsLoaded) return <SplashScreen />;
+  if (!token || !user) return <AuthScreen onLogin={persistSession} />;
 
-  if (!token || !user) {
-    return <AuthScreen onLogin={persistSession} />;
-  }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ExpoStatusBar style="dark" />
-      <View style={styles.shell}>
-        <Header user={user} adminToken={adminToken} onLogout={logout} onStopImpersonating={async () => {
-          const original = await SecureStore.getItemAsync(ADMIN_TOKEN_KEY);
-          if (!original) return;
-          await SecureStore.setItemAsync(TOKEN_KEY, original);
-          await SecureStore.deleteItemAsync(ADMIN_TOKEN_KEY);
-          setAdminToken(null);
-          setToken(original);
-          await refreshMe();
-        }} />
+    <SafeAreaView style={S.safe}>
+      <ExpoStatusBar style="light" backgroundColor={C.bgMain} />
+      <StatusBar barStyle="light-content" backgroundColor={C.bgMain} />
+      <View style={S.shell}>
+        <AppHeader
+          user={user}
+          adminToken={adminToken}
+          onLogout={logout}
+          onStopImpersonating={async () => {
+            const original = await SecureStore.getItemAsync(ADMIN_TOKEN_KEY);
+            if (!original) return;
+            await SecureStore.setItemAsync(TOKEN_KEY, original);
+            await SecureStore.deleteItemAsync(ADMIN_TOKEN_KEY);
+            setAdminToken(null);
+            setToken(original);
+            await refreshMe();
+          }}
+        />
         <MainScreen
           user={user}
           tab={tab}
@@ -273,19 +333,37 @@ export default function App() {
   );
 }
 
+// ─── Splash ─────────────────────────────────────────────────────────────────
+function SplashScreen() {
+  const pulse = useRef(new Animated.Value(0.6)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.6, duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [pulse]);
+
+  return (
+    <View style={[S.center, { backgroundColor: C.bgMain }]}>
+      <Animated.View style={[S.brandLogo, { opacity: pulse }]}>
+        <Text style={{ fontSize: 32 }}>🐾</Text>
+      </Animated.View>
+      <Text style={S.splashTitle}>VetsCue</Text>
+      <Text style={S.splashSub}>Connecting care. Saving lives.</Text>
+      <ActivityIndicator style={{ marginTop: 32 }} color={C.brand} size="small" />
+    </View>
+  );
+}
+
+// ─── Auth Screen ─────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promise<void> }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
+    name: '', email: '', password: '',
     role: 'user' as Role,
-    phone: '',
-    orgName: '',
-    regNumber: '',
-    address: '',
-    vehicleNumber: '',
-    hospitalType: 'private',
+    phone: '', orgName: '', regNumber: '', address: '', vehicleNumber: '', hospitalType: 'private',
   });
   const [loading, setLoading] = useState(false);
   const [, googleResponse, promptGoogle] = Google.useAuthRequest({
@@ -308,116 +386,193 @@ function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promi
     setLoading(true);
     try {
       const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
-      const payload = mode === 'login'
-        ? { email: form.email, password: form.password }
-        : form;
+      const payload = mode === 'login' ? { email: form.email, password: form.password } : form;
       const { data } = await api.post(endpoint, payload);
       await onLogin(data.user, data.token);
     } catch (error: any) {
-      Alert.alert(mode === 'login' ? 'Login failed' : 'Registration failed', error.response?.data?.message || error.message);
+      Alert.alert(
+        mode === 'login' ? 'Login failed' : 'Registration failed',
+        error.response?.data?.message || error.message
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.auth}>
-        <View style={styles.brandMark}>
-          <Ionicons name="medical" size={34} color="#ffffff" />
+    <SafeAreaView style={[S.safe, { backgroundColor: C.bgMain }]}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bgMain} />
+      <ScrollView
+        contentContainerStyle={S.authContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Decorative radial glow */}
+        <View style={S.authGlow} pointerEvents="none" />
+
+        {/* Brand */}
+        <View style={S.authBrand}>
+          <View style={S.brandLogo}>
+            <Text style={{ fontSize: 32 }}>🐾</Text>
+          </View>
+          <View style={S.pilotBadge}>
+            <View style={S.pilotDot} />
+            <Text style={S.pilotText}>Pilot Launch · Delhi</Text>
+          </View>
+          <Text style={S.authTitle}>VetsCue</Text>
+          <Text style={S.authSubtitle}>
+            Rescue coordination for citizens, NGOs,{'\n'}hospitals & ambulances.
+          </Text>
         </View>
-        <Text style={styles.heroTitle}>VetsCue</Text>
-        <Text style={styles.heroCopy}>Native rescue coordination for citizens, NGOs, hospitals, ambulances, and admins.</Text>
 
-        <View style={styles.segment}>
-          <Pressable style={[styles.segmentItem, mode === 'login' && styles.segmentActive]} onPress={() => setMode('login')}>
-            <Text style={[styles.segmentText, mode === 'login' && styles.segmentTextActive]}>Login</Text>
-          </Pressable>
-          <Pressable style={[styles.segmentItem, mode === 'register' && styles.segmentActive]} onPress={() => setMode('register')}>
-            <Text style={[styles.segmentText, mode === 'register' && styles.segmentTextActive]}>Register</Text>
-          </Pressable>
-        </View>
+        {/* Segment */}
+        <View style={S.authCard}>
+          <View style={S.segment}>
+            {(['login', 'register'] as const).map((m) => (
+              <AnimatedPress key={m} onPress={() => setMode(m)} style={[S.segItem, mode === m && S.segItemActive]}>
+                <Text style={[S.segText, mode === m && S.segTextActive]}>
+                  {m === 'login' ? 'Sign In' : 'Register'}
+                </Text>
+              </AnimatedPress>
+            ))}
+          </View>
 
-        {mode === 'register' && (
-          <>
-            <Field label="Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
-            <RolePicker role={form.role} setRole={(role) => setForm({ ...form, role })} />
-          </>
-        )}
-        <Field label="Email" value={form.email} keyboardType="email-address" autoCapitalize="none" onChangeText={(email) => setForm({ ...form, email })} />
-        <Field label="Password" value={form.password} secureTextEntry onChangeText={(password) => setForm({ ...form, password })} />
-
-        {mode === 'register' && form.role !== 'user' && (
-          <>
-            <Field label="Organisation" value={form.orgName} onChangeText={(orgName) => setForm({ ...form, orgName })} />
-            <Field label="Registration number" value={form.regNumber} onChangeText={(regNumber) => setForm({ ...form, regNumber })} />
-            <Field label="Phone" value={form.phone} keyboardType="phone-pad" onChangeText={(phone) => setForm({ ...form, phone })} />
-            <Field label="Address" value={form.address} onChangeText={(address) => setForm({ ...form, address })} />
-            {form.role === 'hospital' && (
-              <View style={styles.row}>
-                {['government', 'private'].map((type) => (
-                  <Chip key={type} label={type} active={form.hospitalType === type} onPress={() => setForm({ ...form, hospitalType: type })} />
-                ))}
+          {mode === 'register' && (
+            <>
+              <FormField label="Full Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="Your name" icon="person-outline" />
+              <View style={{ marginBottom: 4 }}>
+                <Text style={S.fieldLabel}>Account Type</Text>
+                <View style={S.chipRow}>
+                  {(['user', 'ngo', 'hospital', 'ambulance'] as Role[]).map((r) => (
+                    <AnimatedPress key={r} onPress={() => setForm({ ...form, role: r })} style={[S.chip, form.role === r && S.chipActive]}>
+                      <Text style={[S.chipText, form.role === r && S.chipTextActive]}>
+                        {r === 'user' ? '👤 Citizen' : r === 'ngo' ? '🌿 NGO' : r === 'hospital' ? '🏥 Hospital' : '🚑 Ambulance'}
+                      </Text>
+                    </AnimatedPress>
+                  ))}
+                </View>
               </View>
-            )}
-            {form.role === 'ambulance' && (
-              <Field label="Vehicle number" value={form.vehicleNumber} onChangeText={(vehicleNumber) => setForm({ ...form, vehicleNumber })} />
-            )}
-          </>
-        )}
+            </>
+          )}
 
-        <PrimaryButton label={loading ? 'Please wait' : mode === 'login' ? 'Login' : 'Create account'} icon="log-in" onPress={submit} disabled={loading} />
-        <SecondaryButton label="Continue with Google" icon="logo-google" onPress={() => promptGoogle()} disabled={!GOOGLE_WEB_CLIENT_ID && !GOOGLE_ANDROID_CLIENT_ID} />
+          <FormField label="Email" value={form.email} onChangeText={(email) => setForm({ ...form, email })} keyboardType="email-address" autoCapitalize="none" placeholder="you@example.com" icon="mail-outline" />
+          <FormField label="Password" value={form.password} onChangeText={(password) => setForm({ ...form, password })} secureTextEntry placeholder="••••••••" icon="lock-closed-outline" />
+
+          {mode === 'register' && form.role !== 'user' && (
+            <>
+              <FormField label="Organisation Name" value={form.orgName} onChangeText={(orgName) => setForm({ ...form, orgName })} placeholder="Your org name" icon="business-outline" />
+              <FormField label="Reg. Number" value={form.regNumber} onChangeText={(regNumber) => setForm({ ...form, regNumber })} placeholder="Registration number" icon="document-text-outline" />
+              <FormField label="Phone" value={form.phone} onChangeText={(phone) => setForm({ ...form, phone })} keyboardType="phone-pad" placeholder="+91 ..." icon="call-outline" />
+              <FormField label="Address" value={form.address} onChangeText={(address) => setForm({ ...form, address })} placeholder="City, State" icon="location-outline" />
+              {form.role === 'hospital' && (
+                <View style={{ marginBottom: 4 }}>
+                  <Text style={S.fieldLabel}>Hospital Type</Text>
+                  <View style={S.chipRow}>
+                    {['government', 'private'].map((t) => (
+                      <AnimatedPress key={t} onPress={() => setForm({ ...form, hospitalType: t })} style={[S.chip, form.hospitalType === t && S.chipActive]}>
+                        <Text style={[S.chipText, form.hospitalType === t && S.chipTextActive]}>{t}</Text>
+                      </AnimatedPress>
+                    ))}
+                  </View>
+                </View>
+              )}
+              {form.role === 'ambulance' && (
+                <FormField label="Vehicle Number" value={form.vehicleNumber} onChangeText={(vehicleNumber) => setForm({ ...form, vehicleNumber })} placeholder="DL 01 AB 1234" icon="car-outline" />
+              )}
+            </>
+          )}
+
+          <AnimatedPress onPress={submit} disabled={loading} style={S.btnPrimary}>
+            {loading ? (
+              <ActivityIndicator color="#0e0e0e" size="small" />
+            ) : (
+              <>
+                <Ionicons name={mode === 'login' ? 'log-in' : 'person-add'} size={18} color={C.bgMain} />
+                <Text style={S.btnPrimaryText}>{mode === 'login' ? 'Sign In' : 'Create Account'}</Text>
+              </>
+            )}
+          </AnimatedPress>
+
+          <View style={S.dividerRow}>
+            <View style={S.dividerLine} />
+            <Text style={S.dividerText}>or continue with</Text>
+            <View style={S.dividerLine} />
+          </View>
+
+          <AnimatedPress onPress={() => promptGoogle()} disabled={!GOOGLE_WEB_CLIENT_ID && !GOOGLE_ANDROID_CLIENT_ID} style={S.btnGoogle}>
+            <Text style={{ fontSize: 18 }}>🔵</Text>
+            <Text style={S.btnGoogleText}>Continue with Google</Text>
+          </AnimatedPress>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+// ─── Main Screen Router ──────────────────────────────────────────────────────
 function MainScreen(props: {
-  user: User;
-  tab: Tab;
-  socket: Socket | null;
-  setTab: (tab: Tab) => void;
-  setUser: (user: User) => void;
-  setToken: (token: string) => void;
-  setAdminToken: (token: string) => void;
+  user: User; tab: Tab; socket: Socket | null;
+  setTab: (t: Tab) => void; setUser: (u: User) => void;
+  setToken: (t: string) => void; setAdminToken: (t: string) => void;
 }) {
   const { user, tab } = props;
   if (tab === 'cases') return <CasesScreen user={user} />;
-  if (tab === 'map') return <MapTools user={user} socket={props.socket} />;
+  if (tab === 'map') return <MapScreen user={user} socket={props.socket} />;
   if (tab === 'wallet') return <WalletScreen user={user} setUser={props.setUser} />;
   if (tab === 'alerts') return <NotificationsScreen />;
   if (tab === 'profile') return <ProfileScreen user={user} setUser={props.setUser} />;
-  if (tab === 'admin' || user.role === 'admin') return <AdminScreen setToken={props.setToken} setAdminToken={props.setAdminToken} setUser={props.setUser} />;
+  if (tab === 'admin' || user.role === 'admin') {
+    return <AdminScreen setToken={props.setToken} setAdminToken={props.setAdminToken} setUser={props.setUser} />;
+  }
   if (user.role === 'ngo') return <NgoHome />;
   if (user.role === 'hospital') return <HospitalHome />;
   if (user.role === 'ambulance') return <AmbulanceHome socket={props.socket} />;
   return <CitizenHome setTab={props.setTab} />;
 }
 
-function CitizenHome({ setTab }: { setTab: (tab: Tab) => void }) {
+// ─── Citizen Home ────────────────────────────────────────────────────────────
+function CitizenHome({ setTab }: { setTab: (t: Tab) => void }) {
   const [stats, setStats] = useState<any>(null);
   useEffect(() => {
     api.get('/public/stats').then(({ data }) => setStats(data.stats)).catch(() => undefined);
   }, []);
+
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Rescue Command</Text>
-      <Text style={styles.screenCopy}>Submit a rescue, track help, fund urgent care, and follow completed impact stories.</Text>
-      <View style={styles.grid}>
-        <Metric label="Rescues" value={stats?.totalRequests ?? '--'} />
-        <Metric label="Completed" value={stats?.completedRequests ?? '--'} />
-        <Metric label="NGOs" value={stats?.totalNGOs ?? '--'} />
-        <Metric label="Citizens" value={stats?.totalUsers ?? '--'} />
+    <ScreenShell>
+      {/* Hero gradient card */}
+      <View style={S.heroCard}>
+        <View style={S.heroGlow} pointerEvents="none" />
+        <Text style={S.heroKicker}>🐾 Rescue Network</Text>
+        <Text style={S.heroTitle}>Rescue Command</Text>
+        <Text style={S.heroSub}>Submit rescues, track help, fund urgent care, and follow impact stories.</Text>
+        <View style={S.heroActions}>
+          <AnimatedPress onPress={() => setTab('cases')} style={[S.btnPrimary, { flex: 1 }]}>
+            <Ionicons name="add-circle" size={18} color={C.bgMain} />
+            <Text style={S.btnPrimaryText}>Report Animal</Text>
+          </AnimatedPress>
+          <AnimatedPress onPress={() => setTab('wallet')} style={[S.btnOutline, { flex: 1 }]}>
+            <Ionicons name="wallet-outline" size={18} color={C.brand} />
+            <Text style={S.btnOutlineText}>Wallet</Text>
+          </AnimatedPress>
+        </View>
       </View>
-      <PrimaryButton label="Submit rescue" icon="add-circle" onPress={() => setTab('cases')} />
-      <SecondaryButton label="Open wallet" icon="wallet" onPress={() => setTab('wallet')} />
-      <Fundraisers compact />
+
+      {/* Stats grid */}
+      <SectionHeader title="Platform Stats" />
+      <View style={S.statsGrid}>
+        <StatCard label="Total Rescues" value={stats?.totalRequests ?? '—'} icon="paw" color={C.brand} />
+        <StatCard label="Completed" value={stats?.completedRequests ?? '—'} icon="checkmark-circle" color={C.success} />
+        <StatCard label="NGOs Active" value={stats?.totalNGOs ?? '—'} icon="leaf" color={C.info} />
+        <StatCard label="Citizens" value={stats?.totalUsers ?? '—'} icon="people" color={C.warning} />
+      </View>
+
+      <FundraisersSection compact />
       <ImpactFeed />
-    </ScrollPanel>
+    </ScreenShell>
   );
 }
 
+// ─── Cases Screen ─────────────────────────────────────────────────────────────
 function CasesScreen({ user }: { user: User }) {
   if (user.role === 'user') return <UserCases />;
   if (user.role === 'ngo') return <NgoCases />;
@@ -426,28 +581,28 @@ function CasesScreen({ user }: { user: User }) {
   return <AdminRescues />;
 }
 
+// ─── User Cases ───────────────────────────────────────────────────────────────
 function UserCases() {
   const [rescues, setRescues] = useState<Rescue[]>([]);
   const [loading, setLoading] = useState(false);
   const [description, setDescription] = useState('');
   const [animalType, setAnimalType] = useState('dog');
   const [media, setMedia] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get('/rescue/mine');
       setRescues(data.rescues || []);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const pickMedia = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return Alert.alert('Permission needed', 'Allow media access to attach rescue evidence.');
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) return Alert.alert('Permission needed', 'Allow media access to attach rescue evidence.');
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsMultipleSelection: true,
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -457,81 +612,144 @@ function UserCases() {
   };
 
   const submitRescue = async () => {
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) return Alert.alert('Location needed', 'Location is required to route rescuers.');
-    const position = await Location.getCurrentPositionAsync({});
-    const fd = new FormData();
-    fd.append('description', description);
-    fd.append('animalType', animalType);
-    fd.append('lat', String(position.coords.latitude));
-    fd.append('lng', String(position.coords.longitude));
-    fd.append('willingToPay', 'false');
-    fd.append('willingToGo', 'false');
-    media.forEach((asset, index) => {
-      fd.append('media', {
-        uri: asset.uri,
-        name: asset.fileName || `rescue-${index}.${asset.type === 'video' ? 'mp4' : 'jpg'}`,
-        type: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-      } as any);
-    });
-    await api.post('/rescue', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-    setDescription('');
-    setMedia([]);
-    await load();
-    Alert.alert('Rescue submitted', 'Responders have been alerted.');
+    if (!description.trim()) return;
+    setSubmitting(true);
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (!perm.granted) { Alert.alert('Location needed', 'Location is required to route rescuers.'); return; }
+      const pos = await Location.getCurrentPositionAsync({});
+      const fd = new FormData();
+      fd.append('description', description);
+      fd.append('animalType', animalType);
+      fd.append('lat', String(pos.coords.latitude));
+      fd.append('lng', String(pos.coords.longitude));
+      fd.append('willingToPay', 'false');
+      fd.append('willingToGo', 'false');
+      media.forEach((asset, i) => {
+        fd.append('media', {
+          uri: asset.uri,
+          name: asset.fileName || `rescue-${i}.${asset.type === 'video' ? 'mp4' : 'jpg'}`,
+          type: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
+        } as any);
+      });
+      await api.post('/rescue', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setDescription('');
+      setMedia([]);
+      await load();
+      Alert.alert('✅ Rescue submitted', 'Responders have been alerted.');
+    } catch (e: any) {
+      Alert.alert('Failed', e.response?.data?.message || e.message);
+    } finally { setSubmitting(false); }
   };
 
   return (
-    <ScrollPanel refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}>
-      <Text style={styles.screenTitle}>My Rescues</Text>
-      <Field label="What happened?" value={description} multiline onChangeText={setDescription} />
-      <View style={styles.row}>
-        {['dog', 'cat', 'other'].map((type) => <Chip key={type} label={type} active={animalType === type} onPress={() => setAnimalType(type)} />)}
-      </View>
-      <SecondaryButton label={`${media.length} media selected`} icon="images" onPress={pickMedia} />
-      <PrimaryButton label="Submit rescue at current location" icon="navigate" onPress={submitRescue} disabled={!description.trim()} />
-      {rescues.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<UserRescueActions rescue={rescue} onDone={load} />} />)}
-    </ScrollPanel>
+    <ScreenShell refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand} />}>
+      <ScreenHeader title="My Rescues" subtitle="Submit and track your rescue requests" />
+
+      {/* Submit form */}
+      <SurfaceCard>
+        <Text style={S.cardSectionTitle}>📋 New Rescue Report</Text>
+        <FormField
+          label="What happened?"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Describe the animal's condition and location..."
+          multiline
+          icon="document-text-outline"
+        />
+        <View style={{ marginBottom: 8 }}>
+          <Text style={S.fieldLabel}>Animal Type</Text>
+          <View style={S.chipRow}>
+            {['dog', 'cat', 'bird', 'other'].map((t) => (
+              <AnimatedPress key={t} onPress={() => setAnimalType(t)} style={[S.chip, animalType === t && S.chipActive]}>
+                <Text style={[S.chipText, animalType === t && S.chipTextActive]}>
+                  {t === 'dog' ? '🐕' : t === 'cat' ? '🐈' : t === 'bird' ? '🐦' : '🐾'} {t}
+                </Text>
+              </AnimatedPress>
+            ))}
+          </View>
+        </View>
+        <AnimatedPress onPress={pickMedia} style={S.btnOutline}>
+          <Ionicons name="images-outline" size={18} color={C.brand} />
+          <Text style={S.btnOutlineText}>{media.length > 0 ? `${media.length} file(s) selected` : 'Attach Photos / Video'}</Text>
+        </AnimatedPress>
+        <AnimatedPress onPress={submitRescue} disabled={!description.trim() || submitting} style={S.btnPrimary}>
+          {submitting ? <ActivityIndicator color={C.bgMain} size="small" /> : (
+            <>
+              <Ionicons name="navigate" size={18} color={C.bgMain} />
+              <Text style={S.btnPrimaryText}>Submit at Current Location</Text>
+            </>
+          )}
+        </AnimatedPress>
+      </SurfaceCard>
+
+      {/* Rescue list */}
+      {rescues.length > 0 && (
+        <>
+          <SectionHeader title={`Your Rescues (${rescues.length})`} />
+          {rescues.map((r) => (
+            <RescueCard key={r._id} rescue={r} actions={<UserRescueActions rescue={r} onDone={load} />} />
+          ))}
+        </>
+      )}
+    </ScreenShell>
   );
 }
 
 function UserRescueActions({ rescue, onDone }: { rescue: Rescue; onDone: () => void }) {
   const [cost, setCost] = useState('');
   return (
-    <View style={styles.cardActions}>
-      <SecondaryButton label="Cancel" icon="close-circle" onPress={async () => {
-        await api.put(`/rescue/${rescue._id}/cancel`);
-        onDone();
-      }} />
-      <Field label="Fundraiser cost" value={cost} keyboardType="numeric" onChangeText={setCost} />
-      <SecondaryButton label="Make fundraiser" icon="heart" onPress={async () => {
-        await api.put(`/rescue/${rescue._id}/fundraiser`, { estimatedCost: Number(cost) });
-        setCost('');
-        onDone();
-      }} disabled={!cost} />
-      {rescue.bill?.paidStatus === 'pending' && <PrimaryButton label="Pay hospital bill" icon="card" onPress={async () => {
-        await api.post(`/rescue/${rescue._id}/pay-bill`);
-        onDone();
-      }} />}
+    <View style={S.actionGroup}>
+      <AnimatedPress onPress={async () => { await api.put(`/rescue/${rescue._id}/cancel`); onDone(); }} style={S.btnDanger}>
+        <Ionicons name="close-circle-outline" size={16} color={C.error} />
+        <Text style={S.btnDangerText}>Cancel Rescue</Text>
+      </AnimatedPress>
+      <View style={S.row}>
+        <TextInput
+          style={[S.input, { flex: 1 }]}
+          value={cost}
+          onChangeText={setCost}
+          placeholder="Estimated cost (₹)"
+          placeholderTextColor={C.textMuted}
+          keyboardType="numeric"
+        />
+        <AnimatedPress onPress={async () => {
+          if (!cost) return;
+          await api.put(`/rescue/${rescue._id}/fundraiser`, { estimatedCost: Number(cost) });
+          setCost('');
+          onDone();
+        }} disabled={!cost} style={[S.btnOutline, { marginLeft: 8 }]}>
+          <Ionicons name="heart-outline" size={16} color={C.brand} />
+          <Text style={S.btnOutlineText}>Fundraiser</Text>
+        </AnimatedPress>
+      </View>
+      {rescue.bill?.paidStatus === 'pending' && (
+        <AnimatedPress onPress={async () => { await api.post(`/rescue/${rescue._id}/pay-bill`); onDone(); }} style={S.btnPrimary}>
+          <Ionicons name="card" size={16} color={C.bgMain} />
+          <Text style={S.btnPrimaryText}>Pay Hospital Bill</Text>
+        </AnimatedPress>
+      )}
     </View>
   );
 }
 
+// ─── NGO Home / Cases ─────────────────────────────────────────────────────────
 function NgoHome() {
   const [analytics, setAnalytics] = useState<any>(null);
-  useEffect(() => { api.get('/ngo/analytics').then(({ data }) => setAnalytics(data.analytics || data)).catch(() => undefined); }, []);
+  useEffect(() => {
+    api.get('/ngo/analytics').then(({ data }) => setAnalytics(data.analytics || data)).catch(() => undefined);
+  }, []);
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>NGO Response Board</Text>
-      <Text style={styles.screenCopy}>Nearby reports, active treatment, escalation, follow-ups, and fundraiser requests.</Text>
-      <View style={styles.grid}>
-        <Metric label="Nearby" value={analytics?.nearbyCases ?? '--'} />
-        <Metric label="Active" value={analytics?.activeCases ?? '--'} />
-        <Metric label="Completed" value={analytics?.completedCases ?? '--'} />
-        <Metric label="Impact" value={analytics?.impactCases ?? '--'} />
+    <ScreenShell>
+      <ScreenHeader title="NGO Response Board" subtitle="Nearby reports, active treatment, escalation & follow-ups" />
+      <View style={S.statsGrid}>
+        <StatCard label="Nearby" value={analytics?.nearbyCases ?? '—'} icon="location" color={C.brand} />
+        <StatCard label="Active" value={analytics?.activeCases ?? '—'} icon="pulse" color={C.warning} />
+        <StatCard label="Completed" value={analytics?.completedCases ?? '—'} icon="checkmark-circle" color={C.success} />
+        <StatCard label="Impact" value={analytics?.impactCases ?? '—'} icon="heart" color={C.error} />
       </View>
       <NgoCases />
-    </ScrollPanel>
+    </ScreenShell>
   );
 }
 
@@ -539,57 +757,98 @@ function NgoCases() {
   const [nearby, setNearby] = useState<Rescue[]>([]);
   const [mine, setMine] = useState<Rescue[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'nearby' | 'mine'>('nearby');
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const [nearbyRes, mineRes] = await Promise.all([api.get('/ngo/nearby'), api.get('/ngo/my-cases')]);
       setNearby(nearbyRes.data.cases || nearbyRes.data.rescues || []);
       setMine(mineRes.data.cases || mineRes.data.rescues || []);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  const list = activeTab === 'nearby' ? nearby : mine;
+
   return (
-    <ScrollPanel refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}>
-      <Text style={styles.sectionTitle}>Nearby Cases</Text>
-      {nearby.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<NgoActions rescue={rescue} onDone={load} />} />)}
-      <Text style={styles.sectionTitle}>My Cases</Text>
-      {mine.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<NgoActions rescue={rescue} onDone={load} />} />)}
-    </ScrollPanel>
+    <ScreenShell refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand} />}>
+      <SegmentedControl
+        options={[{ key: 'nearby', label: `Nearby (${nearby.length})` }, { key: 'mine', label: `My Cases (${mine.length})` }]}
+        active={activeTab}
+        onChange={(k) => setActiveTab(k as any)}
+      />
+      {list.length === 0 ? (
+        <EmptyState icon="leaf" message="No cases in this section" />
+      ) : (
+        list.map((r) => <RescueCard key={r._id} rescue={r} actions={<NgoActions rescue={r} onDone={load} />} />)
+      )}
+    </ScreenShell>
   );
 }
 
 function NgoActions({ rescue, onDone }: { rescue: Rescue; onDone: () => void }) {
   const [followUp, setFollowUp] = useState('');
   const act = async (path: string, body?: any) => {
-    await api[path.startsWith('/ngo') ? 'post' : 'put'](path, body || {});
-    onDone();
+    try {
+      await api[path.startsWith('/ngo') ? 'post' : 'put'](path, body || {});
+      onDone();
+    } catch (e: any) { Alert.alert('Error', e.response?.data?.message || e.message); }
   };
   return (
-    <View style={styles.cardActions}>
-      <PrimaryButton label="Accept" icon="checkmark-circle" onPress={() => act(`/rescue/${rescue._id}/accept-ngo`, { type: 'immediate', transportType: 'self' })} />
-      <SecondaryButton label="Reject" icon="remove-circle" onPress={() => act(`/rescue/${rescue._id}/reject-ngo`)} />
-      <SecondaryButton label="On the way" icon="walk" onPress={() => act(`/rescue/${rescue._id}/ngo-status`, { status: 'on_the_way' })} />
-      <SecondaryButton label="Resolve on spot" icon="medkit" onPress={() => act(`/rescue/${rescue._id}/resolve-ngo`)} />
-      <SecondaryButton label="Escalate" icon="business" onPress={() => act(`/rescue/${rescue._id}/escalate-ngo`, { transportType: 'ambulance' })} />
-      <Field label="Follow-up date or note" value={followUp} onChangeText={setFollowUp} />
-      <SecondaryButton label="Add follow-up" icon="calendar" onPress={async () => {
-        await api.post(`/rescue/${rescue._id}/followup`, { scheduleDate: followUp || new Date().toISOString(), notes: followUp });
-        setFollowUp('');
-        onDone();
-      }} />
+    <View style={S.actionGroup}>
+      <View style={S.row}>
+        <AnimatedPress onPress={() => act(`/rescue/${rescue._id}/accept-ngo`, { type: 'immediate', transportType: 'self' })} style={[S.btnPrimary, { flex: 1 }]}>
+          <Ionicons name="checkmark-circle" size={16} color={C.bgMain} />
+          <Text style={S.btnPrimaryText}>Accept</Text>
+        </AnimatedPress>
+        <AnimatedPress onPress={() => act(`/rescue/${rescue._id}/reject-ngo`)} style={[S.btnDanger, { flex: 1, marginLeft: 8 }]}>
+          <Ionicons name="close-circle-outline" size={16} color={C.error} />
+          <Text style={S.btnDangerText}>Reject</Text>
+        </AnimatedPress>
+      </View>
+      <View style={S.row}>
+        <AnimatedPress onPress={() => act(`/rescue/${rescue._id}/ngo-status`, { status: 'on_the_way' })} style={[S.btnOutline, { flex: 1 }]}>
+          <Ionicons name="walk-outline" size={16} color={C.brand} />
+          <Text style={S.btnOutlineText}>On the Way</Text>
+        </AnimatedPress>
+        <AnimatedPress onPress={() => act(`/rescue/${rescue._id}/resolve-ngo`)} style={[S.btnOutline, { flex: 1, marginLeft: 8 }]}>
+          <Ionicons name="medkit-outline" size={16} color={C.brand} />
+          <Text style={S.btnOutlineText}>Resolve On Spot</Text>
+        </AnimatedPress>
+      </View>
+      <AnimatedPress onPress={() => act(`/rescue/${rescue._id}/escalate-ngo`, { transportType: 'ambulance' })} style={S.btnOutline}>
+        <Ionicons name="business-outline" size={16} color={C.brand} />
+        <Text style={S.btnOutlineText}>Escalate to Hospital</Text>
+      </AnimatedPress>
+      <View style={S.row}>
+        <TextInput
+          style={[S.input, { flex: 1 }]}
+          value={followUp}
+          onChangeText={setFollowUp}
+          placeholder="Follow-up note or date..."
+          placeholderTextColor={C.textMuted}
+        />
+        <AnimatedPress onPress={async () => {
+          await api.post(`/rescue/${rescue._id}/followup`, { scheduleDate: followUp || new Date().toISOString(), notes: followUp });
+          setFollowUp('');
+          onDone();
+        }} style={[S.btnOutline, { marginLeft: 8 }]}>
+          <Ionicons name="calendar-outline" size={16} color={C.brand} />
+          <Text style={S.btnOutlineText}>Add</Text>
+        </AnimatedPress>
+      </View>
     </View>
   );
 }
 
+// ─── Hospital Home / Cases ────────────────────────────────────────────────────
 function HospitalHome() {
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Hospital Desk</Text>
-      <Text style={styles.screenCopy}>Accept escalations, manage treatment, bill cases, and coordinate ambulances.</Text>
+    <ScreenShell>
+      <ScreenHeader title="Hospital Desk" subtitle="Accept escalations, manage treatment, bill cases & coordinate ambulances" />
       <HospitalCases />
-    </ScrollPanel>
+    </ScreenShell>
   );
 }
 
@@ -597,25 +856,34 @@ function HospitalCases() {
   const [escalated, setEscalated] = useState<Rescue[]>([]);
   const [mine, setMine] = useState<Rescue[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'escalated' | 'mine'>('escalated');
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const [a, b] = await Promise.all([api.get('/hospital/escalated'), api.get('/hospital/my-cases')]);
       setEscalated(a.data.cases || a.data.rescues || []);
       setMine(b.data.cases || b.data.rescues || []);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  const list = activeTab === 'escalated' ? escalated : mine;
+
   return (
-    <ScrollPanel refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}>
-      <Text style={styles.sectionTitle}>Escalated</Text>
-      {escalated.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<HospitalActions rescue={rescue} onDone={load} />} />)}
-      <Text style={styles.sectionTitle}>Hospital Cases</Text>
-      {mine.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<HospitalActions rescue={rescue} onDone={load} />} />)}
+    <ScreenShell refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand} />}>
+      <SegmentedControl
+        options={[{ key: 'escalated', label: `Escalated (${escalated.length})` }, { key: 'mine', label: `My Cases (${mine.length})` }]}
+        active={activeTab}
+        onChange={(k) => setActiveTab(k as any)}
+      />
+      {list.length === 0 ? (
+        <EmptyState icon="medkit" message="No cases in this section" />
+      ) : (
+        list.map((r) => <RescueCard key={r._id} rescue={r} actions={<HospitalActions rescue={r} onDone={load} />} />)
+      )}
       <FleetManager />
-    </ScrollPanel>
+    </ScreenShell>
   );
 }
 
@@ -623,21 +891,37 @@ function HospitalActions({ rescue, onDone }: { rescue: Rescue; onDone: () => voi
   const [bill, setBill] = useState('');
   const [note, setNote] = useState('');
   return (
-    <View style={styles.cardActions}>
-      <PrimaryButton label="Accept broadcast" icon="checkmark-done" onPress={async () => { await api.put(`/hospital/rescue/${rescue._id}/accept-broadcast`); onDone(); }} />
-      <SecondaryButton label="Reject broadcast" icon="close" onPress={async () => { await api.put(`/hospital/rescue/${rescue._id}/reject-broadcast`); onDone(); }} />
-      <Field label="Treatment note" value={note} onChangeText={setNote} />
-      <SecondaryButton label="Update treatment" icon="pulse" onPress={async () => {
-        await api.put(`/hospital/rescue/${rescue._id}/treatment`, { treatmentStatus: 'under_treatment', hospitalNote: note });
-        setNote('');
-        onDone();
-      }} />
-      <Field label="Bill amount" value={bill} keyboardType="numeric" onChangeText={setBill} />
-      <PrimaryButton label="Send bill" icon="receipt" disabled={!bill} onPress={async () => {
-        await api.post(`/hospital/rescue/${rescue._id}/bill`, { items: [{ name: 'Treatment', amount: Number(bill) }], totalAmount: Number(bill), sentTo: 'user' });
-        setBill('');
-        onDone();
-      }} />
+    <View style={S.actionGroup}>
+      <View style={S.row}>
+        <AnimatedPress onPress={async () => { await api.put(`/hospital/rescue/${rescue._id}/accept-broadcast`); onDone(); }} style={[S.btnPrimary, { flex: 1 }]}>
+          <Ionicons name="checkmark-done" size={16} color={C.bgMain} />
+          <Text style={S.btnPrimaryText}>Accept</Text>
+        </AnimatedPress>
+        <AnimatedPress onPress={async () => { await api.put(`/hospital/rescue/${rescue._id}/reject-broadcast`); onDone(); }} style={[S.btnDanger, { flex: 1, marginLeft: 8 }]}>
+          <Ionicons name="close" size={16} color={C.error} />
+          <Text style={S.btnDangerText}>Reject</Text>
+        </AnimatedPress>
+      </View>
+      <View style={S.row}>
+        <TextInput style={[S.input, { flex: 1 }]} value={note} onChangeText={setNote} placeholder="Treatment note..." placeholderTextColor={C.textMuted} />
+        <AnimatedPress onPress={async () => {
+          await api.put(`/hospital/rescue/${rescue._id}/treatment`, { treatmentStatus: 'under_treatment', hospitalNote: note });
+          setNote(''); onDone();
+        }} style={[S.btnOutline, { marginLeft: 8 }]}>
+          <Ionicons name="pulse" size={16} color={C.brand} />
+          <Text style={S.btnOutlineText}>Update</Text>
+        </AnimatedPress>
+      </View>
+      <View style={S.row}>
+        <TextInput style={[S.input, { flex: 1 }]} value={bill} onChangeText={setBill} placeholder="Bill amount (₹)" placeholderTextColor={C.textMuted} keyboardType="numeric" />
+        <AnimatedPress onPress={async () => {
+          await api.post(`/hospital/rescue/${rescue._id}/bill`, { items: [{ name: 'Treatment', amount: Number(bill) }], totalAmount: Number(bill), sentTo: 'user' });
+          setBill(''); onDone();
+        }} disabled={!bill} style={[S.btnPrimary, { marginLeft: 8 }]}>
+          <Ionicons name="receipt" size={16} color={C.bgMain} />
+          <Text style={S.btnPrimaryText}>Send Bill</Text>
+        </AnimatedPress>
+      </View>
     </View>
   );
 }
@@ -652,25 +936,43 @@ function FleetManager() {
   useEffect(() => { load().catch(() => undefined); }, [load]);
   return (
     <View>
-      <Text style={styles.sectionTitle}>Fleet</Text>
-      <Field label="New ambulance vehicle number" value={vehicleNumber} onChangeText={setVehicleNumber} />
-      <SecondaryButton label="Onboard ambulance" icon="car" disabled={!vehicleNumber} onPress={async () => {
-        await api.post('/hospital/onboard-ambulance', { vehicleNumber, name: `Ambulance ${vehicleNumber}` });
-        setVehicleNumber('');
-        load();
-      }} />
-      {ambulances.map((a) => <SimpleRow key={a._id} title={a.vehicleNumber || a.name} subtitle={a.isApproved ? 'Approved' : 'Pending approval'} />)}
+      <SectionHeader title="🚑 Fleet Manager" />
+      <SurfaceCard>
+        <View style={S.row}>
+          <TextInput style={[S.input, { flex: 1 }]} value={vehicleNumber} onChangeText={setVehicleNumber} placeholder="Vehicle number (e.g. DL 01 AB 1234)" placeholderTextColor={C.textMuted} />
+          <AnimatedPress onPress={async () => {
+            if (!vehicleNumber) return;
+            await api.post('/hospital/onboard-ambulance', { vehicleNumber, name: `Ambulance ${vehicleNumber}` });
+            setVehicleNumber(''); load();
+          }} disabled={!vehicleNumber} style={[S.btnPrimary, { marginLeft: 8 }]}>
+            <Ionicons name="add" size={16} color={C.bgMain} />
+            <Text style={S.btnPrimaryText}>Add</Text>
+          </AnimatedPress>
+        </View>
+        {ambulances.map((a) => (
+          <View key={a._id} style={S.listRow}>
+            <View style={S.listRowIcon}>
+              <Ionicons name="car" size={16} color={C.brand} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={S.listRowTitle}>{a.vehicleNumber || a.name}</Text>
+              <Text style={S.listRowSub}>{a.isApproved ? 'Approved' : 'Pending approval'}</Text>
+            </View>
+            <StatusPill status={a.isApproved ? 'approved' : 'pending'} />
+          </View>
+        ))}
+      </SurfaceCard>
     </View>
   );
 }
 
+// ─── Ambulance Home / Cases ───────────────────────────────────────────────────
 function AmbulanceHome({ socket }: { socket: Socket | null }) {
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Ambulance Crew</Text>
-      <Text style={styles.screenCopy}>Accept dispatches, stream location, and update transport progress.</Text>
+    <ScreenShell>
+      <ScreenHeader title="Ambulance Crew" subtitle="Accept dispatches, stream location & update transport progress" />
       <AmbulanceCases socket={socket} />
-    </ScrollPanel>
+    </ScreenShell>
   );
 }
 
@@ -679,6 +981,8 @@ function AmbulanceCases({ socket }: { socket?: Socket | null }) {
   const [pinged, setPinged] = useState<Rescue[]>([]);
   const [history, setHistory] = useState<Rescue[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pinged' | 'assigned' | 'history'>('pinged');
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -686,54 +990,86 @@ function AmbulanceCases({ socket }: { socket?: Socket | null }) {
       setAssigned([...(a.data.task ? [a.data.task] : a.data.tasks || a.data.rescues || [])]);
       setPinged(p.data.tasks || p.data.rescues || []);
       setHistory(h.data.history || h.data.rescues || []);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
 
   const streamLocation = async (rescueId?: string) => {
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) return Alert.alert('Location needed', 'Location is required for ambulance tracking.');
-    const position = await Location.getCurrentPositionAsync({});
-    await api.put('/ambulance/location', { lat: position.coords.latitude, lng: position.coords.longitude });
+    const perm = await Location.requestForegroundPermissionsAsync();
+    if (!perm.granted) return Alert.alert('Location needed', 'Location is required for ambulance tracking.');
+    const pos = await Location.getCurrentPositionAsync({});
+    await api.put('/ambulance/location', { lat: pos.coords.latitude, lng: pos.coords.longitude });
     if (rescueId) {
-      socket?.emit('ambulance_location_update', {
-        rescueRequestId: rescueId,
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      });
+      socket?.emit('ambulance_location_update', { rescueRequestId: rescueId, lat: pos.coords.latitude, lng: pos.coords.longitude });
     }
-    Alert.alert('Location shared', 'Your latest location was sent.');
+    Alert.alert('📍 Location shared', 'Your latest location was sent.');
   };
 
+  const lists: Record<string, Rescue[]> = { pinged, assigned, history };
+  const list = lists[activeTab] || [];
+
   return (
-    <ScrollPanel refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}>
-      <Text style={styles.sectionTitle}>Dispatch Pings</Text>
-      {pinged.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<View style={styles.cardActions}>
-        <PrimaryButton label="Accept ping" icon="checkmark-circle" onPress={async () => { await api.put(`/ambulance/rescue/${rescue._id}/accept-ping`); load(); }} />
-        <SecondaryButton label="Reject" icon="close-circle" onPress={async () => { await api.put(`/ambulance/rescue/${rescue._id}/reject-ping`); load(); }} />
-      </View>} />)}
-      <Text style={styles.sectionTitle}>Assigned</Text>
-      {assigned.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<View style={styles.cardActions}>
-        <PrimaryButton label="Share location" icon="navigate" onPress={() => streamLocation(rescue._id)} />
-        {['en_route', 'picked_up', 'delivered'].map((status) => (
-          <SecondaryButton key={status} label={status.replace('_', ' ')} icon="flag" onPress={async () => { await api.put(`/ambulance/rescue/${rescue._id}/status`, { status }); load(); }} />
-        ))}
-      </View>} />)}
-      <Text style={styles.sectionTitle}>History</Text>
-      {history.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} />)}
-    </ScrollPanel>
+    <ScreenShell refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand} />}>
+      <SegmentedControl
+        options={[
+          { key: 'pinged', label: `Pings (${pinged.length})` },
+          { key: 'assigned', label: `Assigned (${assigned.length})` },
+          { key: 'history', label: 'History' },
+        ]}
+        active={activeTab}
+        onChange={(k) => setActiveTab(k as any)}
+      />
+      {list.length === 0 ? (
+        <EmptyState icon="car" message="No items in this section" />
+      ) : (
+        list.map((r) => (
+          <RescueCard key={r._id} rescue={r} actions={
+            activeTab === 'pinged' ? (
+              <View style={S.row}>
+                <AnimatedPress onPress={async () => { await api.put(`/ambulance/rescue/${r._id}/accept-ping`); load(); }} style={[S.btnPrimary, { flex: 1 }]}>
+                  <Ionicons name="checkmark-circle" size={16} color={C.bgMain} />
+                  <Text style={S.btnPrimaryText}>Accept Ping</Text>
+                </AnimatedPress>
+                <AnimatedPress onPress={async () => { await api.put(`/ambulance/rescue/${r._id}/reject-ping`); load(); }} style={[S.btnDanger, { flex: 1, marginLeft: 8 }]}>
+                  <Ionicons name="close-circle-outline" size={16} color={C.error} />
+                  <Text style={S.btnDangerText}>Reject</Text>
+                </AnimatedPress>
+              </View>
+            ) : activeTab === 'assigned' ? (
+              <View style={S.actionGroup}>
+                <AnimatedPress onPress={() => streamLocation(r._id)} style={S.btnPrimary}>
+                  <Ionicons name="navigate" size={16} color={C.bgMain} />
+                  <Text style={S.btnPrimaryText}>Share Live Location</Text>
+                </AnimatedPress>
+                <View style={S.chipRow}>
+                  {['en_route', 'picked_up', 'delivered'].map((status) => (
+                    <AnimatedPress key={status} onPress={async () => { await api.put(`/ambulance/rescue/${r._id}/status`, { status }); load(); }} style={S.chip}>
+                      <Text style={S.chipText}>{status.replace('_', ' ')}</Text>
+                    </AnimatedPress>
+                  ))}
+                </View>
+              </View>
+            ) : undefined
+          } />
+        ))
+      )}
+    </ScreenShell>
   );
 }
 
-function WalletScreen({ user, setUser }: { user: User; setUser: (user: User) => void }) {
+// ─── Wallet Screen ────────────────────────────────────────────────────────────
+function WalletScreen({ user, setUser }: { user: User; setUser: (u: User) => void }) {
   const [amount, setAmount] = useState('500');
   const [wallet, setWallet] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
   const load = useCallback(async () => {
-    const { data } = await api.get('/user/wallet');
-    setWallet(data);
-    setUser({ ...user, walletBalance: data.walletBalance });
+    setLoading(true);
+    try {
+      const { data } = await api.get('/user/wallet');
+      setWallet(data);
+      setUser({ ...user, walletBalance: data.walletBalance });
+    } finally { setLoading(false); }
   }, [setUser, user]);
   useEffect(() => { load().catch(() => undefined); }, [load]);
 
@@ -741,11 +1077,9 @@ function WalletScreen({ user, setUser }: { user: User; setUser: (user: User) => 
     try {
       const value = Number(amount);
       const { data } = await api.post('/payment/create-order', { amount: value });
-      
       if (!RazorpayCheckout || typeof RazorpayCheckout.open !== 'function') {
-        throw new Error('Razorpay native checkout is not available in the Expo Go client. Please use the "Mock top-up" button below instead.');
+        throw new Error('Razorpay native checkout is not available in the Expo Go client. Use "Mock top-up" below.');
       }
-      
       const payment = await RazorpayCheckout.open({
         key: RAZORPAY_KEY_ID || data.keyId,
         amount: data.order.amount,
@@ -754,108 +1088,242 @@ function WalletScreen({ user, setUser }: { user: User; setUser: (user: User) => 
         name: 'VetsCue Wallet',
         description: 'Wallet top-up',
         prefill: { email: user.email, name: user.name, contact: user.phone || '' },
-        theme: { color: '#0f766e' },
+        theme: { color: C.brand },
       });
       await api.post('/payment/verify', payment);
       await load();
-      Alert.alert('Wallet updated', 'Payment verified successfully.');
+      Alert.alert('✅ Wallet updated', 'Payment verified successfully.');
     } catch (error: any) {
-      const errorMsg = error.message || 'An error occurred during Razorpay checkout.';
-      Alert.alert(
-        'Payment Action',
-        `${errorMsg}\n\nFor Expo Go testing, please use the separate "Mock top-up" button instead.`
-      );
+      Alert.alert('Payment', `${error.message}\n\nFor testing, use the Mock top-up button.`);
     }
   };
 
+  const balance = wallet?.walletBalance ?? user.walletBalance ?? 0;
+
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Wallet</Text>
-      <Metric label="Balance" value={`Rs ${wallet?.walletBalance ?? user.walletBalance ?? 0}`} />
-      <Field label="Top-up amount" value={amount} keyboardType="numeric" onChangeText={setAmount} />
-      <PrimaryButton label="Top up with Razorpay" icon="card" onPress={topUp} />
-      <SecondaryButton label="Mock top-up" icon="flask" onPress={async () => { await api.post('/payment/mock-topup', { amount: Number(amount) }); load(); }} />
-      <Text style={styles.sectionTitle}>Transactions</Text>
-      {(wallet?.transactions || []).map((tx: any) => <SimpleRow key={tx._id} title={`${tx.type} Rs ${tx.amount}`} subtitle={tx.description} />)}
-      <Fundraisers />
-    </ScrollPanel>
+    <ScreenShell refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand} />}>
+      <ScreenHeader title="Wallet" subtitle="Manage your balance and transactions" />
+
+      {/* Balance card */}
+      <View style={S.balanceCard}>
+        <View style={S.balanceGlow} pointerEvents="none" />
+        <Text style={S.balanceLabel}>Available Balance</Text>
+        <Text style={S.balanceAmount}>₹{balance.toLocaleString('en-IN')}</Text>
+        <Text style={S.balanceSub}>VetsCue Wallet</Text>
+      </View>
+
+      <SurfaceCard>
+        <Text style={S.cardSectionTitle}>💳 Top Up Wallet</Text>
+        <FormField
+          label="Amount (₹)"
+          value={amount}
+          onChangeText={setAmount}
+          keyboardType="numeric"
+          placeholder="Enter amount"
+          icon="cash-outline"
+        />
+        <View style={S.row}>
+          {['100', '500', '1000', '2000'].map((v) => (
+            <AnimatedPress key={v} onPress={() => setAmount(v)} style={[S.chip, amount === v && S.chipActive]}>
+              <Text style={[S.chipText, amount === v && S.chipTextActive]}>₹{v}</Text>
+            </AnimatedPress>
+          ))}
+        </View>
+        <AnimatedPress onPress={topUp} style={S.btnPrimary}>
+          <Ionicons name="card" size={18} color={C.bgMain} />
+          <Text style={S.btnPrimaryText}>Top up with Razorpay</Text>
+        </AnimatedPress>
+        <AnimatedPress onPress={async () => { await api.post('/payment/mock-topup', { amount: Number(amount) }); load(); }} style={S.btnOutline}>
+          <Ionicons name="flask-outline" size={18} color={C.brand} />
+          <Text style={S.btnOutlineText}>Mock Top-up (Dev)</Text>
+        </AnimatedPress>
+      </SurfaceCard>
+
+      <SectionHeader title="Transaction History" />
+      {(wallet?.transactions || []).length === 0 ? (
+        <EmptyState icon="receipt" message="No transactions yet" />
+      ) : (
+        <SurfaceCard>
+          {(wallet?.transactions || []).map((tx: any) => (
+            <View key={tx._id} style={S.listRow}>
+              <View style={[S.listRowIcon, { backgroundColor: tx.type === 'credit' ? `${C.success}20` : `${C.error}20` }]}>
+                <Ionicons
+                  name={tx.type === 'credit' ? 'arrow-down-circle-outline' : 'arrow-up-circle-outline'}
+                  size={18}
+                  color={tx.type === 'credit' ? C.success : C.error}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={S.listRowTitle}>{tx.description || tx.type}</Text>
+                <Text style={S.listRowSub}>{compactDate(tx.createdAt)}</Text>
+              </View>
+              <Text style={[S.listRowTitle, { color: tx.type === 'credit' ? C.success : C.error }]}>
+                {tx.type === 'credit' ? '+' : '-'}₹{tx.amount}
+              </Text>
+            </View>
+          ))}
+        </SurfaceCard>
+      )}
+
+      <FundraisersSection />
+    </ScreenShell>
   );
 }
 
+// ─── Notifications Screen ─────────────────────────────────────────────────────
 function NotificationsScreen() {
   const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
   const load = useCallback(async () => {
-    const res = await api.get('/notifications');
-    setData(res.data);
+    setLoading(true);
+    try { const res = await api.get('/notifications'); setData(res.data); }
+    finally { setLoading(false); }
   }, []);
   useEffect(() => { load().catch(() => undefined); }, [load]);
+
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Alerts</Text>
-      <Metric label="Unread" value={data?.unreadCount ?? 0} />
-      <SecondaryButton label="Mark all read" icon="checkmark-done" onPress={async () => { await api.put('/notifications/read-all'); load(); }} />
-      {(data?.notifications || []).map((n: any) => (
-        <Pressable key={n._id} style={[styles.card, !n.isRead && styles.unread]} onPress={async () => { await api.put(`/notifications/${n._id}/read`); load(); }}>
-          <Text style={styles.cardTitle}>{n.title}</Text>
-          <Text style={styles.cardText}>{n.message}</Text>
-          <Text style={styles.cardMeta}>{compactDate(n.createdAt)}</Text>
-        </Pressable>
-      ))}
-    </ScrollPanel>
+    <ScreenShell refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand} />}>
+      <View style={S.row}>
+        <ScreenHeader title="Notifications" subtitle={`${data?.unreadCount ?? 0} unread`} />
+        <AnimatedPress onPress={async () => { await api.put('/notifications/read-all'); load(); }} style={[S.btnOutline, { alignSelf: 'center', marginTop: 0 }]}>
+          <Ionicons name="checkmark-done" size={16} color={C.brand} />
+          <Text style={S.btnOutlineText}>Mark all read</Text>
+        </AnimatedPress>
+      </View>
+
+      {(data?.notifications || []).length === 0 ? (
+        <EmptyState icon="notifications-off" message="All clear — no notifications" />
+      ) : (
+        <SurfaceCard>
+          {(data?.notifications || []).map((n: any, i: number) => (
+            <View key={n._id}>
+              <TouchableOpacity onPress={async () => { await api.put(`/notifications/${n._id}/read`); load(); }} activeOpacity={0.7}>
+                <View style={[S.notifRow, !n.isRead && S.notifRowUnread]}>
+                  <View style={[S.listRowIcon, { backgroundColor: n.isRead ? C.bgHover : `${C.brand}20` }]}>
+                    <Ionicons name={n.isRead ? 'notifications-outline' : 'notifications'} size={18} color={n.isRead ? C.textMuted : C.brand} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[S.listRowTitle, !n.isRead && { color: C.textMain }]}>{n.title}</Text>
+                    <Text style={S.listRowSub} numberOfLines={2}>{n.message}</Text>
+                    <Text style={[S.listRowSub, { marginTop: 2 }]}>{compactDate(n.createdAt)}</Text>
+                  </View>
+                  {!n.isRead && <View style={S.unreadDot} />}
+                </View>
+              </TouchableOpacity>
+              {i < (data?.notifications || []).length - 1 && <View style={S.separator} />}
+            </View>
+          ))}
+        </SurfaceCard>
+      )}
+    </ScreenShell>
   );
 }
 
-function ProfileScreen({ user, setUser }: { user: User; setUser: (user: User) => void }) {
+// ─── Profile Screen ───────────────────────────────────────────────────────────
+function ProfileScreen({ user, setUser }: { user: User; setUser: (u: User) => void }) {
   const [form, setForm] = useState({
     name: user.name || '',
     phone: user.phone || '',
     orgName: user.orgName || '',
     address: user.location?.address || '',
   });
+  const [saving, setSaving] = useState(false);
+
   const save = async () => {
-    const { data } = await api.put('/user/profile', form);
-    setUser(data.user);
-    Alert.alert('Profile saved');
+    setSaving(true);
+    try {
+      const { data } = await api.put('/user/profile', form);
+      setUser(data.user);
+      Alert.alert('✅ Profile saved', 'Your changes have been saved.');
+    } catch (e: any) {
+      Alert.alert('Error', e.response?.data?.message || e.message);
+    } finally { setSaving(false); }
   };
+
   const updateLocation = async () => {
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) return;
-    const position = await Location.getCurrentPositionAsync({});
-    const { data } = await api.put('/user/profile', { location: { lat: position.coords.latitude, lng: position.coords.longitude } });
+    const perm = await Location.requestForegroundPermissionsAsync();
+    if (!perm.granted) return;
+    const pos = await Location.getCurrentPositionAsync({});
+    const { data } = await api.put('/user/profile', { location: { lat: pos.coords.latitude, lng: pos.coords.longitude } });
     setUser(data.user);
-    Alert.alert('Location updated');
+    Alert.alert('📍 Location updated', 'Your location has been updated.');
   };
+
+  const initial = user.name?.charAt(0)?.toUpperCase() || 'U';
+
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Profile</Text>
-      <Field label="Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
-      <Field label="Phone" value={form.phone} onChangeText={(phone) => setForm({ ...form, phone })} />
-      {user.role !== 'user' && <Field label="Organisation" value={form.orgName} onChangeText={(orgName) => setForm({ ...form, orgName })} />}
-      <Field label="Address" value={form.address} onChangeText={(address) => setForm({ ...form, address })} />
-      <PrimaryButton label="Save profile" icon="save" onPress={save} />
-      <SecondaryButton label="Use current location" icon="locate" onPress={updateLocation} />
-    </ScrollPanel>
+    <ScreenShell>
+      {/* Avatar */}
+      <View style={S.profileHeader}>
+        <View style={S.profileAvatar}>
+          <Text style={S.profileAvatarText}>{initial}</Text>
+        </View>
+        <Text style={S.profileName}>{user.orgName || user.name}</Text>
+        <View style={S.roleBadge}>
+          <Text style={S.roleBadgeText}>{roleLabel[user.role]}</Text>
+        </View>
+        {!user.isApproved && user.role !== 'user' && (
+          <View style={[S.roleBadge, { backgroundColor: `${C.warning}20`, borderColor: `${C.warning}40` }]}>
+            <Text style={[S.roleBadgeText, { color: C.warning }]}>⏳ Pending Approval</Text>
+          </View>
+        )}
+        <Text style={S.profileEmail}>{user.email}</Text>
+      </View>
+
+      <SurfaceCard>
+        <Text style={S.cardSectionTitle}>✏️ Edit Profile</Text>
+        <FormField label="Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="Full name" icon="person-outline" />
+        <FormField label="Phone" value={form.phone} onChangeText={(phone) => setForm({ ...form, phone })} placeholder="+91 ..." icon="call-outline" keyboardType="phone-pad" />
+        {user.role !== 'user' && (
+          <FormField label="Organisation" value={form.orgName} onChangeText={(orgName) => setForm({ ...form, orgName })} placeholder="Organisation name" icon="business-outline" />
+        )}
+        <FormField label="Address" value={form.address} onChangeText={(address) => setForm({ ...form, address })} placeholder="City, State" icon="location-outline" />
+        <AnimatedPress onPress={save} disabled={saving} style={S.btnPrimary}>
+          {saving ? <ActivityIndicator color={C.bgMain} size="small" /> : (
+            <>
+              <Ionicons name="save-outline" size={18} color={C.bgMain} />
+              <Text style={S.btnPrimaryText}>Save Changes</Text>
+            </>
+          )}
+        </AnimatedPress>
+        <AnimatedPress onPress={updateLocation} style={S.btnOutline}>
+          <Ionicons name="locate-outline" size={18} color={C.brand} />
+          <Text style={S.btnOutlineText}>Update to Current Location</Text>
+        </AnimatedPress>
+      </SurfaceCard>
+    </ScreenShell>
   );
 }
 
-function AdminScreen({ setToken, setAdminToken, setUser }: { setToken: (token: string) => void; setAdminToken: (token: string) => void; setUser: (user: User) => void }) {
+// ─── Admin Screen ─────────────────────────────────────────────────────────────
+function AdminScreen({ setToken, setAdminToken, setUser }: {
+  setToken: (t: string) => void; setAdminToken: (t: string) => void; setUser: (u: User) => void;
+}) {
   const [analytics, setAnalytics] = useState<any>(null);
   const [pending, setPending] = useState<User[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [fundraisers, setFundraisers] = useState<Rescue[]>([]);
+  const [activeTab, setActiveTab] = useState<'overview' | 'approvals' | 'fundraisers' | 'users' | 'rescues'>('overview');
+  const [loading, setLoading] = useState(false);
+
   const load = useCallback(async () => {
-    const [a, p, u, f] = await Promise.all([
-      api.get('/admin/analytics'),
-      api.get('/admin/pending-approvals'),
-      api.get('/admin/users?limit=50'),
-      api.get('/admin/fundraisers'),
-    ]);
-    setAnalytics(a.data.analytics);
-    setPending(p.data.users || []);
-    setUsers(u.data.users || []);
-    setFundraisers(f.data.fundraisers || []);
+    setLoading(true);
+    try {
+      const [a, p, u, f] = await Promise.all([
+        api.get('/admin/analytics'),
+        api.get('/admin/pending-approvals'),
+        api.get('/admin/users?limit=50'),
+        api.get('/admin/fundraisers'),
+      ]);
+      setAnalytics(a.data.analytics);
+      setPending(p.data.users || []);
+      setUsers(u.data.users || []);
+      setFundraisers(f.data.fundraisers || []);
+    } finally { setLoading(false); }
   }, []);
   useEffect(() => { load().catch(() => undefined); }, [load]);
+
   const impersonate = async (userId: string) => {
     const current = await SecureStore.getItemAsync(TOKEN_KEY);
     const { data } = await api.post('/auth/impersonate', { userId });
@@ -866,26 +1334,92 @@ function AdminScreen({ setToken, setAdminToken, setUser }: { setToken: (token: s
     setToken(data.token);
     setUser(data.user);
   };
+
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Admin Command</Text>
-      <View style={styles.grid}>
-        <Metric label="Users" value={analytics?.totalUsers ?? '--'} />
-        <Metric label="Requests" value={analytics?.totalRequests ?? '--'} />
-        <Metric label="Pending" value={analytics?.pendingApprovals ?? '--'} />
-        <Metric label="Donations" value={`Rs ${analytics?.totalDonations ?? '--'}`} />
+    <ScreenShell refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand} />}>
+      <ScreenHeader title="Admin Command" subtitle="Manage the entire VetsCue ecosystem" />
+
+      {/* Stats grid */}
+      <View style={S.statsGrid}>
+        <StatCard label="Users" value={analytics?.totalUsers ?? '—'} icon="people" color={C.brand} />
+        <StatCard label="Requests" value={analytics?.totalRequests ?? '—'} icon="document-text" color={C.info} />
+        <StatCard label="Pending" value={analytics?.pendingApprovals ?? '—'} icon="time" color={C.warning} />
+        <StatCard label="Donations" value={`₹${analytics?.totalDonations ?? '—'}`} icon="heart" color={C.success} />
       </View>
-      <Text style={styles.sectionTitle}>Approvals</Text>
-      {pending.map((u) => <SimpleRow key={u._id} title={u.orgName || u.name} subtitle={`${u.role} - ${u.email}`} right={<PrimaryButton compact label="Approve" icon="checkmark" onPress={async () => { await api.put(`/admin/approve/${u._id}`, { approve: true }); load(); }} />} />)}
-      <Text style={styles.sectionTitle}>Fundraisers</Text>
-      {fundraisers.map((r) => <RescueCard key={r._id} rescue={r} actions={<View style={styles.cardActions}>
-        <PrimaryButton label="Approve" icon="checkmark" onPress={async () => { await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'approve' }); load(); }} />
-        <SecondaryButton label="Reject" icon="close" onPress={async () => { await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'reject' }); load(); }} />
-      </View>} />)}
-      <Text style={styles.sectionTitle}>Users</Text>
-      {users.map((u) => <SimpleRow key={u._id} title={u.orgName || u.name} subtitle={`${u.role} - ${u.email}`} right={<SecondaryButton compact label="Switch" icon="swap-horizontal" onPress={() => impersonate(u._id)} />} />)}
-      <AdminRescues />
-    </ScrollPanel>
+
+      {/* Tab selector */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
+        {[
+          { key: 'overview', label: '📊 Overview' },
+          { key: 'approvals', label: `✅ Approvals (${pending.length})` },
+          { key: 'fundraisers', label: `❤️ Fundraisers` },
+          { key: 'users', label: `👥 Users` },
+          { key: 'rescues', label: `🐾 Rescues` },
+        ].map(({ key, label }) => (
+          <AnimatedPress key={key} onPress={() => setActiveTab(key as any)} style={[S.chip, activeTab === key && S.chipActive]}>
+            <Text style={[S.chipText, activeTab === key && S.chipTextActive]}>{label}</Text>
+          </AnimatedPress>
+        ))}
+      </ScrollView>
+
+      {activeTab === 'approvals' && (
+        pending.length === 0 ? <EmptyState icon="checkmark-circle" message="No pending approvals" /> :
+        pending.map((u) => (
+          <View key={u._id} style={S.listRow}>
+            <View style={S.listRowIcon}>
+              <Ionicons name="business" size={16} color={C.brand} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={S.listRowTitle}>{u.orgName || u.name}</Text>
+              <Text style={S.listRowSub}>{u.role} · {u.email}</Text>
+            </View>
+            <AnimatedPress onPress={async () => { await api.put(`/admin/approve/${u._id}`, { approve: true }); load(); }} style={[S.btnPrimary, { paddingHorizontal: 12, paddingVertical: 8 }]}>
+              <Ionicons name="checkmark" size={14} color={C.bgMain} />
+              <Text style={[S.btnPrimaryText, { fontSize: 12 }]}>Approve</Text>
+            </AnimatedPress>
+          </View>
+        ))
+      )}
+
+      {activeTab === 'fundraisers' && (
+        fundraisers.length === 0 ? <EmptyState icon="heart" message="No fundraisers to review" /> :
+        fundraisers.map((r) => (
+          <RescueCard key={r._id} rescue={r} actions={
+            <View style={S.row}>
+              <AnimatedPress onPress={async () => { await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'approve' }); load(); }} style={[S.btnPrimary, { flex: 1 }]}>
+                <Ionicons name="checkmark" size={16} color={C.bgMain} />
+                <Text style={S.btnPrimaryText}>Approve</Text>
+              </AnimatedPress>
+              <AnimatedPress onPress={async () => { await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'reject' }); load(); }} style={[S.btnDanger, { flex: 1, marginLeft: 8 }]}>
+                <Ionicons name="close" size={16} color={C.error} />
+                <Text style={S.btnDangerText}>Reject</Text>
+              </AnimatedPress>
+            </View>
+          } />
+        ))
+      )}
+
+      {activeTab === 'users' && (
+        users.length === 0 ? <EmptyState icon="people" message="No users found" /> :
+        users.map((u) => (
+          <View key={u._id} style={S.listRow}>
+            <View style={S.avatarSmall}>
+              <Text style={S.avatarSmallText}>{u.name?.charAt(0)?.toUpperCase() || 'U'}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={S.listRowTitle}>{u.orgName || u.name}</Text>
+              <Text style={S.listRowSub}>{u.role} · {u.email}</Text>
+            </View>
+            <AnimatedPress onPress={() => impersonate(u._id)} style={[S.btnOutline, { paddingHorizontal: 10, paddingVertical: 8 }]}>
+              <Ionicons name="swap-horizontal" size={14} color={C.brand} />
+              <Text style={[S.btnOutlineText, { fontSize: 12 }]}>Switch</Text>
+            </AnimatedPress>
+          </View>
+        ))
+      )}
+
+      {(activeTab === 'overview' || activeTab === 'rescues') && <AdminRescues />}
+    </ScreenShell>
   );
 }
 
@@ -898,585 +1432,705 @@ function AdminRescues() {
   useEffect(() => { load().catch(() => undefined); }, [load]);
   return (
     <View>
-      <Text style={styles.sectionTitle}>Rescue Overrides</Text>
-      {rescues.map((rescue) => <RescueCard key={rescue._id} rescue={rescue} actions={<View style={styles.cardActions}>
-        {['completed', 'cancelled', 'closed_unresolved'].map((status) => <SecondaryButton key={status} label={status} icon="create" onPress={async () => { await api.put(`/admin/rescue/${rescue._id}/override`, { status }); load(); }} />)}
-      </View>} />)}
+      <SectionHeader title="🛡️ Rescue Overrides" />
+      {rescues.length === 0 ? <EmptyState icon="shield" message="No rescues to override" /> : (
+        rescues.map((r) => (
+          <RescueCard key={r._id} rescue={r} actions={
+            <View style={S.chipRow}>
+              {['completed', 'cancelled', 'closed_unresolved'].map((status) => (
+                <AnimatedPress key={status} onPress={async () => { await api.put(`/admin/rescue/${r._id}/override`, { status }); load(); }} style={S.chip}>
+                  <Text style={S.chipText}>{status.replace(/_/g, ' ')}</Text>
+                </AnimatedPress>
+              ))}
+            </View>
+          } />
+        ))
+      )}
     </View>
   );
 }
 
-function MapTools({ user, socket }: { user: User; socket: Socket | null }) {
+// ─── Map Screen ───────────────────────────────────────────────────────────────
+function MapScreen({ user, socket }: { user: User; socket: Socket | null }) {
   const [position, setPosition] = useState<Location.LocationObjectCoords | null>(null);
+  const [capturing, setCapturing] = useState(false);
+
   const capture = async () => {
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) return;
-    const loc = await Location.getCurrentPositionAsync({});
-    setPosition(loc.coords);
-    if (user.role === 'ambulance') {
-      await api.put('/ambulance/location', { lat: loc.coords.latitude, lng: loc.coords.longitude });
-      socket?.emit('ambulance_location_update', { lat: loc.coords.latitude, lng: loc.coords.longitude });
-    } else {
-      await api.put('/user/profile', { location: { lat: loc.coords.latitude, lng: loc.coords.longitude } });
-    }
+    setCapturing(true);
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (!perm.granted) return;
+      const loc = await Location.getCurrentPositionAsync({});
+      setPosition(loc.coords);
+      if (user.role === 'ambulance') {
+        await api.put('/ambulance/location', { lat: loc.coords.latitude, lng: loc.coords.longitude });
+        socket?.emit('ambulance_location_update', { lat: loc.coords.latitude, lng: loc.coords.longitude });
+      } else {
+        await api.put('/user/profile', { location: { lat: loc.coords.latitude, lng: loc.coords.longitude } });
+      }
+      Alert.alert('📍 Location captured', 'Your location has been updated.');
+    } finally { setCapturing(false); }
   };
+
   return (
-    <ScrollPanel>
-      <Text style={styles.screenTitle}>Location</Text>
-      <Text style={styles.screenCopy}>OpenStreetMap is embedded in the native app for rescue routing and ambulance tracking without Google Maps billing.</Text>
-      <View style={styles.mapPanel}>
+    <ScreenShell>
+      <ScreenHeader title="Location & Map" subtitle="Rescue routing using OpenStreetMap — no billing" />
+
+      <View style={S.mapContainer}>
         {position ? (
           <WebView
-            style={styles.webMap}
+            style={S.webMap}
             originWhitelist={['*']}
             source={{ html: leafletHtml(position.latitude, position.longitude) }}
           />
         ) : (
-          <>
-            <Ionicons name="map" size={48} color="#0f766e" />
-            <Text style={styles.cardTitle}>No location captured yet</Text>
-          </>
+          <View style={S.mapPlaceholder}>
+            <Text style={{ fontSize: 48 }}>🗺️</Text>
+            <Text style={S.mapPlaceholderText}>No location captured yet</Text>
+            <Text style={[S.mapPlaceholderText, { fontSize: 13, marginTop: 4 }]}>Tap below to pin your current location</Text>
+          </View>
         )}
       </View>
-      {position && <Text style={styles.cardMeta}>{position.latitude.toFixed(5)}, {position.longitude.toFixed(5)}</Text>}
-      <PrimaryButton label="Capture current location" icon="locate" onPress={capture} />
-    </ScrollPanel>
+
+      {position && (
+        <SurfaceCard>
+          <View style={S.row}>
+            <Ionicons name="location" size={18} color={C.brand} />
+            <Text style={[S.listRowTitle, { marginLeft: 8 }]}>
+              {position.latitude.toFixed(6)}, {position.longitude.toFixed(6)}
+            </Text>
+          </View>
+        </SurfaceCard>
+      )}
+
+      <AnimatedPress onPress={capture} disabled={capturing} style={S.btnPrimary}>
+        {capturing ? <ActivityIndicator color={C.bgMain} size="small" /> : (
+          <>
+            <Ionicons name="locate" size={18} color={C.bgMain} />
+            <Text style={S.btnPrimaryText}>Capture Current Location</Text>
+          </>
+        )}
+      </AnimatedPress>
+    </ScreenShell>
   );
 }
 
 function leafletHtml(lat: number, lng: number) {
   const tileUrl = MAP_STYLE_URL.includes('{z}') ? MAP_STYLE_URL : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  return `
-<!doctype html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>html,body,#map{height:100%;margin:0}.leaflet-control-attribution{font-size:10px}</style>
-</head>
-<body>
-  <div id="map"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    const map = L.map('map', { zoomControl: false }).setView([${lat}, ${lng}], 15);
-    L.tileLayer('${tileUrl}', { maxZoom: 19, attribution: 'OpenStreetMap' }).addTo(map);
-    L.marker([${lat}, ${lng}]).addTo(map);
-  </script>
-</body>
-</html>`;
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/><style>html,body,#map{height:100%;margin:0;background:#0e0e0e}.leaflet-control-attribution{font-size:10px}</style></head><body><div id="map"></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>const map=L.map('map',{zoomControl:false}).setView([${lat},${lng}],15);L.tileLayer('${tileUrl}',{maxZoom:19,attribution:'OSM'}).addTo(map);const icon=L.divIcon({html:'<div style="width:24px;height:24px;background:rgba(118,214,213,0.9);border:3px solid #5cb8b7;border-radius:50%;box-shadow:0 0 12px rgba(118,214,213,0.6);"></div>',className:'',iconSize:[24,24],iconAnchor:[12,12]});L.marker([${lat},${lng}],{icon}).addTo(map);</script></body></html>`;
 }
 
-function Fundraisers({ compact = false }: { compact?: boolean }) {
+// ─── Fundraisers Section ──────────────────────────────────────────────────────
+function FundraisersSection({ compact = false }: { compact?: boolean }) {
   const [items, setItems] = useState<Rescue[]>([]);
   const [amount, setAmount] = useState('100');
-  useEffect(() => { api.get('/donation/fundraisers').then(({ data }) => setItems(data.fundraisers || [])).catch(() => undefined); }, []);
+
+  useEffect(() => {
+    api.get('/donation/fundraisers').then(({ data }) => setItems(data.fundraisers || [])).catch(() => undefined);
+  }, []);
+
   if (compact && items.length === 0) return null;
+
+  const list = compact ? items.slice(0, 3) : items;
+
   return (
     <View>
-      <Text style={styles.sectionTitle}>Fundraisers</Text>
-      {items.slice(0, compact ? 3 : undefined).map((rescue) => (
-        <RescueCard key={rescue._id} rescue={rescue} actions={<View style={styles.cardActions}>
-          <Field label="Wallet donation" value={amount} keyboardType="numeric" onChangeText={setAmount} />
-          <PrimaryButton label="Donate wallet" icon="heart" onPress={async () => {
-            await api.post('/donation/donate-wallet', { rescueId: rescue._id, amount: Number(amount) });
-            Alert.alert('Donation sent');
-          }} />
-        </View>} />
-      ))}
+      <SectionHeader title="❤️ Active Fundraisers" />
+      {list.length === 0 ? (
+        <EmptyState icon="heart" message="No active fundraisers" />
+      ) : (
+        list.map((rescue) => {
+          const progress = Math.min(((rescue.amountRaised || 0) / (rescue.estimatedCost || 1)) * 100, 100);
+          return (
+            <SurfaceCard key={rescue._id}>
+              {rescue.images?.[0] && (
+                <Image source={{ uri: rescue.images[0] }} style={S.fundraiserImg} />
+              )}
+              <Text style={S.listRowTitle} numberOfLines={2}>{rescue.description}</Text>
+              <View style={S.progressRow}>
+                <Text style={[S.listRowSub, { color: C.brand }]}>Raised: ₹{rescue.amountRaised || 0}</Text>
+                <Text style={[S.listRowSub, { color: C.warning }]}>Goal: ₹{rescue.estimatedCost}</Text>
+              </View>
+              <View style={S.progressTrack}>
+                <View style={[S.progressFill, { width: `${progress}%` as any }]} />
+              </View>
+              <Text style={[S.listRowSub, { textAlign: 'right', marginTop: 2 }]}>{progress.toFixed(0)}% FUNDED</Text>
+              {!compact && (
+                <View style={S.row}>
+                  <TextInput
+                    style={[S.input, { flex: 1 }]}
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="numeric"
+                    placeholder="Amount (₹)"
+                    placeholderTextColor={C.textMuted}
+                  />
+                  <AnimatedPress onPress={async () => {
+                    await api.post('/donation/donate-wallet', { rescueId: rescue._id, amount: Number(amount) });
+                    Alert.alert('❤️ Donation sent', 'Thank you for your contribution!');
+                  }} style={[S.btnPrimary, { marginLeft: 8 }]}>
+                    <Ionicons name="heart" size={16} color={C.bgMain} />
+                    <Text style={S.btnPrimaryText}>Donate</Text>
+                  </AnimatedPress>
+                </View>
+              )}
+            </SurfaceCard>
+          );
+        })
+      )}
     </View>
   );
 }
 
+// ─── Impact Feed ──────────────────────────────────────────────────────────────
 function ImpactFeed() {
   const [items, setItems] = useState<any[]>([]);
-  useEffect(() => { api.get('/rescue/impact/feed').then(({ data }) => setItems(data.feed || [])).catch(() => undefined); }, []);
+  useEffect(() => {
+    api.get('/rescue/impact/feed').then(({ data }) => setItems(data.feed || [])).catch(() => undefined);
+  }, []);
   if (!items.length) return null;
   return (
     <View>
-      <Text style={styles.sectionTitle}>Impact</Text>
+      <SectionHeader title="✨ Impact Stories" />
       {items.slice(0, 3).map((item) => (
-        <View key={item._id} style={styles.card}>
-          {item.beforeImage && <Image source={{ uri: item.beforeImage }} style={styles.image} />}
-          <Text style={styles.cardTitle}>{item.helperName}</Text>
-          <Text style={styles.cardText}>{item.afterSummary || item.description}</Text>
-        </View>
+        <SurfaceCard key={item._id}>
+          {item.beforeImage && <Image source={{ uri: item.beforeImage }} style={S.fundraiserImg} />}
+          <Text style={S.listRowTitle}>{item.helperName}</Text>
+          <Text style={S.listRowSub}>{item.afterSummary || item.description}</Text>
+        </SurfaceCard>
       ))}
     </View>
   );
 }
 
-function Header({ user, adminToken, onLogout, onStopImpersonating }: { user: User; adminToken: string | null; onLogout: () => void; onStopImpersonating: () => void }) {
-  return (
-    <View style={styles.header}>
-      <View>
-        <Text style={styles.kicker}>{titleForRole[user.role]}</Text>
-        <Text style={styles.headerTitle}>{user.orgName || user.name}</Text>
-        {!user.isApproved && user.role !== 'user' && <Text style={styles.pending}>Pending admin approval</Text>}
-      </View>
-      <View style={styles.headerActions}>
-        {adminToken && <IconButton icon="return-down-back" onPress={onStopImpersonating} />}
-        <IconButton icon="log-out-outline" onPress={onLogout} />
-      </View>
-    </View>
-  );
-}
-
-function TabBar({ role, tab, setTab }: { role: Role; tab: Tab; setTab: (tab: Tab) => void }) {
-  const tabs: { tab: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-    { tab: 'home', label: 'Home', icon: 'home' },
-    { tab: 'cases', label: role === 'admin' ? 'Cases' : 'Work', icon: 'list' },
-    { tab: 'map', label: 'Map', icon: 'map' },
-    { tab: 'alerts', label: 'Alerts', icon: 'notifications' },
-    { tab: 'profile', label: 'Profile', icon: 'person' },
-  ];
-  if (role === 'user' || role === 'ngo') tabs.splice(3, 0, { tab: 'wallet', label: 'Wallet', icon: 'wallet' });
-  if (role === 'admin') tabs.splice(2, 0, { tab: 'admin', label: 'Admin', icon: 'shield' });
-  return (
-    <View style={styles.tabBar}>
-      {tabs.map((item) => (
-        <Pressable key={item.tab} style={styles.tabItem} onPress={() => setTab(item.tab)}>
-          <Ionicons name={item.icon} size={20} color={tab === item.tab ? '#0f766e' : '#64748b'} />
-          <Text style={[styles.tabText, tab === item.tab && styles.tabTextActive]}>{item.label}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
+// ─── Rescue Card ──────────────────────────────────────────────────────────────
 function RescueCard({ rescue, actions }: { rescue: Rescue; actions?: React.ReactNode }) {
+  const [expanded, setExpanded] = useState(false);
   return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle} numberOfLines={2}>{rescue.description}</Text>
-        <Text style={[styles.badge, { color: statusColor(rescue.status), borderColor: statusColor(rescue.status) }]}>{rescue.status}</Text>
+    <SurfaceCard>
+      {/* Header */}
+      <TouchableOpacity onPress={() => setExpanded(!expanded)} activeOpacity={0.8}>
+        <View style={S.rescueCardHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={S.listRowTitle} numberOfLines={2}>{rescue.description}</Text>
+            <Text style={S.listRowSub}>{compactDate(rescue.createdAt)}</Text>
+          </View>
+          <StatusPill status={rescue.status} />
+        </View>
+      </TouchableOpacity>
+
+      {rescue.images?.[0] && (
+        <Image source={{ uri: rescue.images[0] }} style={S.rescueImg} />
+      )}
+
+      <View style={S.row}>
+        <Ionicons name="location-outline" size={14} color={C.textMuted} />
+        <Text style={[S.listRowSub, { flex: 1, marginLeft: 4 }]} numberOfLines={1}>
+          {rescue.location?.address || [rescue.location?.lat, rescue.location?.lng].filter(Boolean).join(', ') || 'Location attached'}
+        </Text>
       </View>
-      {!!rescue.images?.[0] && <Image source={{ uri: rescue.images[0] }} style={styles.image} />}
-      <Text style={styles.cardText}>{rescue.location?.address || [rescue.location?.lat, rescue.location?.lng].filter(Boolean).join(', ') || 'Location available in case detail'}</Text>
-      <Text style={styles.cardMeta}>{compactDate(rescue.createdAt)}</Text>
-      {!!rescue.estimatedCost && <Text style={styles.cardMeta}>Raised Rs {rescue.amountRaised || 0} of Rs {rescue.estimatedCost}</Text>}
+
+      {!!rescue.estimatedCost && (
+        <View>
+          <View style={S.progressRow}>
+            <Text style={[S.listRowSub, { color: C.brand }]}>₹{rescue.amountRaised || 0} raised</Text>
+            <Text style={[S.listRowSub, { color: C.warning }]}>₹{rescue.estimatedCost} goal</Text>
+          </View>
+          <View style={S.progressTrack}>
+            <View style={[S.progressFill, { width: `${Math.min(((rescue.amountRaised || 0) / rescue.estimatedCost) * 100, 100)}%` as any }]} />
+          </View>
+        </View>
+      )}
+
+      {/* Assigned info */}
+      {rescue.assignedNGO && (
+        <View style={S.row}>
+          <Ionicons name="leaf-outline" size={14} color={C.brand} />
+          <Text style={[S.listRowSub, { marginLeft: 4 }]}>NGO: {rescue.assignedNGO.orgName || rescue.assignedNGO.name}</Text>
+        </View>
+      )}
+
+      {/* Actions */}
+      {actions && <View style={S.separator} />}
       {actions}
-    </View>
+    </SurfaceCard>
   );
 }
 
-function Field(props: React.ComponentProps<typeof TextInput> & { label: string }) {
-  const { label, style, ...rest } = props;
+// ─── App Header ───────────────────────────────────────────────────────────────
+function AppHeader({ user, adminToken, onLogout, onStopImpersonating }: {
+  user: User; adminToken: string | null; onLogout: () => void; onStopImpersonating: () => void;
+}) {
+  const initial = user.name?.charAt(0)?.toUpperCase() || 'U';
   return (
-    <View style={styles.fieldWrap}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput placeholderTextColor="#94a3b8" style={[styles.input, props.multiline && styles.inputMulti, style]} {...rest} />
-    </View>
-  );
-}
-
-function RolePicker({ role, setRole }: { role: Role; setRole: (role: Role) => void }) {
-  return (
-    <View style={styles.rowWrap}>
-      {(['user', 'ngo', 'hospital', 'ambulance'] as Role[]).map((item) => <Chip key={item} label={item} active={role === item} onPress={() => setRole(item)} />)}
-    </View>
-  );
-}
-
-function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function PrimaryButton({ label, icon, onPress, disabled, compact }: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void; disabled?: boolean; compact?: boolean }) {
-  return (
-    <Pressable disabled={disabled} onPress={onPress} style={[styles.primaryButton, compact && styles.compactButton, disabled && styles.disabled]}>
-      <Ionicons name={icon} size={18} color="#ffffff" />
-      <Text style={styles.primaryButtonText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function SecondaryButton({ label, icon, onPress, disabled, compact }: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void; disabled?: boolean; compact?: boolean }) {
-  return (
-    <Pressable disabled={disabled} onPress={onPress} style={[styles.secondaryButton, compact && styles.compactButton, disabled && styles.disabled]}>
-      <Ionicons name={icon} size={18} color="#0f766e" />
-      <Text style={styles.secondaryButtonText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function IconButton({ icon, onPress }: { icon: keyof typeof Ionicons.glyphMap; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={styles.iconButton}>
-      <Ionicons name={icon} size={20} color="#0f172a" />
-    </Pressable>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string | number }) {
-  return (
-    <View style={styles.metric}>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function SimpleRow({ title, subtitle, right }: { title: string; subtitle?: string; right?: React.ReactNode }) {
-  return (
-    <View style={styles.rowCard}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        {!!subtitle && <Text style={styles.cardText}>{subtitle}</Text>}
+    <View style={S.appHeader}>
+      {/* Left: brand */}
+      <View style={S.appHeaderLeft}>
+        <View style={S.headerBrandIcon}>
+          <Text style={{ fontSize: 16 }}>🐾</Text>
+        </View>
+        <View>
+          <Text style={S.appHeaderBrand}>VetsCue</Text>
+          <Text style={S.appHeaderRole}>{titleForRole[user.role]}</Text>
+        </View>
       </View>
-      {right}
+
+      {/* Right: actions */}
+      <View style={S.appHeaderRight}>
+        {adminToken && (
+          <AnimatedPress onPress={onStopImpersonating} style={S.impersonatePill}>
+            <Ionicons name="return-down-back" size={12} color={C.warning} />
+            <Text style={S.impersonateText}>Exit View</Text>
+          </AnimatedPress>
+        )}
+        {!user.isApproved && user.role !== 'user' && (
+          <View style={S.pendingPill}>
+            <View style={S.pendingDot} />
+            <Text style={S.pendingText}>Pending</Text>
+          </View>
+        )}
+        <AnimatedPress onPress={onLogout} style={S.iconBtn}>
+          <Ionicons name="log-out-outline" size={18} color={C.textMuted} />
+        </AnimatedPress>
+        <View style={S.headerAvatar}>
+          <Text style={S.headerAvatarText}>{initial}</Text>
+        </View>
+      </View>
     </View>
   );
 }
 
-function ScrollPanel({ children, refreshControl }: { children: React.ReactNode; refreshControl?: React.ReactElement }) {
+// ─── Tab Bar ──────────────────────────────────────────────────────────────────
+function TabBar({ role, tab, setTab }: { role: Role; tab: Tab; setTab: (t: Tab) => void }) {
+  const tabs: { tab: Tab; label: string; icon: keyof typeof Ionicons.glyphMap; activeIcon: keyof typeof Ionicons.glyphMap }[] = [
+    { tab: 'home', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
+    { tab: 'cases', label: role === 'admin' ? 'Cases' : 'Work', icon: 'list-outline', activeIcon: 'list' },
+    { tab: 'map', label: 'Map', icon: 'map-outline', activeIcon: 'map' },
+    { tab: 'alerts', label: 'Alerts', icon: 'notifications-outline', activeIcon: 'notifications' },
+    { tab: 'profile', label: 'Profile', icon: 'person-outline', activeIcon: 'person' },
+  ];
+  if (role === 'user' || role === 'ngo') tabs.splice(3, 0, { tab: 'wallet', label: 'Wallet', icon: 'wallet-outline', activeIcon: 'wallet' });
+  if (role === 'admin') tabs.splice(2, 0, { tab: 'admin', label: 'Admin', icon: 'shield-outline', activeIcon: 'shield' });
+
   return (
-    <ScrollView style={styles.content} contentContainerStyle={styles.contentInner} refreshControl={refreshControl as any}>
+    <View style={S.tabBarWrapper}>
+      <View style={S.tabBar}>
+        {tabs.map((item) => {
+          const isActive = tab === item.tab;
+          return (
+            <AnimatedPress key={item.tab} onPress={() => setTab(item.tab)} style={S.tabItem}>
+              <View style={[S.tabIconWrap, isActive && S.tabIconWrapActive]}>
+                <Ionicons
+                  name={isActive ? item.activeIcon : item.icon}
+                  size={isActive ? 22 : 20}
+                  color={isActive ? C.bgMain : C.textMuted}
+                />
+              </View>
+              <Text style={[S.tabLabel, isActive && S.tabLabelActive]}>{item.label}</Text>
+            </AnimatedPress>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ─── Shared UI Components ─────────────────────────────────────────────────────
+
+function ScreenShell({ children, refreshControl }: { children: React.ReactNode; refreshControl?: React.ReactElement }) {
+  return (
+    <ScrollView
+      style={S.screenShell}
+      contentContainerStyle={S.screenContent}
+      showsVerticalScrollIndicator={false}
+      refreshControl={refreshControl as any}
+    >
       {children}
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+function ScreenHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <View style={S.screenHeader}>
+      <Text style={S.screenTitle}>{title}</Text>
+      {subtitle && <Text style={S.screenSubtitle}>{subtitle}</Text>}
+    </View>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return <Text style={S.sectionTitle}>{title}</Text>;
+}
+
+function SurfaceCard({ children }: { children: React.ReactNode }) {
+  return <View style={S.surfaceCard}>{children}</View>;
+}
+
+function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: keyof typeof Ionicons.glyphMap; color: string }) {
+  return (
+    <View style={[S.statCard, { borderColor: `${color}25` }]}>
+      <View style={[S.statIcon, { backgroundColor: `${color}15` }]}>
+        <Ionicons name={icon} size={18} color={color} />
+      </View>
+      <Text style={S.statValue}>{value}</Text>
+      <Text style={S.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function StatusPill({ status }: { status?: string }) {
+  const color = statusColor(status);
+  const bg = `${color}20`;
+  return (
+    <View style={[S.statusPill, { backgroundColor: bg, borderColor: `${color}40` }]}>
+      <Text style={[S.statusPillText, { color }]}>{(status || 'unknown').replace(/_/g, ' ')}</Text>
+    </View>
+  );
+}
+
+function FormField({ label, icon, ...props }: { label: string; icon?: keyof typeof Ionicons.glyphMap } & React.ComponentProps<typeof TextInput>) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <View style={S.formField}>
+      <Text style={S.fieldLabel}>{label}</Text>
+      <View style={[S.inputWrap, focused && S.inputWrapFocused]}>
+        {icon && <Ionicons name={icon} size={16} color={focused ? C.brand : C.textMuted} style={{ marginLeft: 12 }} />}
+        <TextInput
+          style={[S.fieldInput, props.multiline && { minHeight: 90, textAlignVertical: 'top', paddingTop: 12 }]}
+          placeholderTextColor={C.textMuted}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          {...props}
+        />
+      </View>
+    </View>
+  );
+}
+
+function SegmentedControl({ options, active, onChange }: {
+  options: { key: string; label: string }[];
+  active: string;
+  onChange: (k: string) => void;
+}) {
+  return (
+    <View style={S.segControl}>
+      {options.map((o) => (
+        <AnimatedPress key={o.key} onPress={() => onChange(o.key)} style={[S.segControlItem, active === o.key && S.segControlItemActive]}>
+          <Text style={[S.segControlText, active === o.key && S.segControlTextActive]}>{o.label}</Text>
+        </AnimatedPress>
+      ))}
+    </View>
+  );
+}
+
+function EmptyState({ icon, message }: { icon: keyof typeof Ionicons.glyphMap; message: string }) {
+  return (
+    <View style={S.emptyState}>
+      <Ionicons name={icon} size={40} color={C.textMuted} style={{ opacity: 0.4 }} />
+      <Text style={S.emptyStateText}>{message}</Text>
+    </View>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const S = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: C.bgMain,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
   },
-  shell: {
-    flex: 1,
+  shell: { flex: 1, backgroundColor: C.bgMain },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bgMain },
+
+  // Splash
+  splashTitle: { fontSize: 36, fontWeight: '800', color: C.textMain, marginTop: 16, letterSpacing: -1 },
+  splashSub: { fontSize: 15, color: C.textMuted, marginTop: 6 },
+
+  // Brand logo
+  brandLogo: {
+    width: 72, height: 72, borderRadius: 22,
+    backgroundColor: C.bgElevated, borderWidth: 1, borderColor: `${C.brand}30`,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: C.brand, shadowOpacity: 0.3, shadowRadius: 20, shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
   },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f8fafc',
-    gap: 12,
+
+  // Auth
+  authContainer: { padding: 24, gap: 24, paddingBottom: 48 },
+  authGlow: {
+    position: 'absolute', top: -100, left: SW / 2 - 200,
+    width: 400, height: 400, borderRadius: 200,
+    backgroundColor: C.brand, opacity: 0.04,
   },
-  muted: {
-    color: '#64748b',
-  },
-  auth: {
-    padding: 24,
-    gap: 14,
-  },
-  brandMark: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: '#0f766e',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  heroTitle: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  heroCopy: {
-    fontSize: 16,
-    lineHeight: 23,
-    color: '#475569',
-  },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: '#e2e8f0',
-    padding: 4,
-    borderRadius: 8,
-  },
-  segmentItem: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 6,
-  },
-  segmentActive: {
-    backgroundColor: '#ffffff',
-  },
-  segmentText: {
-    fontWeight: '700',
-    color: '#64748b',
-  },
-  segmentTextActive: {
-    color: '#0f172a',
-  },
-  header: {
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  kicker: {
-    color: '#0f766e',
-    fontSize: 12,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  headerTitle: {
-    fontSize: 20,
-    color: '#0f172a',
-    fontWeight: '800',
-  },
-  pending: {
-    color: '#b45309',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  content: {
-    flex: 1,
-  },
-  contentInner: {
-    padding: 16,
-    paddingBottom: 120,
-    gap: 14,
-  },
-  screenTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#0f172a',
-  },
-  screenCopy: {
-    fontSize: 15,
-    color: '#475569',
-    lineHeight: 22,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#0f172a',
-    marginTop: 10,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  metric: {
-    width: '48%',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    padding: 14,
-  },
-  metricValue: {
-    fontSize: 22,
-    color: '#0f172a',
-    fontWeight: '900',
-  },
-  metricLabel: {
-    color: '#64748b',
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    padding: 14,
-    gap: 10,
-  },
-  unread: {
-    borderColor: '#0f766e',
-    backgroundColor: '#ecfdf5',
-  },
-  cardHeader: {
-    gap: 8,
-  },
-  cardTitle: {
-    fontSize: 16,
-    color: '#0f172a',
-    fontWeight: '800',
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#475569',
-    lineHeight: 20,
-  },
-  cardMeta: {
-    fontSize: 12,
-    color: '#64748b',
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    borderWidth: 1,
+  authBrand: { alignItems: 'center', gap: 16, paddingTop: 32 },
+  pilotBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 5,
+    backgroundColor: `${C.brand}12`, borderWidth: 1, borderColor: `${C.brand}30`,
     borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    fontWeight: '800',
+  },
+  pilotDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.brand },
+  pilotText: { fontSize: 11, fontWeight: '700', color: C.brand },
+  authTitle: { fontSize: 40, fontWeight: '800', color: C.textMain, letterSpacing: -2 },
+  authSubtitle: { fontSize: 15, color: C.textMuted, textAlign: 'center', lineHeight: 22 },
+  authCard: { backgroundColor: C.bgSurface, borderRadius: 24, padding: 20, gap: 14, borderWidth: 1, borderColor: C.borderSurface },
+
+  // Segments
+  segment: { flexDirection: 'row', backgroundColor: C.bgElevated, borderRadius: 12, padding: 4, gap: 4 },
+  segItem: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 9 },
+  segItemActive: { backgroundColor: C.brand },
+  segText: { fontSize: 14, fontWeight: '700', color: C.textMuted },
+  segTextActive: { color: C.bgMain },
+
+  // Chips
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
+    backgroundColor: C.bgElevated, borderWidth: 1, borderColor: C.borderSurface,
+  },
+  chipActive: { backgroundColor: C.brand, borderColor: C.brand },
+  chipText: { fontSize: 13, fontWeight: '700', color: C.textMuted, textTransform: 'capitalize' },
+  chipTextActive: { color: C.bgMain },
+
+  // Buttons
+  btnPrimary: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: C.brand, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 20,
+    shadowColor: C.brand, shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  btnPrimaryText: { fontSize: 15, fontWeight: '800', color: C.bgMain },
+  btnOutline: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: 'transparent', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 18,
+    borderWidth: 1.5, borderColor: `${C.brand}60`,
+  },
+  btnOutlineText: { fontSize: 14, fontWeight: '700', color: C.brand },
+  btnDanger: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: `${C.error}10`, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 18,
+    borderWidth: 1, borderColor: `${C.error}30`,
+  },
+  btnDangerText: { fontSize: 14, fontWeight: '700', color: C.error },
+  btnGoogle: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    backgroundColor: C.bgElevated, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 20,
+    borderWidth: 1, borderColor: C.borderSurface,
+  },
+  btnGoogleText: { fontSize: 14, fontWeight: '700', color: C.textMain },
+
+  // Divider
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: C.borderMain },
+  dividerText: { fontSize: 12, color: C.textMuted, fontWeight: '600' },
+
+  // Form
+  formField: { gap: 6 },
+  fieldLabel: { fontSize: 12, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  inputWrap: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: C.bgElevated, borderRadius: 12,
+    borderWidth: 1.5, borderColor: C.borderSurface,
     overflow: 'hidden',
   },
-  image: {
-    width: '100%',
-    height: 180,
-    borderRadius: 8,
-    backgroundColor: '#e2e8f0',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  rowWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  rowCard: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  fieldWrap: {
-    gap: 6,
-  },
-  label: {
-    color: '#334155',
-    fontWeight: '800',
-  },
+  inputWrapFocused: { borderColor: `${C.brand}60` },
+  fieldInput: { flex: 1, paddingHorizontal: 12, paddingVertical: 12, color: C.textMain, fontSize: 15 },
   input: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    color: '#0f172a',
-    fontSize: 15,
+    backgroundColor: C.bgElevated, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12,
+    color: C.textMain, fontSize: 14, borderWidth: 1.5, borderColor: C.borderSurface,
   },
-  inputMulti: {
-    minHeight: 90,
-    textAlignVertical: 'top',
+
+  // Header
+  appHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 18, paddingVertical: 12,
+    backgroundColor: C.bgSurface,
+    borderBottomWidth: 1, borderBottomColor: C.borderSurface,
   },
-  chip: {
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 999,
-    paddingHorizontal: 13,
-    paddingVertical: 8,
-    backgroundColor: '#ffffff',
+  appHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headerBrandIcon: {
+    width: 36, height: 36, borderRadius: 10, backgroundColor: C.bgElevated,
+    borderWidth: 1, borderColor: `${C.brand}30`,
+    alignItems: 'center', justifyContent: 'center',
   },
-  chipActive: {
-    backgroundColor: '#0f766e',
-    borderColor: '#0f766e',
+  appHeaderBrand: { fontSize: 16, fontWeight: '800', color: C.brand, letterSpacing: -0.5 },
+  appHeaderRole: { fontSize: 11, color: C.textMuted, fontWeight: '600' },
+  appHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  impersonatePill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999,
+    backgroundColor: `${C.warning}15`, borderWidth: 1, borderColor: `${C.warning}30`,
   },
-  chipText: {
-    color: '#334155',
-    fontWeight: '800',
-    textTransform: 'capitalize',
+  impersonateText: { fontSize: 10, fontWeight: '700', color: C.warning },
+  pendingPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999,
+    backgroundColor: `${C.warning}15`, borderWidth: 1, borderColor: `${C.warning}30`,
   },
-  chipTextActive: {
-    color: '#ffffff',
+  pendingDot: { width: 5, height: 5, borderRadius: 999, backgroundColor: C.warning },
+  pendingText: { fontSize: 10, fontWeight: '700', color: C.warning },
+  iconBtn: {
+    width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.bgElevated, borderWidth: 1, borderColor: C.borderSurface,
   },
-  primaryButton: {
-    minHeight: 46,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: '#0f766e',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+  headerAvatar: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: C.brand, alignItems: 'center', justifyContent: 'center',
+    shadowColor: C.brand, shadowOpacity: 0.4, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
   },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontWeight: '900',
-  },
-  secondaryButton: {
-    minHeight: 46,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#0f766e',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  secondaryButtonText: {
-    color: '#0f766e',
-    fontWeight: '900',
-  },
-  compactButton: {
-    minHeight: 38,
-    paddingVertical: 8,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  cardActions: {
-    gap: 8,
+  headerAvatarText: { fontSize: 14, fontWeight: '800', color: C.bgMain },
+
+  // Tab bar
+  tabBarWrapper: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    paddingHorizontal: 16, paddingBottom: Platform.OS === 'ios' ? 20 : 12, paddingTop: 8,
+    backgroundColor: 'transparent',
   },
   tabBar: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 12,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 8,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+    backgroundColor: C.bgSurface,
+    borderWidth: 1, borderColor: C.borderSurface,
+    borderRadius: 20, paddingVertical: 10, paddingHorizontal: 8,
+    shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 20, shadowOffset: { width: 0, height: -4 },
+    elevation: 20,
   },
-  tabItem: {
-    alignItems: 'center',
-    gap: 3,
-    minWidth: 48,
+  tabItem: { alignItems: 'center', gap: 4, minWidth: 48 },
+  tabIconWrap: { width: 42, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  tabIconWrapActive: { backgroundColor: C.brand, shadowColor: C.brand, shadowOpacity: 0.5, shadowRadius: 8, elevation: 4 },
+  tabLabel: { fontSize: 10, fontWeight: '700', color: C.textMuted, letterSpacing: 0.2 },
+  tabLabelActive: { color: C.brand },
+
+  // Screen
+  screenShell: { flex: 1, backgroundColor: C.bgMain },
+  screenContent: { padding: 16, paddingBottom: 120, gap: 16 },
+  screenHeader: { gap: 4 },
+  screenTitle: { fontSize: 28, fontWeight: '900', color: C.textMain, letterSpacing: -1 },
+  screenSubtitle: { fontSize: 14, color: C.textMuted, lineHeight: 20 },
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
+
+  // Hero card
+  heroCard: {
+    backgroundColor: C.bgSurface, borderRadius: 24, padding: 22,
+    borderWidth: 1, borderColor: `${C.brand}20`, gap: 10, overflow: 'hidden',
   },
-  tabText: {
-    fontSize: 11,
-    color: '#64748b',
-    fontWeight: '800',
+  heroGlow: {
+    position: 'absolute', top: -60, right: -60, width: 200, height: 200,
+    borderRadius: 100, backgroundColor: C.brand, opacity: 0.06,
   },
-  tabTextActive: {
-    color: '#0f766e',
+  heroKicker: { fontSize: 11, fontWeight: '800', color: C.brand, textTransform: 'uppercase', letterSpacing: 1.5 },
+  heroTitle: { fontSize: 26, fontWeight: '900', color: C.textMain, letterSpacing: -0.5 },
+  heroSub: { fontSize: 14, color: C.textMuted, lineHeight: 20 },
+  heroActions: { flexDirection: 'row', gap: 12, marginTop: 6 },
+
+  // Stats grid
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  statCard: {
+    width: (SW - 42) / 2, backgroundColor: C.bgSurface, borderRadius: 16,
+    padding: 16, gap: 8, borderWidth: 1,
   },
-  mapPanel: {
-    minHeight: 260,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    backgroundColor: '#ecfdf5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    gap: 12,
-    overflow: 'hidden',
+  statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  statValue: { fontSize: 24, fontWeight: '900', color: C.textMain, letterSpacing: -0.5 },
+  statLabel: { fontSize: 12, fontWeight: '600', color: C.textMuted },
+
+  // Surface card
+  surfaceCard: {
+    backgroundColor: C.bgSurface, borderRadius: 20, padding: 18,
+    borderWidth: 1, borderColor: C.borderSurface, gap: 12,
   },
-  webMap: {
-    width: '100%',
-    height: 260,
+  cardSectionTitle: { fontSize: 14, fontWeight: '800', color: C.brand, textTransform: 'uppercase', letterSpacing: 1 },
+
+  // List rows
+  listRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingVertical: 10,
   },
+  listRowIcon: {
+    width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.bgElevated,
+  },
+  listRowTitle: { fontSize: 14, fontWeight: '700', color: C.textMain },
+  listRowSub: { fontSize: 12, color: C.textMuted, marginTop: 2 },
+
+  // Separator
+  separator: { height: 1, backgroundColor: C.borderMain, marginVertical: 4 },
+
+  // Status pill
+  statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
+  statusPillText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+
+  // Notifications
+  notifRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 10 },
+  notifRowUnread: { backgroundColor: `${C.brand}08`, borderRadius: 12, padding: 10 },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.brand, marginTop: 4 },
+
+  // Profile
+  profileHeader: { alignItems: 'center', gap: 10, paddingVertical: 8 },
+  profileAvatar: {
+    width: 80, height: 80, borderRadius: 24,
+    backgroundColor: C.brand, alignItems: 'center', justifyContent: 'center',
+    shadowColor: C.brand, shadowOpacity: 0.5, shadowRadius: 20, shadowOffset: { width: 0, height: 8 },
+  },
+  profileAvatarText: { fontSize: 32, fontWeight: '800', color: C.bgMain },
+  profileName: { fontSize: 22, fontWeight: '800', color: C.textMain, letterSpacing: -0.5 },
+  profileEmail: { fontSize: 13, color: C.textMuted },
+  roleBadge: {
+    paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999,
+    backgroundColor: `${C.brand}15`, borderWidth: 1, borderColor: `${C.brand}30`,
+  },
+  roleBadgeText: { fontSize: 12, fontWeight: '700', color: C.brand },
+
+  // Balance card
+  balanceCard: {
+    backgroundColor: C.bgSurface, borderRadius: 24, padding: 28, alignItems: 'center',
+    borderWidth: 1, borderColor: `${C.brand}25`, overflow: 'hidden', gap: 6,
+  },
+  balanceGlow: {
+    position: 'absolute', top: -50, width: 200, height: 200, borderRadius: 100,
+    backgroundColor: C.brand, opacity: 0.05,
+  },
+  balanceLabel: { fontSize: 12, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
+  balanceAmount: { fontSize: 42, fontWeight: '900', color: C.brand, letterSpacing: -2 },
+  balanceSub: { fontSize: 12, color: C.textMuted, fontWeight: '600' },
+
+  // Rescue card
+  rescueCardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  rescueImg: { width: '100%', height: 160, borderRadius: 12, backgroundColor: C.bgElevated },
+
+  // Fundraiser
+  fundraiserImg: { width: '100%', height: 140, borderRadius: 12, backgroundColor: C.bgElevated },
+  progressRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  progressTrack: { height: 6, backgroundColor: C.bgElevated, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: C.brand, borderRadius: 3 },
+
+  // Map
+  mapContainer: { height: 280, borderRadius: 20, overflow: 'hidden', backgroundColor: C.bgElevated, borderWidth: 1, borderColor: C.borderSurface },
+  webMap: { width: '100%', height: 280 },
+  mapPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  mapPlaceholderText: { fontSize: 15, color: C.textMuted, fontWeight: '600' },
+
+  // Actions
+  actionGroup: { gap: 10 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+
+  // Segmented Control
+  segControl: {
+    flexDirection: 'row', backgroundColor: C.bgElevated, borderRadius: 14, padding: 4, gap: 4,
+    borderWidth: 1, borderColor: C.borderSurface,
+  },
+  segControlItem: { flex: 1, paddingVertical: 9, alignItems: 'center', borderRadius: 10 },
+  segControlItemActive: { backgroundColor: C.brand },
+  segControlText: { fontSize: 13, fontWeight: '700', color: C.textMuted },
+  segControlTextActive: { color: C.bgMain },
+
+  // Empty state
+  emptyState: { alignItems: 'center', gap: 12, paddingVertical: 40 },
+  emptyStateText: { fontSize: 14, color: C.textMuted, fontWeight: '600' },
+
+  // Avatar small
+  avatarSmall: {
+    width: 38, height: 38, borderRadius: 10,
+    backgroundColor: `${C.brand}20`, alignItems: 'center', justifyContent: 'center',
+  },
+  avatarSmallText: { fontSize: 16, fontWeight: '800', color: C.brand },
 });
