@@ -290,7 +290,7 @@ function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promi
   const [loading, setLoading] = useState(false);
   const [, googleResponse, promptGoogle] = Google.useAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID || undefined,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID || 'dummy-android-client-id',
   });
 
   useEffect(() => {
