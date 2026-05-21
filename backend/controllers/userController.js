@@ -351,6 +351,47 @@ const cancelSubscription = async (req, res) => {
     }
 };
 
+const registerPushToken = async (req, res) => {
+    try {
+        const { token, platform = 'unknown', deviceId = '' } = req.body;
+        if (!token || typeof token !== 'string') {
+            return res.status(400).json({ success: false, message: 'Push token is required.' });
+        }
+
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+        user.pushTokens = (user.pushTokens || []).filter((entry) => entry.token !== token);
+        user.pushTokens.push({
+            token,
+            platform: ['android', 'ios', 'web'].includes(platform) ? platform : 'unknown',
+            deviceId,
+            lastSeenAt: new Date(),
+        });
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Push token registered.' });
+    } catch (error) {
+        console.error('[User Controller] registerPushToken error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const removePushToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token || typeof token !== 'string') {
+            return res.status(400).json({ success: false, message: 'Push token is required.' });
+        }
+
+        await User.findByIdAndUpdate(req.user._id, { $pull: { pushTokens: { token } } });
+        res.status(200).json({ success: true, message: 'Push token removed.' });
+    } catch (error) {
+        console.error('[User Controller] removePushToken error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getProfile,
     updateProfile,
@@ -362,4 +403,6 @@ module.exports = {
     resumeSubscription,
     cancelSubscription,
     updateSubscriptionAmount,
+    registerPushToken,
+    removePushToken,
 };

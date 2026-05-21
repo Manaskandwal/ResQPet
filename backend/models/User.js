@@ -149,6 +149,17 @@ const userSchema = new mongoose.Schema(
             bankName: { type: String, default: '' },
             ifsc: { type: String, default: '' },
         },
+        pushTokens: {
+            type: [
+                {
+                    token: { type: String, required: true },
+                    platform: { type: String, enum: ['android', 'ios', 'web', 'unknown'], default: 'unknown' },
+                    deviceId: { type: String, default: '' },
+                    lastSeenAt: { type: Date, default: Date.now },
+                },
+            ],
+            default: [],
+        },
     },
     {
         timestamps: true,

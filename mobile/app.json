@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "VetsCue",
+    "slug": "vetscue",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "vetscue",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.vetscue.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "POST_NOTIFICATIONS"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#0f766e"
+      }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "VetsCue uses photos and videos as rescue evidence.",
+          "cameraPermission": "VetsCue uses the camera to capture rescue evidence."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "VetsCue uses location for nearby rescue routing and ambulance tracking."
+        }
+      ],
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "replace-with-eas-project-id"
+      }
+    }
+  }
+}

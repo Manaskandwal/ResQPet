@@ -11,6 +11,8 @@ const {
     resumeSubscription,
     cancelSubscription,
     updateSubscriptionAmount,
+    registerPushToken,
+    removePushToken,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
 
@@ -43,5 +45,11 @@ router.post('/subscription/cancel', protect, cancelSubscription);
 
 // @route  PUT /api/user/subscription/amount
 router.put('/subscription/amount', protect, updateSubscriptionAmount);
+
+// @route  POST /api/user/push-token
+router.post('/push-token', protect, registerPushToken);
+
+// @route  DELETE /api/user/push-token
+router.delete('/push-token', protect, removePushToken);
 
 module.exports = router;

@@ -4,6 +4,7 @@ const WalletTransaction = require('../models/WalletTransaction');
 const Donation = require('../models/Donation');
 const AuditLog = require('../models/AuditLog');
 const { emitRescueUpdate } = require('../config/socket');
+const { notifyUsers } = require('../services/notificationService');
 
 /**
  * @route   GET /api/admin/analytics
@@ -189,6 +190,13 @@ const approveUser = async (req, res) => {
             console.log(`[Admin Controller] isGovernment set to ${isGovernment} for ${user.email}`);
         }
         await user.save();
+        await notifyUsers(user._id, {
+            title: user.isApproved ? 'Account Approved' : 'Approval Revoked',
+            message: user.isApproved
+                ? 'Your VetsCue partner account has been approved. You can now use your role dashboard.'
+                : 'Your VetsCue partner account approval has been revoked.',
+            type: 'approval_granted',
+        });
 
         console.log(`[Admin Controller] User ${user.email} isApproved set to ${user.isApproved}`);
         res.status(200).json({
@@ -446,6 +454,12 @@ const reviewFundraiser = async (req, res) => {
             });
 
             await rescue.save();
+            await notifyUsers(rescue.user, {
+                title: 'Fundraiser Approved',
+                message: 'Your fundraiser request is now live for donations.',
+                type: 'system',
+                rescueRequest: rescue._id,
+            });
             emitRescueUpdate(rescue._id, rescue.status, { message: 'Your fundraiser request has been approved and is now live!' });
             res.status(200).json({ success: true, message: 'Fundraiser approved.', rescue });
 
@@ -460,6 +474,12 @@ const reviewFundraiser = async (req, res) => {
             });
 
             await rescue.save();
+            await notifyUsers(rescue.user, {
+                title: 'Fundraiser Rejected',
+                message: adminNotes || 'Your fundraiser request was rejected by admin.',
+                type: 'system',
+                rescueRequest: rescue._id,
+            });
             emitRescueUpdate(rescue._id, rescue.status, { message: 'Your fundraiser request was rejected.' });
             res.status(200).json({ success: true, message: 'Fundraiser rejected.', rescue });
 

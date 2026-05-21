@@ -1,5 +1,7 @@
 const Donation = require('../models/Donation');
 const RescueRequest = require('../models/RescueRequest');
+const WalletTransaction = require('../models/WalletTransaction');
+const User = require('../models/User');
 const { getRazorpay } = require('../config/razorpay');
 const crypto = require('crypto');
 
@@ -233,7 +235,10 @@ const donateWithWallet = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Minimum donation is ₹10.' });
         }
 
-        const user = req.user;
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
         if (user.walletBalance < amount) {
             return res.status(400).json({ success: false, message: 'Insufficient wallet balance.' });
         }
@@ -243,17 +248,18 @@ const donateWithWallet = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Active fundraiser not found.' });
         }
 
-        // Atomic deduction and logging
         user.walletBalance -= amount;
-        user.paymentHistory.push({
-            amount: amount,
-            type: 'deduction',
-            description: `Donation to Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
-            timestamp: new Date()
-        });
         await user.save();
 
         rescue.amountRaised += amount;
+        const transaction = await WalletTransaction.create({
+            user: user._id,
+            amount,
+            type: 'debit',
+            description: `Donation to Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+            rescueRequest: rescue._id,
+            balanceAfter: user.walletBalance,
+        });
         
         // If goal met
         if (rescue.amountRaised >= rescue.fundraiser.requestedGoal) {
@@ -272,7 +278,8 @@ const donateWithWallet = async (req, res) => {
             success: true, 
             message: `Successfully donated ₹${amount}!`,
             walletBalance: user.walletBalance,
-            amountRaised: rescue.amountRaised
+            amountRaised: rescue.amountRaised,
+            transaction
         });
 
     } catch (error) {
