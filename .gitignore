@@ -6,3 +6,4 @@ frontend/.env
 backend/.env
 /graphify-out
 mobile/.expo/
+.idea/
