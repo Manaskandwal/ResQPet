@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  BackHandler,
   Dimensions,
   Image,
   Platform,
@@ -165,11 +166,13 @@ function AnimatedPress({
   children,
   onPress,
   style,
+  containerStyle,
   disabled,
 }: {
   children: React.ReactNode;
   onPress?: () => void;
   style?: any;
+  containerStyle?: any;
   disabled?: boolean;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
@@ -182,7 +185,7 @@ function AnimatedPress({
       onPress={disabled ? undefined : onPress}
       onPressIn={handleIn}
       onPressOut={handleOut}
-      style={[{ opacity: disabled ? 0.45 : 1 }]}
+      style={[{ opacity: disabled ? 0.45 : 1 }, containerStyle]}
     >
       <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
     </Pressable>
@@ -359,13 +362,26 @@ function SplashScreen() {
 
 // ─── Auth Screen ─────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promise<void> }) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'landing' | 'login' | 'register'>('landing');
   const [form, setForm] = useState({
     name: '', email: '', password: '',
     role: 'user' as Role,
     phone: '', orgName: '', regNumber: '', address: '', vehicleNumber: '', hospitalType: 'private',
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (mode !== 'landing') {
+        setMode('landing');
+        return true;
+      }
+      return false;
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [mode]);
+
   const [, googleResponse, promptGoogle] = Google.useAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID || 'dummy-android-client-id',
@@ -399,11 +415,201 @@ function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promi
     }
   };
 
+  if (mode === 'landing') {
+    return (
+      <SafeAreaView style={[S.safe, { backgroundColor: C.bgMain }]}>
+        <ExpoStatusBar style="light" backgroundColor={C.bgMain} />
+        <StatusBar barStyle="light-content" backgroundColor={C.bgMain} />
+        
+        {/* Landing Header */}
+        <View style={S.landingHeader}>
+          <View style={S.appHeaderLeft}>
+            <View style={S.headerBrandIcon}>
+              <Text style={{ fontSize: 16 }}>🐾</Text>
+            </View>
+            <Text style={S.landingBrand}>VetsCue</Text>
+            <View style={S.pilotBadgeSmall}>
+              <Text style={S.pilotTextSmall}>Pilot</Text>
+            </View>
+          </View>
+          <AnimatedPress onPress={() => setMode('login')} style={S.btnSignInSmall}>
+            <Text style={S.btnSignInSmallText}>Sign In</Text>
+          </AnimatedPress>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={S.landingContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Hero Section */}
+          <View style={S.heroContainer}>
+            <View style={S.authGlow} pointerEvents="none" />
+            <View style={[S.pilotBadge, { marginBottom: 16, alignSelf: 'center' }]}>
+              <View style={S.pilotDot} />
+              <Text style={S.pilotText}>Pilot Launch · Shahdara & NE Delhi</Text>
+            </View>
+            
+            <Text style={S.heroTitleText}>
+              The Ultimate{'\n'}Sanctuary.{'\n'}
+              <Text style={{ color: C.brand }}>For Every Pet</Text>{'\n'}
+              & Guardian.
+            </Text>
+            
+            <Text style={S.heroDescText}>
+              Discover a complete ecosystem for pet life: seamless adoption, world-class health services, a vibrant community, and rapid emergency response.{'\n'}
+              <Text style={{ color: C.brand, fontWeight: '700' }}>One Hybrid Platform. Endless Care.</Text>
+            </Text>
+
+            <View style={S.heroActionButtons}>
+              <AnimatedPress 
+                onPress={() => { setForm({ ...form, role: 'user' }); setMode('register'); }} 
+                style={S.btnPrimary}
+              >
+                <Text style={S.btnPrimaryText}>🐾 Report a Rescue</Text>
+              </AnimatedPress>
+              
+              <View style={S.row}>
+                <AnimatedPress 
+                  onPress={() => { setForm({ ...form, role: 'ngo' }); setMode('register'); }} 
+                  containerStyle={{ flex: 1 }}
+                  style={[S.btnOutline, { paddingVertical: 14 }]}
+                >
+                  <Text style={S.btnOutlineText}>🌿 NGO Partner</Text>
+                </AnimatedPress>
+                <AnimatedPress 
+                  onPress={() => { setForm({ ...form, role: 'ambulance' }); setMode('register'); }} 
+                  containerStyle={{ flex: 1 }}
+                  style={[S.btnOutline, { paddingVertical: 14 }]}
+                >
+                  <Text style={S.btnOutlineText}>🚑 Ambulance</Text>
+                </AnimatedPress>
+              </View>
+            </View>
+
+            <View style={S.trustRow}>
+              <Text style={S.trustItem}>✓ Free to use</Text>
+              <Text style={S.trustItem}>✓ Best-effort aid</Text>
+              <Text style={S.trustItem}>✓ Verified Network</Text>
+            </View>
+          </View>
+
+          {/* How It Works */}
+          <View style={S.landingSection}>
+            <Text style={S.sectionLabel}>How It Works</Text>
+            <Text style={S.landingSectionTitle}>Building a unified pet ecosystem</Text>
+            <Text style={S.landingSectionSub}>
+              A community-driven flow linking citizens with NGOs, bringing comprehensive care to stray and domestic pets alike.
+            </Text>
+
+            <View style={S.stepsStack}>
+              {[
+                { icon: '📝', title: '1. Report', desc: 'Spot a stray or pet in distress and log a request with location.' },
+                { icon: '🤝', title: '2. Respond', desc: 'Nearby verified partners are notified and can accept if available.' },
+                { icon: '⚡', title: '3. Escalate', desc: 'System alerts available partners who try their best to provide a response.' },
+                { icon: '✅', title: '4. Resolve', desc: 'Partner resolves the case. Our future roadmap connects you with vets!' },
+              ].map((step, idx) => (
+                <View key={idx} style={S.stepCard}>
+                  <Text style={S.stepIcon}>{step.icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={S.stepTitle}>{step.title}</Text>
+                    <Text style={S.stepDesc}>{step.desc}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Pilot Stats */}
+          <View style={[S.landingSection, S.statsSection]}>
+            <View style={S.statsGrid}>
+              {[
+                { value: '2', label: 'Initial Districts' },
+                { value: '5+', label: 'NGO Partners' },
+                { value: '1', label: 'Ecosystem' },
+                { value: '∞', label: 'Care Options' },
+              ].map((stat, idx) => (
+                <View key={idx} style={S.statLandingCard}>
+                  <Text style={S.statLandingValue}>{stat.value}</Text>
+                  <Text style={S.statLandingLabel}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* What's Next (Future Roadmap) */}
+          <View style={S.landingSection}>
+            <Text style={S.sectionLabel}>What's Next</Text>
+            <Text style={S.landingSectionTitle}>Expanding into full pet care</Text>
+            
+            <View style={S.stepsStack}>
+              {[
+                { icon: '🚑', title: 'Emergency Ambulance', desc: 'Book a dedicated animal ambulance for emergencies. Instant dispatch, live tracking.', border: '#fb7185' },
+                { icon: '👨‍⚕️', title: 'Consult a Vet', desc: 'Connect with verified veterinary doctors via video or chat. Available 24/7.', border: '#60a5fa' },
+                { icon: '🛍️', title: 'Pet Marketplace', desc: 'Quality pet care products, medicines and food — delivered to your door.', border: '#c084fc' },
+              ].map((card, idx) => (
+                <View key={idx} style={[S.roadmapCard, { borderColor: card.border }]}>
+                  <Text style={S.stepIcon}>{card.icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={S.stepTitle}>{card.title}</Text>
+                    <Text style={S.stepDesc}>{card.desc}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* CTA */}
+          <View style={S.ctaBannerCard}>
+            <View style={S.ctaGlow} pointerEvents="none" />
+            <Text style={S.ctaTitle}>Be the first responder in your community</Text>
+            <Text style={S.ctaDesc}>
+              Whether you are a citizen, NGO, hospital, or ambulance partner -- VetsCue helps you act fast.
+            </Text>
+            <View style={S.ctaActions}>
+              <AnimatedPress 
+                onPress={() => { setForm({ ...form, role: 'user' }); setMode('register'); }} 
+                containerStyle={{ flex: 1 }}
+                style={[S.btnPrimary, { backgroundColor: '#ffffff' }]}
+              >
+                <Text style={[S.btnPrimaryText, { color: C.bgMain }]}>Report Rescue</Text>
+              </AnimatedPress>
+              <AnimatedPress 
+                onPress={() => { setForm({ ...form, role: 'ngo' }); setMode('register'); }} 
+                containerStyle={{ flex: 1 }}
+                style={[S.btnOutline, { borderColor: '#ffffff' }]}
+              >
+                <Text style={[S.btnOutlineText, { color: '#ffffff' }]}>Join Platform</Text>
+              </AnimatedPress>
+            </View>
+          </View>
+
+          {/* Landing Footer */}
+          <View style={S.landingFooter}>
+            <Text style={S.footerBrandText}>🐾 VetsCue · Pilot Delhi</Text>
+            <View style={S.footerLinksRow}>
+              <TouchableOpacity onPress={() => setMode('login')}>
+                <Text style={S.footerLinkText}>Sign In</Text>
+              </TouchableOpacity>
+              <Text style={S.footerDivider}>•</Text>
+              <TouchableOpacity onPress={() => { setForm({ ...form, role: 'user' }); setMode('register'); }}>
+                <Text style={S.footerLinkText}>Register</Text>
+              </TouchableOpacity>
+              <Text style={S.footerDivider}>•</Text>
+              <TouchableOpacity onPress={() => Alert.alert('Support', 'Contact us at support@vetscue.com')}>
+                <Text style={S.footerLinkText}>Support</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[S.safe, { backgroundColor: C.bgMain }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.bgMain} />
       <ScrollView
-        contentContainerStyle={S.authContainer}
+        contentContainerStyle={[S.authContainer, (mode === 'login' || mode === 'register') && { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 16, gap: 10 }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -411,25 +617,34 @@ function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promi
         <View style={S.authGlow} pointerEvents="none" />
 
         {/* Brand */}
-        <View style={S.authBrand}>
-          <View style={S.brandLogo}>
-            <Text style={{ fontSize: 32 }}>🐾</Text>
+        {mode === 'login' ? (
+          <View style={{ alignItems: 'center', gap: 4, marginTop: 4, marginBottom: 4 }}>
+            <View style={[S.brandLogo, { width: 44, height: 44, borderRadius: 12, shadowOpacity: 0.1, elevation: 2 }]}>
+              <Text style={{ fontSize: 20 }}>🐾</Text>
+            </View>
+            <Text style={[S.authTitle, { fontSize: 22, letterSpacing: -0.5, marginTop: 2 }]}>Welcome back</Text>
+            <Text style={[S.authSubtitle, { fontSize: 13, lineHeight: 18, color: C.textMuted }]}>Sign in to continue rescue operations</Text>
           </View>
-          <View style={S.pilotBadge}>
-            <View style={S.pilotDot} />
-            <Text style={S.pilotText}>Pilot Launch · Delhi</Text>
+        ) : (
+          <View style={{ alignItems: 'center', gap: 4, marginTop: 4, marginBottom: 4 }}>
+            <View style={[S.brandLogo, { width: 44, height: 44, borderRadius: 12, shadowOpacity: 0.1, elevation: 2 }]}>
+              <Text style={{ fontSize: 20 }}>🐾</Text>
+            </View>
+            <Text style={[S.authTitle, { fontSize: 22, letterSpacing: -0.5, marginTop: 2 }]}>Create Account</Text>
+            <Text style={[S.authSubtitle, { fontSize: 13, lineHeight: 18, color: C.textMuted }]}>Join the VetsCue rescue network</Text>
           </View>
-          <Text style={S.authTitle}>VetsCue</Text>
-          <Text style={S.authSubtitle}>
-            Rescue coordination for citizens, NGOs,{'\n'}hospitals & ambulances.
-          </Text>
-        </View>
+        )}
 
         {/* Segment */}
         <View style={S.authCard}>
           <View style={S.segment}>
             {(['login', 'register'] as const).map((m) => (
-              <AnimatedPress key={m} onPress={() => setMode(m)} style={[S.segItem, mode === m && S.segItemActive]}>
+              <AnimatedPress
+                key={m}
+                onPress={() => setMode(m)}
+                containerStyle={{ flex: 1 }}
+                style={[S.segItem, mode === m && S.segItemActive]}
+              >
                 <Text style={[S.segText, mode === m && S.segTextActive]}>
                   {m === 'login' ? 'Sign In' : 'Register'}
                 </Text>
@@ -440,16 +655,40 @@ function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promi
           {mode === 'register' && (
             <>
               <FormField label="Full Name" value={form.name} onChangeText={(name) => setForm({ ...form, name })} placeholder="Your name" icon="person-outline" />
-              <View style={{ marginBottom: 4 }}>
-                <Text style={S.fieldLabel}>Account Type</Text>
-                <View style={S.chipRow}>
-                  {(['user', 'ngo', 'hospital', 'ambulance'] as Role[]).map((r) => (
-                    <AnimatedPress key={r} onPress={() => setForm({ ...form, role: r })} style={[S.chip, form.role === r && S.chipActive]}>
-                      <Text style={[S.chipText, form.role === r && S.chipTextActive]}>
-                        {r === 'user' ? '👤 Citizen' : r === 'ngo' ? '🌿 NGO' : r === 'hospital' ? '🏥 Hospital' : '🚑 Ambulance'}
-                      </Text>
-                    </AnimatedPress>
-                  ))}
+              
+              <View style={{ marginBottom: 12 }}>
+                <Text style={[S.fieldLabel, { marginBottom: 8 }]}>Select Account Type</Text>
+                <View style={S.roleGrid}>
+                  {[
+                    { value: 'user', label: 'Citizen', icon: '👤', desc: 'Report and save animals' },
+                    { value: 'ngo', label: 'NGO', icon: '🌿', desc: 'Rescue organization' },
+                    { value: 'hospital', label: 'Hospital', icon: '🏥', desc: 'Animal medical center' },
+                    { value: 'ambulance', label: 'Ambulance', icon: '🚑', desc: 'Emergency logistics' },
+                  ].map((item) => {
+                    const isSelected = form.role === item.value;
+                    return (
+                      <AnimatedPress
+                        key={item.value}
+                        onPress={() => setForm({ ...form, role: item.value as Role })}
+                        containerStyle={{ width: '48.5%', marginBottom: 10 }}
+                        style={[
+                          S.roleCard,
+                          isSelected && S.roleCardActive
+                        ]}
+                      >
+                        <View style={S.roleCardHeader}>
+                          <Text style={S.roleCardIcon}>{item.icon}</Text>
+                          {isSelected && (
+                            <View style={S.roleCardBadge}>
+                              <Ionicons name="checkmark-circle" size={14} color={C.brand} />
+                            </View>
+                          )}
+                        </View>
+                        <Text style={[S.roleCardTitle, isSelected && S.roleCardTitleActive]}>{item.label}</Text>
+                        <Text style={S.roleCardDesc}>{item.desc}</Text>
+                      </AnimatedPress>
+                    );
+                  })}
                 </View>
               </View>
             </>
@@ -469,8 +708,13 @@ function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promi
                   <Text style={S.fieldLabel}>Hospital Type</Text>
                   <View style={S.chipRow}>
                     {['government', 'private'].map((t) => (
-                      <AnimatedPress key={t} onPress={() => setForm({ ...form, hospitalType: t })} style={[S.chip, form.hospitalType === t && S.chipActive]}>
-                        <Text style={[S.chipText, form.hospitalType === t && S.chipTextActive]}>{t}</Text>
+                      <AnimatedPress
+                        key={t}
+                        onPress={() => setForm({ ...form, hospitalType: t })}
+                        containerStyle={{ flex: 1 }}
+                        style={[S.chip, { alignItems: 'center' }, form.hospitalType === t && S.chipActive]}
+                      >
+                        <Text style={[S.chipText, form.hospitalType === t && S.chipTextActive, { textTransform: 'capitalize' }]}>{t}</Text>
                       </AnimatedPress>
                     ))}
                   </View>
@@ -500,7 +744,7 @@ function AuthScreen({ onLogin }: { onLogin: (user: User, token: string) => Promi
           </View>
 
           <AnimatedPress onPress={() => promptGoogle()} disabled={!GOOGLE_WEB_CLIENT_ID && !GOOGLE_ANDROID_CLIENT_ID} style={S.btnGoogle}>
-            <Text style={{ fontSize: 18 }}>🔵</Text>
+            <Ionicons name="logo-google" size={18} color="#EA4335" />
             <Text style={S.btnGoogleText}>Continue with Google</Text>
           </AnimatedPress>
         </View>
@@ -1874,7 +2118,7 @@ const S = StyleSheet.create({
   pilotText: { fontSize: 11, fontWeight: '700', color: C.brand },
   authTitle: { fontSize: 40, fontWeight: '800', color: C.textMain, letterSpacing: -2 },
   authSubtitle: { fontSize: 15, color: C.textMuted, textAlign: 'center', lineHeight: 22 },
-  authCard: { backgroundColor: C.bgSurface, borderRadius: 24, padding: 20, gap: 14, borderWidth: 1, borderColor: C.borderSurface },
+  authCard: { backgroundColor: C.bgSurface, borderRadius: 24, padding: 14, gap: 10, borderWidth: 1, borderColor: C.borderSurface },
 
   // Segments
   segment: { flexDirection: 'row', backgroundColor: C.bgElevated, borderRadius: 12, padding: 4, gap: 4 },
@@ -1926,7 +2170,7 @@ const S = StyleSheet.create({
   dividerText: { fontSize: 12, color: C.textMuted, fontWeight: '600' },
 
   // Form
-  formField: { gap: 6 },
+  formField: { gap: 4 },
   fieldLabel: { fontSize: 12, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
   inputWrap: {
     flexDirection: 'row', alignItems: 'center',
@@ -1935,7 +2179,7 @@ const S = StyleSheet.create({
     overflow: 'hidden',
   },
   inputWrapFocused: { borderColor: `${C.brand}60` },
-  fieldInput: { flex: 1, paddingHorizontal: 12, paddingVertical: 12, color: C.textMain, fontSize: 15 },
+  fieldInput: { flex: 1, paddingHorizontal: 12, paddingVertical: 10, color: C.textMain, fontSize: 15 },
   input: {
     backgroundColor: C.bgElevated, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12,
     color: C.textMain, fontSize: 14, borderWidth: 1.5, borderColor: C.borderSurface,
@@ -2133,4 +2377,318 @@ const S = StyleSheet.create({
     backgroundColor: `${C.brand}20`, alignItems: 'center', justifyContent: 'center',
   },
   avatarSmallText: { fontSize: 16, fontWeight: '800', color: C.brand },
+
+  // New Landing & Modern Onboarding Styles
+  landingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: C.borderMain,
+    backgroundColor: C.bgMain,
+  },
+  landingBrand: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: C.brand,
+    letterSpacing: -0.5,
+  },
+  landingContent: {
+    padding: 16,
+    paddingBottom: 48,
+    gap: 24,
+  },
+  heroContainer: {
+    backgroundColor: C.bgSurface,
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: C.borderSurface,
+    overflow: 'hidden',
+    alignItems: 'center',
+    gap: 16,
+  },
+  heroTitleText: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: C.textMain,
+    textAlign: 'center',
+    letterSpacing: -1,
+    lineHeight: 40,
+  },
+  heroDescText: {
+    fontSize: 14,
+    color: C.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  heroActionButtons: {
+    width: '100%',
+    gap: 12,
+    marginTop: 8,
+  },
+  trustRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 8,
+  },
+  trustItem: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.textMuted,
+  },
+  landingSection: {
+    gap: 12,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: C.brand,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    textAlign: 'center',
+  },
+  landingSectionTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: C.textMain,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  landingSectionSub: {
+    fontSize: 13,
+    color: C.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  stepsStack: {
+    gap: 12,
+  },
+  stepCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.bgSurface,
+    borderRadius: 16,
+    padding: 16,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: C.borderSurface,
+  },
+  stepIcon: {
+    fontSize: 24,
+    width: 32,
+    textAlign: 'center',
+  },
+  stepTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.textMain,
+  },
+  stepDesc: {
+    fontSize: 12,
+    color: C.textMuted,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  statsSection: {
+    marginTop: 8,
+  },
+  statLandingCard: {
+    width: '48%',
+    backgroundColor: C.bgSurface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: C.borderSurface,
+    alignItems: 'center',
+    gap: 4,
+  },
+  statLandingValue: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: C.brand,
+  },
+  statLandingLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.textMuted,
+  },
+  roadmapCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.bgSurface,
+    borderRadius: 16,
+    padding: 16,
+    gap: 14,
+    borderWidth: 1.5,
+  },
+  ctaBannerCard: {
+    backgroundColor: C.bgSurface,
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1.5,
+    borderColor: `${C.brand}30`,
+    overflow: 'hidden',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 8,
+  },
+  ctaTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: C.textMain,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  ctaDesc: {
+    fontSize: 13,
+    color: C.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  ctaActions: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 10,
+    marginTop: 8,
+  },
+  ctaGlow: {
+    position: 'absolute',
+    bottom: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: C.brand,
+    opacity: 0.05,
+  },
+  landingFooter: {
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 16,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: C.borderMain,
+  },
+  footerBrandText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.textMuted,
+  },
+  footerLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  footerLinkText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: C.brand,
+  },
+  footerDivider: {
+    fontSize: 10,
+    color: C.textMuted,
+  },
+  pilotBadgeSmall: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: `${C.brand}15`,
+    borderWidth: 1,
+    borderColor: `${C.brand}30`,
+  },
+  pilotTextSmall: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: C.brand,
+    textTransform: 'uppercase',
+  },
+  btnSignInSmall: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: C.bgElevated,
+    borderWidth: 1,
+    borderColor: C.borderSurface,
+  },
+  btnSignInSmallText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.brand,
+  },
+  authHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginBottom: 12,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: C.bgElevated,
+    borderWidth: 1,
+    borderColor: C.borderSurface,
+  },
+  backButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.brand,
+  },
+  roleGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  roleCard: {
+    backgroundColor: C.bgElevated,
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1.5,
+    borderColor: C.borderSurface,
+    gap: 3,
+  },
+  roleCardActive: {
+    backgroundColor: `rgba(${C.brandRgb}, 0.05)`,
+    borderColor: C.brand,
+    shadowColor: C.brand,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  roleCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  roleCardIcon: {
+    fontSize: 16,
+  },
+  roleCardBadge: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  roleCardTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: C.textMain,
+  },
+  roleCardTitleActive: {
+    color: C.brand,
+  },
+  roleCardDesc: {
+    fontSize: 9,
+    color: C.textMuted,
+    lineHeight: 12,
+  },
 });
