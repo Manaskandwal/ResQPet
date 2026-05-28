@@ -41,16 +41,50 @@ import { Role, Tab, User } from './src/types';
 // Components
 import { SplashScreen, AppHeader, TabBar } from './src/components/SharedComponents';
 
+// Navigation & Router
+import { NavigationProvider, AnimatedStackNavigator } from './src/navigation/navigation';
+import { ThemeProvider } from './src/themes';
+
 // Screens
-import { AuthScreen } from './src/screens/AuthScreen';
+import { LoginScreen } from './src/screens/auth/LoginScreen';
+import { RoleSelectionScreen } from './src/screens/auth/RoleSelectionScreen';
+import { RegisterScreen } from './src/screens/auth/RegisterScreen';
 import { CitizenHome, CasesScreen } from './src/screens/CitizenScreen';
 import WalletScreen from './src/screens/WalletScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
-import AdminScreen from './src/screens/AdminScreen';
-import { NgoHome } from './src/screens/NgoScreen';
-import { HospitalHome } from './src/screens/HospitalScreen';
-import { AmbulanceHome } from './src/screens/AmbulanceScreen';
+import { ProfileScreen, SettingsScreen, AIChatScreen } from './src/screens/shared';
+import {
+  AdminDashboard,
+  AdminApprovals,
+  AdminUsers,
+  AdminRescues,
+  AdminFundraisers,
+  AdminAuditLogs,
+  AdminAnalytics,
+} from './src/screens/admin';
+import {
+  NgoDashboard,
+  NearbyCasesScreen,
+  NgoMyCases,
+  NgoCaseDetail,
+  NgoFundraiserRequest,
+  NgoFollowups,
+} from './src/screens/ngo';
+import {
+  HospitalDashboard,
+  HospitalMyCases,
+  HospitalCaseDetail,
+  HospitalBilling,
+  HospitalFleet,
+  HospitalAmbulanceTracking,
+  HospitalHistory,
+} from './src/screens/hospital';
+import {
+  AmbulanceDashboard,
+  AmbulanceTask,
+  AmbulanceHistory,
+  AmbulanceLocationSettings,
+} from './src/screens/ambulance';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -64,7 +98,6 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// ─── Main Screen Router ──────────────────────────────────────────────────────
 function MainScreen(props: {
   user: User;
   tab: Tab;
@@ -73,24 +106,99 @@ function MainScreen(props: {
   setUser: (u: User) => void;
   setToken: (t: string) => void;
   setAdminToken: (t: string) => void;
+  onLogout: () => void;
 }) {
   const { user, tab } = props;
+
+  // 1. Global shared Profile tab override
+  if (tab === 'profile') {
+    return (
+      <NavigationProvider key={tab} initialScreen="Profile">
+        <AnimatedStackNavigator
+          routes={[
+            { name: 'Profile', component: () => <ProfileScreen user={user} setUser={props.setUser} /> },
+            { name: 'Settings', component: () => <SettingsScreen onLogout={props.onLogout} /> },
+            { name: 'AIChat', component: AIChatScreen },
+          ]}
+        />
+      </NavigationProvider>
+    );
+  }
+
+  // 2. Role-specific modular Navigation stacks (with tab key-resetting support)
+  if (user.role === 'admin' || tab === 'admin') {
+    return (
+      <NavigationProvider key={tab} initialScreen={tab === 'cases' ? 'AdminRescues' : 'AdminDashboard'}>
+        <AnimatedStackNavigator
+          routes={[
+            { name: 'AdminDashboard', component: () => <AdminDashboard setToken={props.setToken} setAdminToken={props.setAdminToken} setUser={props.setUser} /> },
+            { name: 'AdminApprovals', component: AdminApprovals },
+            { name: 'AdminUsers', component: () => <AdminUsers setToken={props.setToken} setAdminToken={props.setAdminToken} setUser={props.setUser} /> },
+            { name: 'AdminRescues', component: AdminRescues },
+            { name: 'AdminFundraisers', component: AdminFundraisers },
+            { name: 'AdminAuditLogs', component: AdminAuditLogs },
+            { name: 'AdminAnalytics', component: AdminAnalytics },
+          ]}
+        />
+      </NavigationProvider>
+    );
+  }
+
+  if (user.role === 'ngo') {
+    return (
+      <NavigationProvider key={tab} initialScreen={tab === 'cases' ? 'MyCases' : 'NgoDashboard'}>
+        <AnimatedStackNavigator
+          routes={[
+            { name: 'NgoDashboard', component: NgoDashboard },
+            { name: 'NearbyCases', component: NearbyCasesScreen },
+            { name: 'MyCases', component: NgoMyCases },
+            { name: 'CaseDetail', component: NgoCaseDetail },
+            { name: 'FundraiserRequest', component: NgoFundraiserRequest },
+            { name: 'Followups', component: NgoFollowups },
+          ]}
+        />
+      </NavigationProvider>
+    );
+  }
+
+  if (user.role === 'hospital') {
+    return (
+      <NavigationProvider key={tab} initialScreen={tab === 'cases' ? 'MyCases' : 'HospitalDashboard'}>
+        <AnimatedStackNavigator
+          routes={[
+            { name: 'HospitalDashboard', component: HospitalDashboard },
+            { name: 'MyCases', component: HospitalMyCases },
+            { name: 'CaseDetail', component: HospitalCaseDetail },
+            { name: 'Billing', component: HospitalBilling },
+            { name: 'Fleet', component: HospitalFleet },
+            { name: 'AmbulanceTracking', component: HospitalAmbulanceTracking },
+            { name: 'History', component: HospitalHistory },
+          ]}
+        />
+      </NavigationProvider>
+    );
+  }
+
+  if (user.role === 'ambulance') {
+    return (
+      <NavigationProvider key={tab} initialScreen={tab === 'cases' ? 'Task' : 'AmbulanceDashboard'}>
+        <AnimatedStackNavigator
+          routes={[
+            { name: 'AmbulanceDashboard', component: AmbulanceDashboard },
+            { name: 'Task', component: AmbulanceTask },
+            { name: 'History', component: AmbulanceHistory },
+            { name: 'LocationSettings', component: AmbulanceLocationSettings },
+          ]}
+        />
+      </NavigationProvider>
+    );
+  }
+
+  // 3. Citizen (user) standalone tabs fallback
   if (tab === 'cases') return <CasesScreen user={user} />;
   if (tab === 'wallet') return <WalletScreen user={user} setUser={props.setUser} />;
   if (tab === 'alerts') return <NotificationsScreen />;
-  if (tab === 'profile') return <ProfileScreen user={user} setUser={props.setUser} />;
-  if (tab === 'admin' || user.role === 'admin') {
-    return (
-      <AdminScreen
-        setToken={props.setToken}
-        setAdminToken={props.setAdminToken}
-        setUser={props.setUser}
-      />
-    );
-  }
-  if (user.role === 'ngo') return <NgoHome />;
-  if (user.role === 'hospital') return <HospitalHome />;
-  if (user.role === 'ambulance') return <AmbulanceHome socket={props.socket} />;
+
   return <CitizenHome setTab={props.setTab} />;
 }
 
@@ -211,40 +319,57 @@ export default function App() {
     };
   }, [registerPushToken, token, user]);
 
-  if (booting || !fontsLoaded) return <SplashScreen />;
-  if (!token || !user) return <AuthScreen onLogin={persistSession} />;
+  const content = (() => {
+    if (booting || !fontsLoaded) return <SplashScreen />;
+    if (!token || !user) {
+      return (
+        <NavigationProvider initialScreen="Login">
+          <AnimatedStackNavigator
+            routes={[
+              { name: 'Login', component: () => <LoginScreen onLogin={persistSession} /> },
+              { name: 'RoleSelection', component: RoleSelectionScreen },
+              { name: 'Register', component: () => <RegisterScreen onLogin={persistSession} /> },
+            ]}
+          />
+        </NavigationProvider>
+      );
+    }
 
-  return (
-    <SafeAreaView style={S.safe}>
-      <ExpoStatusBar style="light" backgroundColor={C.bgMain} />
-      <StatusBar barStyle="light-content" backgroundColor={C.bgMain} />
-      <View style={S.shell}>
-        <AppHeader
-          user={user}
-          adminToken={adminToken}
-          onLogout={logout}
-          onStopImpersonating={async () => {
-            const original = await SecureStore.getItemAsync(ADMIN_TOKEN_KEY);
-            if (!original) return;
-            setApiToken(original);
-            await SecureStore.setItemAsync(TOKEN_KEY, original);
-            await SecureStore.deleteItemAsync(ADMIN_TOKEN_KEY);
-            setAdminToken(null);
-            setToken(original);
-            await refreshMe();
-          }}
-        />
-        <MainScreen
-          user={user}
-          tab={tab}
-          socket={socketRef.current}
-          setTab={setTab}
-          setUser={setUser}
-          setToken={setToken}
-          setAdminToken={setAdminToken}
-        />
-        <TabBar role={user.role} tab={tab} setTab={setTab} />
-      </View>
-    </SafeAreaView>
-  );
+    return (
+      <SafeAreaView style={S.safe}>
+        <ExpoStatusBar style="light" backgroundColor={C.bgMain} />
+        <StatusBar barStyle="light-content" backgroundColor={C.bgMain} />
+        <View style={S.shell}>
+          <AppHeader
+            user={user}
+            adminToken={adminToken}
+            onLogout={logout}
+            onStopImpersonating={async () => {
+              const original = await SecureStore.getItemAsync(ADMIN_TOKEN_KEY);
+              if (!original) return;
+              setApiToken(original);
+              await SecureStore.setItemAsync(TOKEN_KEY, original);
+              await SecureStore.deleteItemAsync(ADMIN_TOKEN_KEY);
+              setAdminToken(null);
+              setToken(original);
+              await refreshMe();
+            }}
+          />
+          <MainScreen
+            user={user}
+            tab={tab}
+            socket={socketRef.current}
+            setTab={setTab}
+            setUser={setUser}
+            setToken={setToken}
+            setAdminToken={setAdminToken}
+            onLogout={logout}
+          />
+          <TabBar role={user.role} tab={tab} setTab={setTab} />
+        </View>
+      </SafeAreaView>
+    );
+  })();
+
+  return <ThemeProvider>{content}</ThemeProvider>;
 }

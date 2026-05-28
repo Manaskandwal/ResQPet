@@ -7,3 +7,4 @@ backend/.env
 /graphify-out
 mobile/.expo/
 .idea/
+.opencode/
