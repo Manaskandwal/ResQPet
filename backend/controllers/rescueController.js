@@ -209,57 +209,6 @@ const cancelRescue = async (req, res) => {
     }
 };
 
-const makeFundraiser = async (req, res) => {
-    try {
-        const { estimatedCost } = req.body;
-
-        if (!estimatedCost || estimatedCost <= 0) {
-            return res.status(400).json({ success: false, message: 'Please provide a valid estimated cost.' });
-        }
-
-        const rescue = await RescueRequest.findById(req.params.id);
-        if (!rescue) {
-            return res.status(404).json({ success: false, message: 'Rescue request not found.' });
-        }
-
-        if (rescue.user.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ success: false, message: 'Access denied. You can only make your own cases a fundraiser.' });
-        }
-
-        if (rescue.isFundraiser) {
-            return res.status(400).json({ success: false, message: 'This case is already a fundraiser.' });
-        }
-
-        // Only allow fundraiser conversion if the case is in a terminal or stalled state
-        const allowedStatuses = ['completed', 'closed_unresolved', 'hospital_escalated'];
-        if (!allowedStatuses.includes(rescue.status)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: `Fundraisers can only be created for cases that are ${allowedStatuses.join(' or ')}.` 
-            });
-        }
-
-        rescue.isFundraiser = true;
-        rescue.estimatedCost = estimatedCost;
-        rescue.status = 'fundraiser_active';
-        
-        // Add to status logs
-        rescue.statusLogs.push({
-            status: 'fundraiser_active',
-            message: `Case converted to public fundraiser with estimated cost of ₹${estimatedCost}.`,
-            timestamp: new Date()
-        });
-
-        await rescue.save();
-        emitRescueUpdate(rescue._id, 'fundraiser_active', { message: `Case converted to public fundraiser` });
-
-        res.status(200).json({ success: true, message: 'Your case is now public for fundraising.', rescue });
-    } catch (error) {
-        console.error('[Rescue Controller] makeFundraiser error:', error.message);
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
 const getImpactFeed = async (req, res) => {
     try {
         await RescueRequest.updateMany(
@@ -610,13 +559,17 @@ const requestReturnTransport = async (req, res) => {
             const targetIds = hospitalFleet.map(a => a._id);
             if (targetIds.length > 0) emitAmbulanceDispatch(rescue, targetIds);
 
-            // Start event-driven dispatch service for return ambulance
+        }
+
+        await rescue.save();
+
+        if (!takeManually) {
+            // Start event-driven dispatch service for return ambulance after saving the status to DB
             onRescueNeedsAmbulance(rescue._id).catch(err =>
                 console.error(`[Rescue Controller] Failed to start return ambulance dispatch: ${err.message}`)
             );
         }
 
-        await rescue.save();
         res.status(200).json({ success: true, message: takeManually ? 'Case completed.' : 'Dispatching return ambulance.', rescue });
     } catch (error) {
         console.error('[Rescue Controller] requestReturnTransport error:', error.message);
@@ -629,7 +582,6 @@ module.exports = {
     getMyRescues,
     getRescueById,
     cancelRescue,
-    makeFundraiser,
     getImpactFeed,
     toggleImpactLike,
     addImpactComment,

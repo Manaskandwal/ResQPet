@@ -165,12 +165,12 @@ const Fundraisers = () => {
                             return (
                                 <div 
                                     key={c._id} 
-                                    onClick={() => !isRequested && setSelectedCase(c)}
+                                    onClick={() => setSelectedCase(c)}
                                     className={`glass-card rounded-[2rem] p-6 border transition-all cursor-pointer ${
                                         isSelected 
                                             ? 'border-[#fd8b00] bg-[#fd8b00]/10 shadow-[0_0_30px_rgba(253,139,0,0.1)]' 
                                             : isRequested 
-                                                ? 'border-white/5 bg-[#1c1b1b] opacity-60 cursor-not-allowed' 
+                                                ? 'border-white/5 bg-[#1c1b1b] opacity-80 hover:border-[#fd8b00]/30 hover:bg-white/5' 
                                                 : 'border-white/5 bg-[#1c1b1b] hover:border-[#fd8b00]/30 hover:bg-white/5'
                                     }`}
                                 >
@@ -182,10 +182,20 @@ const Fundraisers = () => {
                                             </div>
                                             <h4 className="font-bold text-lg leading-tight">{c.description}</h4>
                                             <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest pt-2">
-                                                <span className={`${isRequested ? 'text-[#76d6d4]' : 'text-white/30'}`}>
-                                                    <span className="material-symbols-outlined text-sm align-middle mr-1.5">payments</span>
-                                                    {isRequested ? `Fundraiser: ${c.fundraiser.status}` : 'Not Funded'}
-                                                </span>
+                                                {isRequested ? (
+                                                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                        c.fundraiser.status === 'approved' ? 'bg-[#76d6d4]/10 text-[#76d6d4]' :
+                                                        c.fundraiser.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                                                        'bg-[#ffb77d]/10 text-[#ffb77d]'
+                                                    }`}>
+                                                        Fundraiser: {c.fundraiser.status}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-white/30 flex items-center">
+                                                        <span className="material-symbols-outlined text-sm align-middle mr-1.5">payments</span>
+                                                        Not Funded
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                         {c.images?.[0] && (
@@ -219,76 +229,149 @@ const Fundraisers = () => {
                             <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#fd8b00]/5 to-transparent pointer-events-none" />
                         )}
                         
-                        <form onSubmit={handleSubmit} className="space-y-6 relative z-10 w-full">
-                            {selectedCase && (
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 mb-8">
+                        {selectedCase && selectedCase.fundraiser && selectedCase.fundraiser.status !== 'none' ? (
+                            <div className="space-y-6 relative z-10 w-full text-sm">
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 mb-4">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-[#fd8b00] mb-1">Target Case</p>
                                     <p className="font-bold text-sm truncate">{selectedCase.description}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-1">ID: {selectedCase._id}</p>
                                 </div>
-                            )}
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Required Amount (₹)</label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 font-bold">₹</span>
-                                    <input 
-                                        type="number" 
-                                        required min="100" 
-                                        value={formData.requestedGoal} 
-                                        onChange={e => setFormData(c => ({...c, requestedGoal: e.target.value}))} 
-                                        className="w-full rounded-2xl bg-[#131313] border border-white/10 pl-10 pr-4 py-4 text-lg font-bold text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all appearance-none" 
-                                        placeholder="0.00"
-                                    />
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Request Status</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                            selectedCase.fundraiser.status === 'approved' ? 'bg-[#76d6d4]/10 text-[#76d6d4]' :
+                                            selectedCase.fundraiser.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                                            'bg-[#ffb77d]/10 text-[#ffb77d]'
+                                        }`}>
+                                            {selectedCase.fundraiser.status}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Fundraising Goal</span>
+                                        <span className="text-lg font-black text-on-surface">₹{selectedCase.fundraiser.requestedGoal}</span>
+                                    </div>
+
+                                    {selectedCase.fundraiser.status === 'approved' && (
+                                        <div className="space-y-2 border-b border-white/5 pb-3">
+                                            <div className="flex justify-between text-xs font-bold">
+                                                <span className="text-[#76d6d4]">Raised: ₹{selectedCase.amountRaised || 0}</span>
+                                                <span className="text-white/30">Progress: {Math.min(((selectedCase.amountRaised || 0) / selectedCase.fundraiser.requestedGoal) * 100, 100).toFixed(0)}%</span>
+                                            </div>
+                                            <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
+                                                <div className="h-full rounded-full bg-gradient-to-r from-[#fd8b00] to-[#ffb77d]" style={{ width: `${Math.min(((selectedCase.amountRaised || 0) / selectedCase.fundraiser.requestedGoal) * 100, 100)}%` }} />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Justification Details</span>
+                                        <p className="text-xs text-white/60 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">{selectedCase.fundraiser.billText || 'No detailed treatment explanation was provided.'}</p>
+                                    </div>
+
+                                    {selectedCase.fundraiser.adminNotes && (
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Admin Remarks</span>
+                                            <p className="text-xs text-red-200 leading-relaxed bg-red-950/10 p-4 rounded-xl border border-red-500/10">{selectedCase.fundraiser.adminNotes}</p>
+                                        </div>
+                                    )}
+
+                                    {selectedCase.fundraiser.billImage && (
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Uploaded Bill Estimate</span>
+                                            <a href={selectedCase.fundraiser.billImage} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-2xl overflow-hidden border border-white/10 relative group">
+                                                <img src={selectedCase.fundraiser.billImage} alt="Bill estimate" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-xl">View Original Bill</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Treatment & Bill Justification</label>
-                                <textarea 
-                                    required 
-                                    value={formData.billText} 
-                                    onChange={e => setFormData(c => ({...c, billText: e.target.value}))} 
-                                    className="w-full h-32 rounded-2xl bg-[#131313] border border-white/10 p-4 text-sm text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all resize-none" 
-                                    placeholder="Explain the medical procedures and why these funds are necessary..."
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Upload Evidence (Bill/Estimate Image)</label>
-                                <div className="relative w-full">
-                                    <input 
-                                        type="file" 
-                                        id="bill-upload" 
-                                        required 
-                                        accept="image/*" 
-                                        onChange={e => setFormData(c => ({...c, media: e.target.files[0]}))} 
-                                        className="hidden" 
-                                    />
-                                    <label 
-                                        htmlFor="bill-upload" 
-                                        className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-white/10 hover:border-[#fd8b00]/30 hover:bg-white/5 transition-all cursor-pointer group"
+                                <div className="pt-6 border-t border-white/5">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setSelectedCase(null)}
+                                        className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-[0.98] transition-all"
                                     >
-                                        <span className={`material-symbols-outlined text-3xl mb-2 transition-colors ${formData.media ? 'text-[#76d6d4]' : 'text-white/20 group-hover:text-[#fd8b00]'}`}>
-                                            {formData.media ? 'task_alt' : 'receipt_long'}
-                                        </span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
-                                            {formData.media ? formData.media.name : 'Tap to select bill image'}
-                                        </span>
-                                    </label>
+                                        Clear Selection
+                                    </button>
                                 </div>
                             </div>
+                        ) : (
+                            <form onSubmit={handleSubmit} className="space-y-6 relative z-10 w-full">
+                                {selectedCase && (
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/5 mb-8">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-[#fd8b00] mb-1">Target Case</p>
+                                        <p className="font-bold text-sm truncate">{selectedCase.description}</p>
+                                    </div>
+                                )}
 
-                            <div className="pt-6 border-t border-white/5">
-                                <button 
-                                    type="submit" 
-                                    disabled={formLoading || !selectedCase} 
-                                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-[#fd8b00] to-[#ffb77d] text-[#131313] text-[12px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(253,139,0,0.2)] hover:shadow-[0_0_30px_rgba(253,139,0,0.4)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:grayscale"
-                                >
-                                    {formLoading ? 'Transmitting Request...' : 'Submit Fundraiser Workflow'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Required Amount (₹)</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 font-bold">₹</span>
+                                        <input 
+                                            type="number" 
+                                            required min="100" 
+                                            value={formData.requestedGoal} 
+                                            onChange={e => setFormData(c => ({...c, requestedGoal: e.target.value}))} 
+                                            className="w-full rounded-2xl bg-[#131313] border border-white/10 pl-10 pr-4 py-4 text-lg font-bold text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all appearance-none" 
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Treatment & Bill Justification</label>
+                                    <textarea 
+                                        required 
+                                        value={formData.billText} 
+                                        onChange={e => setFormData(c => ({...c, billText: e.target.value}))} 
+                                        className="w-full h-32 rounded-2xl bg-[#131313] border border-white/10 p-4 text-sm text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all resize-none" 
+                                        placeholder="Explain the medical procedures and why these funds are necessary..."
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Upload Evidence (Bill/Estimate Image)</label>
+                                    <div className="relative w-full">
+                                        <input 
+                                            type="file" 
+                                            id="bill-upload" 
+                                            required 
+                                            accept="image/*" 
+                                            onChange={e => setFormData(c => ({...c, media: e.target.files[0]}))} 
+                                            className="hidden" 
+                                        />
+                                        <label 
+                                            htmlFor="bill-upload" 
+                                            className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-white/10 hover:border-[#fd8b00]/30 hover:bg-white/5 transition-all cursor-pointer group"
+                                        >
+                                            <span className={`material-symbols-outlined text-3xl mb-2 transition-colors ${formData.media ? 'text-[#76d6d4]' : 'text-white/20 group-hover:text-[#fd8b00]'}`}>
+                                                {formData.media ? 'task_alt' : 'receipt_long'}
+                                            </span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                                                {formData.media ? formData.media.name : 'Tap to select bill image'}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 border-t border-white/5">
+                                    <button 
+                                        type="submit" 
+                                        disabled={formLoading || !selectedCase} 
+                                        className="w-full h-14 rounded-2xl bg-gradient-to-r from-[#fd8b00] to-[#ffb77d] text-[#131313] text-[12px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(253,139,0,0.2)] hover:shadow-[0_0_30px_rgba(253,139,0,0.4)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:grayscale"
+                                    >
+                                        {formLoading ? 'Transmitting Request...' : 'Submit Fundraiser Workflow'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}      </div>
                 </div>
             </section>
         </div>

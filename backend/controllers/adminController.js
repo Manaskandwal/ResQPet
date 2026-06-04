@@ -238,7 +238,7 @@ const getAllRescues = async (req, res) => {
     try {
         console.log('[Admin Controller] getAllRescues requested');
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        const limit = parseInt(req.query.limit) || 1000;
         const skip = (page - 1) * limit;
         const status = req.query.status;
 
@@ -405,7 +405,7 @@ const getFundraisers = async (req, res) => {
     try {
         const { status } = req.query; // 'pending', 'approved', 'rejected'
         const query = { 
-            'fundraiser.status': { $ne: 'none' } 
+            'fundraiser.status': { $in: ['pending', 'approved', 'rejected', 'completed'] } 
         };
         
         if (status) {
