@@ -4,6 +4,7 @@ const WalletTransaction = require('../models/WalletTransaction');
 const Notification = require('../models/Notification');
 const { getIo, emitRescueUpdate } = require('../config/socket');
 const { SERVICE_FEE } = require('../config/constants');
+const { haversineDistance } = require('../utils/haversine');
 
 // Active timeout trackers
 const activeTimeouts = new Map(); // rescueId -> { interval, startedAt }
@@ -82,8 +83,13 @@ const scheduleRescueChecks = (rescueId) => {
                 console.log(`[AmbulanceDispatch] Expired ${expiredPings.length} pings for rescue ${rescueId}`);
             }
 
-            // 2. Check for total timeout (30 min or 3+ rejects)
-            if (rescue.pingRejectors.length >= 3 || rescue.createdAt <= thirtyMinutesAgo) {
+            // 2. Check for total timeout (30 min or 3+ rejects) based on dispatch start time
+            const pingLog = rescue.statusLogs
+                .filter(log => log.status === 'ambulance_pinged')
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+            const pingStartedAt = pingLog ? new Date(pingLog.timestamp) : rescue.createdAt;
+
+            if (rescue.pingRejectors.length >= 3 || pingStartedAt <= thirtyMinutesAgo) {
                 console.log(`[AmbulanceDispatch] Rescue ${rescueId} stalled. Handling fallback.`);
                 await handleStalledRescue(rescue);
                 stopRescueChecks(rescueId);
@@ -141,12 +147,33 @@ const pingNearestAmbulance = async (rescue) => {
         ...rescue.activeAmbulancePings.map(p => p.ambulanceId)
     ];
 
-    const nearestAmbulance = await User.findOne({
+    const candidates = await User.find({
         role: 'ambulance',
-        isGovernment: false,
+        ambulanceType: 'independent',
         isAvailable: true,
+        isApproved: true,
         _id: { $nin: excludeIds }
     });
+
+    let nearestAmbulance = null;
+
+    if (candidates.length > 0) {
+        // Calculate distance and sort candidates
+        const candidatesWithDistance = candidates
+            .filter(amb => amb.location && typeof amb.location.lat === 'number' && typeof amb.location.lng === 'number')
+            .map(amb => {
+                const dist = haversineDistance(rescue.location.lat, rescue.location.lng, amb.location.lat, amb.location.lng);
+                return { amb, dist };
+            })
+            .sort((a, b) => a.dist - b.dist);
+
+        if (candidatesWithDistance.length > 0) {
+            nearestAmbulance = candidatesWithDistance[0].amb;
+        } else {
+            // Fallback to first candidate if none have valid location coordinates
+            nearestAmbulance = candidates[0];
+        }
+    }
 
     if (nearestAmbulance) {
         rescue.activeAmbulancePings.push({
@@ -182,26 +209,37 @@ const handleStalledRescue = async (rescue) => {
 
     // Check if hospital is already assigned (Scenario 4B)
     if (rescue.assignedHospital) {
-        console.log(`[AmbulanceDispatch] Hospital ${rescue.assignedHospital} assigned. Falling back to manual transport.`);
+        const isReturn = rescue.treatmentStatus === 'discharged';
+        console.log(`[AmbulanceDispatch] Hospital ${rescue.assignedHospital} assigned. Falling back to manual ${isReturn ? 'return' : 'transport'}.`);
 
         rescue.status = 'manual_transport_accepted';
-        rescue.adminNotes = (rescue.adminNotes || '') + '\n[System] Auto-changed to Manual Transport: No ambulance responded.';
+        rescue.adminNotes = (rescue.adminNotes || '') + 
+            (isReturn 
+                ? '\n[System] Auto-changed to Manual Return: No ambulance responded for return transport.'
+                : '\n[System] Auto-changed to Manual Transport: No ambulance responded.');
+        
         rescue.statusLogs.push({
             status: 'manual_transport_accepted',
-            message: 'No ambulance available. Hospital has accepted the case. Please arrange manual transport.',
+            message: isReturn
+                ? 'No return ambulance available. Please arrange manual transport to retrieve the animal from the hospital.'
+                : 'No ambulance available. Hospital has accepted the case. Please arrange manual transport.',
             timestamp: now
         });
 
         await rescue.save();
         emitRescueUpdate(rescue._id, 'manual_transport_accepted', {
-            message: 'No ambulance available. Please arrange manual transport to the assigned hospital.'
+            message: isReturn
+                ? 'No return ambulance available. Please arrange manual transport to retrieve the animal from the hospital.'
+                : 'No ambulance available. Please arrange manual transport to the assigned hospital.'
         });
 
         const targetUser = rescue.assignedNGO || rescue.user;
         await Notification.create({
             recipient: targetUser,
-            title: 'Manual Transport Required',
-            message: `No ambulance was found for your rescue. Please transport the animal manually to the assigned hospital.`,
+            title: isReturn ? 'Manual Return Transport Required' : 'Manual Transport Required',
+            message: isReturn
+                ? `No ambulance was found for return transport. Please retrieve the animal manually from the hospital.`
+                : `No ambulance was found for your rescue. Please transport the animal manually to the assigned hospital.`,
             type: 'ambulance_update',
             rescueRequest: rescue._id
         });

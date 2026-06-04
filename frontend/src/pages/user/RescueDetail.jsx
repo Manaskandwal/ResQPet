@@ -130,7 +130,7 @@ const RescueDetail = () => {
     };
 
     const isOwner = user?._id === rescue?.user?._id;
-    const canMakeFundraiser = isOwner && !rescue.isFundraiser && !['completed', 'cancelled', 'closed_unresolved'].includes(rescue.status);
+    const canMakeFundraiser = false;
     const showTreatmentResults = ['completed', 'resolved_on_spot'].includes(rescue.status) || rescue.outcome === 'on_spot_treated';
     const treatmentStory = getTreatmentStory(rescue);
 
@@ -296,7 +296,11 @@ const RescueDetail = () => {
                                 Manual Transport Required
                             </div>
                             <p className="text-xs text-[#e5e2e1]/60">
-                                No ambulance could be found for this rescue. However, <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
+                                {rescue.treatmentStatus === 'discharged'
+                                    ? 'No return ambulance could be found. Please retrieve the animal manually from '
+                                    : 'No ambulance could be found for this rescue. However, '}
+                                <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong>
+                                {rescue.treatmentStatus === 'discharged' ? '.' : ' has accepted the case.'}
                             </p>
                             {canRespondManual ? (
                                 <div className="flex flex-col sm:flex-row gap-2 mt-2">
@@ -522,7 +526,11 @@ const RescueDetail = () => {
                              Manual Transport Required
                         </div>
                         <p className="text-sm text-amber-700 mb-3">
-                            No ambulance could be found. <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
+                            {rescue.treatmentStatus === 'discharged'
+                                ? 'No return ambulance could be found. Please retrieve the animal manually from '
+                                : 'No ambulance could be found. '}
+                            <strong>{rescue.assignedHospital?.name || 'A hospital'}</strong>
+                            {rescue.treatmentStatus === 'discharged' ? '.' : ' has accepted the case.'}
                         </p>
                         {canRespondManual ? (
                             <div className="flex gap-2">

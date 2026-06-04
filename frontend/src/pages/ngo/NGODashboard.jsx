@@ -1013,8 +1013,10 @@ const NGODashboard = () => {
                                                      Manual Transport Mode
                                                  </div>
                                                  <p className="text-xs text-on-surface/60 leading-relaxed">
-                                                     No ambulance responded to this critical dispatch. The hospital has already accepted. 
-                                                     Please coordinate manual transport for the subject to <strong>{c.assignedHospital?.name || 'Assigned Hospital'}</strong> immediately.
+                                                     {c.treatmentStatus === 'discharged'
+                                                         ? 'No return ambulance responded to retrieve the subject. Please coordinate manual return transport to retrieve the subject from '
+                                                         : 'No ambulance responded to this critical dispatch. The hospital has already accepted. Please coordinate manual transport for the subject to '}
+                                                     <strong>{c.assignedHospital?.name || 'Assigned Hospital'}</strong> immediately.
                                                  </p>
                                                  <div className="flex flex-col sm:flex-row gap-2 mt-4">
                                                      <button
@@ -1249,7 +1251,11 @@ const NGODashboard = () => {
                          Manual Transport Required
                     </div>
                     <p className="text-sm text-amber-700 mb-3">
-                        No ambulance could be found. <strong>{c.assignedHospital?.name || 'A hospital'}</strong> has accepted the case. 
+                        {c.treatmentStatus === 'discharged'
+                            ? 'No return ambulance could be found. Please retrieve the animal manually from '
+                            : 'No ambulance could be found. '}
+                        <strong>{c.assignedHospital?.name || 'A hospital'}</strong>
+                        {c.treatmentStatus === 'discharged' ? '.' : ' has accepted the case.'}
                     </p>
                     <div className="flex gap-2">
                         <button onClick={() => handleManualResponse(c._id, true)} disabled={acting[c._id]} className="flex-1 btn bg-amber-600 text-white hover:bg-amber-700 py-2 text-xs">

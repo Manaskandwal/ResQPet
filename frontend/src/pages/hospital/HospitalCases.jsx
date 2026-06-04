@@ -293,28 +293,28 @@ const HospitalCases = () => {
             {/* ─── Treatment Status Modal ─────────────────────────────────── */}
             {treatmentModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setTreatmentModal(null)}>
-                    <div className="w-full max-sm rounded-[2rem] border border-white/10 bg-[#1c1b1b] shadow-2xl p-7 space-y-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-sm rounded-[2rem] border border-surface-border bg-surface shadow-2xl p-7 space-y-6" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
-                            <h3 className="font-headline text-xl font-bold text-[#e5e2e1]">Update Treatment Status</h3>
-                            <button onClick={() => setTreatmentModal(null)} className="p-1.5 rounded-xl hover:bg-white/5 text-white/30 hover:text-[#e5e2e1] transition">
+                            <h3 className="font-headline text-xl font-bold text-on-surface">Update Treatment Status</h3>
+                            <button onClick={() => setTreatmentModal(null)} className="p-1.5 rounded-xl hover:bg-surface-hover text-on-surface/30 hover:text-on-surface transition">
                                 <XMarkIcon className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="space-y-3">
                             {Object.entries(TREATMENT_LABELS).filter(([k]) => k !== 'not_started').map(([status, label]) => (
                                 <button key={status} onClick={() => setTreatmentStatus(status)}
-                                    className={`w-full text-left px-4 py-3 rounded-2xl border text-sm font-bold transition-all ${treatmentStatus === status ? 'bg-[#76d6d5]/10 border-[#76d6d5]/30 text-[#76d6d5]' : 'border-white/10 text-[#e5e2e1]/50 hover:border-white/20 hover:text-[#e5e2e1]'}`}>
+                                    className={`w-full text-left px-4 py-3 rounded-2xl border text-sm font-bold transition-all ${treatmentStatus === status ? 'bg-[#76d6d5]/10 border-[#76d6d5]/30 text-[#76d6d5]' : 'border-surface-border text-on-surface/50 hover:border-surface-border/80 hover:text-on-surface'}`}>
                                     {label}
                                 </button>
                             ))}
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Optional Note</label>
+                            <label className="text-[9px] font-black uppercase tracking-widest text-on-surface/30">Optional Note</label>
                             <textarea value={hospitalNote} onChange={(e) => setHospitalNote(e.target.value)} rows={2} placeholder="E.g., 'Surgery required at 4PM'..."
-                                className="w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm text-[#e5e2e1] placeholder:text-white/20 focus:outline-none focus:border-[#76d6d5]/40 resize-none" />
+                                className="w-full rounded-2xl border border-surface-border bg-transparent px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-[#76d6d5]/40 resize-none" />
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={() => setTreatmentModal(null)} className="flex-1 py-3 rounded-2xl border border-white/10 text-white/30 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all">Cancel</button>
+                            <button onClick={() => setTreatmentModal(null)} className="flex-1 py-3 rounded-2xl border border-surface-border text-on-surface/30 text-xs font-black uppercase tracking-widest hover:bg-surface-hover transition-all">Cancel</button>
                             <button onClick={handleTreatmentUpdate} disabled={treatmentSaving}
                                 className="flex-[2] py-3 rounded-2xl bg-[#76d6d5] text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50">
                                 {treatmentSaving ? 'Updating...' : 'Update & Notify'}
@@ -327,13 +327,13 @@ const HospitalCases = () => {
             {/* ─── Billing Modal ──────────────────────────────────────────── */}
             {billModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm overflow-y-auto" onClick={() => setBillModal(null)}>
-                    <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#1c1b1b] shadow-2xl p-7 space-y-6 my-8" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-w-md rounded-[2rem] border border-surface-border bg-surface shadow-2xl p-7 space-y-6 my-8" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-headline text-xl font-bold text-[#e5e2e1]">{isGovt ? (editMode ? 'Edit Bill' : 'Upload Bill') : (editMode ? 'Edit Bill' : 'Create Bill')}</h3>
-                                <p className="text-xs text-[#e5e2e1]/30 mt-1">{billModal.description}</p>
+                                <h3 className="font-headline text-xl font-bold text-on-surface">{isGovt ? (editMode ? 'Edit Bill' : 'Upload Bill') : (editMode ? 'Edit Bill' : 'Create Bill')}</h3>
+                                <p className="text-xs text-on-surface/30 mt-1">{billModal.description}</p>
                             </div>
-                            <button onClick={() => setBillModal(null)} className="p-1.5 rounded-xl hover:bg-white/5 text-white/30 hover:text-[#e5e2e1] transition">
+                            <button onClick={() => setBillModal(null)} className="p-1.5 rounded-xl hover:bg-surface-hover text-on-surface/30 hover:text-on-surface transition">
                                 <XMarkIcon className="w-5 h-5" />
                             </button>
                         </div>
@@ -345,7 +345,7 @@ const HospitalCases = () => {
                                     <label className="text-[9px] font-black uppercase tracking-widest text-[#76d6d5]">Estimated Cost (₹)</label>
                                     <input type="number" min="0" value={estimatedCost} onChange={(e) => setEstimatedCost(e.target.value)}
                                         placeholder="Enter estimated amount"
-                                        className="w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm text-[#e5e2e1] placeholder:text-white/20 focus:outline-none focus:border-[#76d6d5]/40" />
+                                        className="w-full rounded-2xl border border-surface-border bg-transparent px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-[#76d6d5]/40" />
                                 </div>
                             </div>
                         ) : (
@@ -355,9 +355,9 @@ const HospitalCases = () => {
                                 {billItems.map((item, idx) => (
                                     <div key={idx} className="flex gap-2 items-center">
                                         <input value={item.name} onChange={(e) => updateBillItem(idx, 'name', e.target.value)} placeholder="Item name"
-                                            className="flex-[2] rounded-xl border border-white/10 bg-transparent px-3 py-2.5 text-xs text-[#e5e2e1] placeholder:text-white/20 focus:outline-none focus:border-[#76d6d5]/40" />
+                                            className="flex-[2] rounded-xl border border-surface-border bg-transparent px-3 py-2.5 text-xs text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-[#76d6d5]/40" />
                                         <input type="number" min="0" value={item.amount} onChange={(e) => updateBillItem(idx, 'amount', e.target.value)} placeholder="₹"
-                                            className="flex-1 rounded-xl border border-white/10 bg-transparent px-3 py-2.5 text-xs text-[#e5e2e1] placeholder:text-white/20 focus:outline-none focus:border-[#76d6d5]/40" />
+                                            className="flex-1 rounded-xl border border-surface-border bg-transparent px-3 py-2.5 text-xs text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-[#76d6d5]/40" />
                                         {billItems.length > 1 && (
                                             <button onClick={() => removeBillItem(idx)} className="p-2 rounded-xl hover:bg-red-500/10 text-white/30 hover:text-red-400 transition">
                                                 <TrashIcon className="w-4 h-4" />
@@ -377,16 +377,16 @@ const HospitalCases = () => {
 
                         {/* Image Upload */}
                         <div className="space-y-2">
-                            <label className="text-[9px] font-black uppercase tracking-widest text-[#e5e2e1]/30">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-on-surface/30">
                                 {isGovt ? 'Prescription / Invoice Image' : 'Attach Image (Optional)'}
                             </label>
-                            <label className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-white/10 p-5 cursor-pointer hover:border-[#76d6d5]/20 transition-all">
+                            <label className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-surface-border p-5 cursor-pointer hover:border-[#76d6d5]/20 transition-all">
                                 {billImagePreview ? (
                                     <img src={billImagePreview} alt="preview" className="w-full h-32 object-cover rounded-xl opacity-80" />
                                 ) : (
                                     <>
-                                        <ArrowUpTrayIcon className="w-8 h-8 text-white/10" />
-                                        <span className="text-xs text-white/20">{uploading ? 'Uploading...' : 'Tap to upload image'}</span>
+                                        <ArrowUpTrayIcon className="w-8 h-8 text-on-surface/10" />
+                                        <span className="text-xs text-on-surface/25">{uploading ? 'Uploading...' : 'Tap to upload image'}</span>
                                     </>
                                 )}
                                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -394,14 +394,14 @@ const HospitalCases = () => {
                         </div>
 
                         {/* Recipient info */}
-                        <div className="rounded-2xl bg-white/5 border border-white/5 p-3">
-                            <p className="text-[10px] text-[#e5e2e1]/40 text-center italic">
+                        <div className="rounded-2xl bg-surface-hover/30 border border-surface-border p-3">
+                            <p className="text-[10px] text-on-surface/40 text-center italic">
                                 Bill will be sent automatically to {billModal.assignedNGO ? 'the assigned NGO' : 'the user'} who reported the case.
                             </p>
                         </div>
 
                         <div className="flex gap-3">
-                            <button onClick={() => setBillModal(null)} className="flex-1 py-3 rounded-2xl border border-white/10 text-white/30 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all">Cancel</button>
+                            <button onClick={() => setBillModal(null)} className="flex-1 py-3 rounded-2xl border border-surface-border text-on-surface/30 text-xs font-black uppercase tracking-widest hover:bg-surface-hover transition-all">Cancel</button>
                             <button onClick={handleSubmitBill} disabled={billSubmitting || uploading}
                                 className={`flex-[2] py-3 rounded-2xl text-[#131313] text-xs font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50 ${editMode ? 'bg-blue-500' : 'bg-amber-500'}`}>
                                 {billSubmitting ? 'Sending...' : (editMode ? 'Update Bill' : 'Send Bill')}

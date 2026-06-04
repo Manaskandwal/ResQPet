@@ -5,7 +5,6 @@ const {
     getMyRescues,
     getRescueById,
     cancelRescue,
-    makeFundraiser,
     getImpactFeed,
     toggleImpactLike,
     addImpactComment,
@@ -71,9 +70,6 @@ router.put('/:id/assign-ambulance', protect, allowRoles('hospital'), assignAmbul
 
 // @route  PUT /api/rescue/:id/status  (ambulance status update)
 router.put('/:id/status', protect, allowRoles('ambulance'), updateStatus);
-
-// @route  PUT /api/rescue/:id/fundraiser
-router.put('/:id/fundraiser', protect, allowRoles('user'), makeFundraiser);
 
 // @route  POST /api/rescue/:id/impact/like
 router.post('/:id/impact/like', protect, toggleImpactLike);

@@ -198,14 +198,17 @@ const acceptBroadcastedCase = async (req, res) => {
             // Emit the actual dispatch alert to the targeted ambulances
             const targetIds = targetAmbulances.map(a => a._id);
             emitAmbulanceDispatch(rescue, targetIds);
+        }
 
-            // Start event-driven dispatch service (replaces cron polling)
+        await rescue.save();
+
+        if (!isNgoSelfTransport) {
+            // Start event-driven dispatch service (replaces cron polling) after saving the updated fields to DB
             onRescueNeedsAmbulance(rescue._id).catch(err => 
                 console.error(`[Hospital Controller] Failed to start ambulance dispatch: ${err.message}`)
             );
         }
 
-        await rescue.save();
         res.status(200).json({ success: true, message: isNgoSelfTransport ? 'Case claimed. NGO is bringing the animal.' : 'Case claimed. Ambulance dispatch started.', rescue });
     } catch (error) {
         console.error('[Hospital Controller] acceptBroadcastedCase error:', error.message);

@@ -319,6 +319,34 @@ const ApprovalCard = ({ user: u, acting, onApprove }) => {
     );
 };
 
+const matchRescueFilter = (rescueStatus, filter) => {
+    if (filter === 'all') return true;
+    if (filter === 'pending') return rescueStatus === 'pending';
+    if (filter === 'ambulance_pinged') return rescueStatus === 'ambulance_pinged';
+    if (filter === 'unresolved') return rescueStatus === 'closed_unresolved';
+    if (filter === 'cancelled') return rescueStatus === 'cancelled';
+    if (filter === 'completed') return ['completed', 'resolved_on_spot'].includes(rescueStatus);
+    if (filter === 'accepted') {
+        return [
+            'accepted',
+            'ngo_accepted',
+            'hospital_accepted',
+            'ambulance_assigned',
+            'en_route',
+            'picked_up',
+            'delivered',
+            'treating',
+            'reached',
+            'scheduled',
+            'hospital_broadcasted',
+            'hospital_escalated',
+            'ready_for_return',
+            'manual_transport_accepted'
+        ].includes(rescueStatus);
+    }
+    return rescueStatus === filter;
+};
+
 const AdminDashboard = () => {
     const { user, impersonateUser, stopImpersonating, isImpersonating } = useAuth();
     const navigate = useNavigate();
@@ -326,6 +354,7 @@ const AdminDashboard = () => {
     const activeTab = searchParams.get('tab') || 'overview';
     const [roleFilter, setRoleFilter] = useState('all');
     const [rescueFilter, setRescueFilter] = useState('all');
+    const [fundraiserFilter, setFundraiserFilter] = useState('all');
 
     const [analytics, setAnalytics] = useState(null);
     const [pending, setPending] = useState([]);
@@ -939,15 +968,17 @@ const AdminDashboard = () => {
                 )}
                 {activeTab === 'rescues' && (
                     <section className="space-y-6">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4">
                             <div className="flex items-center gap-3">
                                 <h2 className="font-headline text-2xl font-bold">Platform Rescues</h2>
-                                <span className="text-[10px] font-black text-[#76d6d4] uppercase tracking-[0.2em] bg-[#76d6d4]/10 px-2 py-1 rounded border border-[#76d6d4]/20">{rescues.length} Reports</span>
+                                <span className="text-[10px] font-black text-[#76d6d4] uppercase tracking-[0.2em] bg-[#76d6d4]/10 px-2 py-1 rounded border border-[#76d6d4]/20">
+                                    {rescues.filter(r => matchRescueFilter(r.status, rescueFilter)).length} of {rescues.length} Reports
+                                </span>
                             </div>
                             
                             {/* Desktop Tabs */}
                             <div className="hidden md:flex bg-[#1c1b1b]/50 p-1.5 rounded-xl border border-white/5 backdrop-blur-xl overflow-x-auto custom-scrollbar">
-                                {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved'].map(f => (
+                                {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved', 'cancelled'].map(f => (
                                     <button
                                         key={f}
                                         onClick={() => setRescueFilter(f)}
@@ -961,7 +992,7 @@ const AdminDashboard = () => {
                                     </button>
                                 ))}
                             </div>
-
+ 
                             {/* Mobile Dropdown */}
                             <div className="md:hidden relative min-w-[160px]">
                                 <select
@@ -969,7 +1000,7 @@ const AdminDashboard = () => {
                                     onChange={(e) => setRescueFilter(e.target.value)}
                                     className="w-full bg-[#1c1b1b] border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#76d6d4] outline-none focus:ring-2 focus:ring-[#76d6d4]/20 transition-all appearance-none cursor-pointer"
                                 >
-                                    {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved'].map((f) => (
+                                    {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved', 'cancelled'].map((f) => (
                                         <option key={f} value={f} className="bg-[#1c1b1b]">
                                             {f === 'all' ? 'All Rescues' : f.replace('_', ' ').toUpperCase()}
                                         </option>
@@ -992,7 +1023,7 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {rescues.filter(r => rescueFilter === 'all' || r.status === rescueFilter).map(r => (
+                                    {rescues.filter(r => matchRescueFilter(r.status, rescueFilter)).map(r => (
                                         <tr key={r._id} className="hover:bg-white/5 transition-colors group">
                                             <td className="px-8 py-6">
                                                 <p className="font-bold text-[#e5e2e1]">{r.description}</p>
@@ -1011,7 +1042,7 @@ const AdminDashboard = () => {
                                 </tbody>
                             </table>
                         </div>
-                            {rescues.filter(r => rescueFilter === 'all' || r.status === rescueFilter).length === 0 && (
+                            {rescues.filter(r => matchRescueFilter(r.status, rescueFilter)).length === 0 && (
                                 <div className="py-20 text-center text-[#e5e2e1]/30 uppercase tracking-[0.3em] font-black">No matching rescues found</div>
                             )}
                         </div>
@@ -1020,21 +1051,42 @@ const AdminDashboard = () => {
 
                 {activeTab === 'finances' && (
                     <section className="space-y-6 w-full">
-                         <div className="flex items-center gap-3 px-2 mb-8">
-                            <h2 className="font-headline text-2xl font-bold">Fundraisers & Finances</h2>
-                            <span className="bg-[#ffb77d] text-[#131313] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{fundraisers.length} Total</span>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4 mb-4">
+                            <div className="flex items-center gap-3">
+                                <h2 className="font-headline text-2xl font-bold">Fundraisers & Finances</h2>
+                                <span className="bg-[#ffb77d] text-[#131313] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                    {fundraisers.filter(r => fundraiserFilter === 'all' || r.fundraiser.status === fundraiserFilter).length} Total
+                                </span>
+                            </div>
+                            
+                            <div className="flex bg-[#1c1b1b]/50 p-1.5 rounded-xl border border-white/5 backdrop-blur-xl overflow-x-auto no-scrollbar scroll-smooth flex-nowrap">
+                                {['all', 'pending', 'approved', 'rejected', 'completed'].map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setFundraiserFilter(f)}
+                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                                            fundraiserFilter === f 
+                                            ? 'bg-white text-black shadow-lg' 
+                                            : 'text-[#e5e2e1]/40 hover:text-[#e5e2e1]'
+                                        }`}
+                                    >
+                                        {f}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+
                         <div className="space-y-4">
                             {fundraisersLoading ? (
                                 <div className="p-8 text-center text-[#e5e2e1]/40">Loading financial requests...</div>
-                            ) : fundraisers.length === 0 ? (
+                            ) : fundraisers.filter(r => fundraiserFilter === 'all' || r.fundraiser.status === fundraiserFilter).length === 0 ? (
                                 <div className="glass-card rounded-[3rem] py-20 text-center border border-dashed border-white/10">
                                     <span className="material-symbols-outlined text-[#76d6d4] text-6xl mb-4">account_balance_wallet</span>
                                     <h3 className="text-xl font-bold">No active fundraisers</h3>
-                                    <p className="text-[#e5e2e1]/40">No organizations have requested case funding recently.</p>
+                                    <p className="text-[#e5e2e1]/40">No organizations have requested case funding recently matching this status.</p>
                                 </div>
                             ) : (
-                                fundraisers.map(r => (
+                                fundraisers.filter(r => fundraiserFilter === 'all' || r.fundraiser.status === fundraiserFilter).map(r => (
                                     <div key={r._id} className="glass-card rounded-[2rem] p-6 border border-white/5 bg-[#1c1b1b] flex flex-col lg:flex-row gap-6 hover:border-[#ffb77d]/30 transition-all">
                                         <div className="flex-1 space-y-4">
                                             <div className="flex justify-between items-start gap-4">
@@ -1082,14 +1134,14 @@ const AdminDashboard = () => {
                                                         disabled={acting[r._id]}
                                                         onClick={async () => {
                                                             try {
-                                                                setActing(prev => ({ ...prev, [r._id]: true }));
-                                                                await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'reject' });
-                                                                toast.success('Rejected the request.');
-                                                                fetchFundraisers();
+                                                                 setActing(prev => ({ ...prev, [r._id]: true }));
+                                                                 await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'reject' });
+                                                                 toast.success('Rejected the request.');
+                                                                 fetchFundraisers();
                                                             } catch (err) {
-                                                                toast.error(err.response?.data?.message || 'Error occurred');
+                                                                 toast.error(err.response?.data?.message || 'Error occurred');
                                                             } finally {
-                                                                setActing(prev => ({ ...prev, [r._id]: false }));
+                                                                 setActing(prev => ({ ...prev, [r._id]: false }));
                                                             }
                                                         }}
                                                         className="flex-1 py-3 rounded-xl border border-red-500/30 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 transition-colors"
@@ -1101,14 +1153,14 @@ const AdminDashboard = () => {
                                                         disabled={acting[r._id]}
                                                         onClick={async () => {
                                                             try {
-                                                                setActing(prev => ({ ...prev, [r._id]: true }));
-                                                                await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'approve' });
-                                                                toast.success('Approved successfully.');
-                                                                fetchFundraisers();
+                                                                 setActing(prev => ({ ...prev, [r._id]: true }));
+                                                                 await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'approve' });
+                                                                 toast.success('Approved successfully.');
+                                                                 fetchFundraisers();
                                                             } catch (err) {
-                                                                toast.error(err.response?.data?.message || 'Error occurred');
+                                                                 toast.error(err.response?.data?.message || 'Error occurred');
                                                             } finally {
-                                                                setActing(prev => ({ ...prev, [r._id]: false }));
+                                                                 setActing(prev => ({ ...prev, [r._id]: false }));
                                                             }
                                                         }} 
                                                         className="flex-[2] py-3 rounded-xl bg-[#ffb77d] text-[#131313] text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,183,125,0.2)]"
@@ -1347,30 +1399,174 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {activeTab === 'rescues' && (
-                <div className="space-y-3">
-                    {loading ? (
-                        [1, 2, 3].map((i) => <div key={i} className="card animate-pulse h-20" />)
-                    ) : (
-                        rescues.map((r) => (
-                            <div key={r._id} className="card">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-slate-800 truncate">{r.description}</p>
-                                        <p className="text-xs text-surface-muted mt-0.5">
-                                            {r.user?.name} · {formatIndianDateTime(r.createdAt)}
-                                        </p>
-                                    </div>
-                                    <StatusBadge status={r.status} />
-                                </div>
-                            </div>
-                        ))
-                    )}
-                    {!loading && rescues.length === 0 && (
-                        <div className="card text-center py-12">
-                            <p className="text-slate-600">No rescue requests yet.</p>
+            {activeTab === 'finances' && (
+                <div className="space-y-4">
+                    <div className="px-5 py-4 bg-white dark:bg-zinc-900 border border-surface-border rounded-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-card">
+                        <div>
+                            <h3 className="font-semibold text-slate-800 dark:text-[#e5e2e1]">
+                                Fundraisers & Finances ({fundraisers.filter(r => fundraiserFilter === 'all' || r.fundraiser.status === fundraiserFilter).length})
+                            </h3>
+                            <span className="text-xs text-surface-muted">Review and manage NGO public fundraising requests.</span>
                         </div>
-                    )}
+
+                        <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-btn text-xs font-medium overflow-x-auto">
+                            {['all', 'pending', 'approved', 'rejected', 'completed'].map((f) => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFundraiserFilter(f)}
+                                    className={`px-3 py-1.5 rounded-btn capitalize transition-all whitespace-nowrap ${
+                                        fundraiserFilter === f ? 'bg-white dark:bg-zinc-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                    }`}
+                                >
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        {fundraisersLoading ? (
+                            [1, 2, 3].map((i) => <div key={i} className="card animate-pulse h-20" />)
+                        ) : fundraisers.filter(r => fundraiserFilter === 'all' || r.fundraiser.status === fundraiserFilter).length === 0 ? (
+                            <div className="card text-center py-12">
+                                <p className="text-slate-600">No fundraiser requests found matching status "{fundraiserFilter}".</p>
+                            </div>
+                        ) : (
+                            fundraisers
+                                .filter(r => fundraiserFilter === 'all' || r.fundraiser.status === fundraiserFilter)
+                                .map((r) => (
+                                    <div key={r._id} className="card flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h4 className="font-semibold text-slate-800 dark:text-white truncate text-base">{r.description}</h4>
+                                                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold capitalize ${
+                                                    r.fundraiser.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                    r.fundraiser.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                    'bg-red-100 text-red-700'
+                                                }`}>
+                                                    {r.fundraiser.status}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-surface-muted mt-1">
+                                                Requested by: <span className="font-medium text-slate-700 dark:text-slate-300">{r.assignedNGO?.orgName || r.assignedNGO?.name || 'Unknown NGO'}</span>
+                                            </p>
+                                            <p className="text-sm font-semibold text-slate-800 dark:text-white mt-2">Requested Amount: ₹{r.fundraiser.requestedGoal}</p>
+                                            <div className="mt-2 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-800/50 p-2.5 rounded-btn border border-slate-100 dark:border-zinc-800">
+                                                <strong>Justification:</strong> {r.fundraiser.billText || 'No justification provided.'}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2 w-full md:w-auto shrink-0 md:items-end">
+                                            {r.fundraiser.billImage && (
+                                                <a 
+                                                    href={r.fundraiser.billImage} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="block w-24 h-16 rounded overflow-hidden border border-slate-200 hover:opacity-85 transition-opacity"
+                                                >
+                                                    <img src={r.fundraiser.billImage} alt="Bill Proof" className="w-full h-full object-cover" />
+                                                </a>
+                                            )}
+                                            
+                                            {r.fundraiser.status === 'pending' && (
+                                                <div className="flex gap-2 w-full">
+                                                    <button 
+                                                        disabled={acting[r._id]}
+                                                        onClick={async () => {
+                                                            try {
+                                                                setActing(prev => ({ ...prev, [r._id]: true }));
+                                                                await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'reject' });
+                                                                toast.success('Rejected the request.');
+                                                                fetchFundraisers();
+                                                            } catch (err) {
+                                                                toast.error(err.response?.data?.message || 'Error occurred');
+                                                            } finally {
+                                                                setActing(prev => ({ ...prev, [r._id]: false }));
+                                                            }
+                                                        }}
+                                                        className="btn-outline btn-sm text-red-600 border-red-200 hover:bg-red-50 flex-1"
+                                                    >
+                                                        {acting[r._id] ? '...' : 'Reject'}
+                                                    </button>
+                                                    
+                                                    <button
+                                                        disabled={acting[r._id]}
+                                                        onClick={async () => {
+                                                            try {
+                                                                setActing(prev => ({ ...prev, [r._id]: true }));
+                                                                await api.put(`/admin/rescue/${r._id}/fundraiser/review`, { action: 'approve' });
+                                                                toast.success('Approved successfully.');
+                                                                fetchFundraisers();
+                                                            } catch (err) {
+                                                                toast.error(err.response?.data?.message || 'Error occurred');
+                                                            } finally {
+                                                                setActing(prev => ({ ...prev, [r._id]: false }));
+                                                            }
+                                                        }} 
+                                                        className="btn-primary btn-sm flex-1"
+                                                    >
+                                                        {acting[r._id] ? '...' : 'Approve'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'rescues' && (
+                <div className="space-y-4">
+                    <div className="px-5 py-4 bg-white dark:bg-zinc-900 border border-surface-border rounded-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-card">
+                        <div>
+                            <h3 className="font-semibold text-slate-800 dark:text-[#e5e2e1]">
+                                Platform Rescues ({rescues.filter(r => matchRescueFilter(r.status, rescueFilter)).length} of {rescues.length})
+                            </h3>
+                            <span className="text-xs text-surface-muted">Review and oversee platform emergency rescue reports.</span>
+                        </div>
+
+                        <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-btn text-xs font-medium overflow-x-auto">
+                            {['all', 'pending', 'ambulance_pinged', 'accepted', 'completed', 'unresolved', 'cancelled'].map((f) => (
+                                <button
+                                    key={f}
+                                    onClick={() => setRescueFilter(f)}
+                                    className={`px-3 py-1.5 rounded-btn capitalize transition-all whitespace-nowrap ${
+                                        rescueFilter === f ? 'bg-white dark:bg-zinc-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                    }`}
+                                >
+                                    {f.replace('_', ' ')}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        {loading ? (
+                            [1, 2, 3].map((i) => <div key={i} className="card animate-pulse h-20" />)
+                        ) : rescues.filter(r => matchRescueFilter(r.status, rescueFilter)).length === 0 ? (
+                            <div className="card text-center py-12">
+                                <p className="text-slate-600">No matching rescue requests found for filter "{rescueFilter}".</p>
+                            </div>
+                        ) : (
+                            rescues
+                                .filter(r => matchRescueFilter(r.status, rescueFilter))
+                                .map((r) => (
+                                    <div key={r._id} className="card">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{r.description}</p>
+                                                <p className="text-xs text-surface-muted mt-0.5">
+                                                    {r.user?.name} · {formatIndianDateTime(r.createdAt)}
+                                                </p>
+                                            </div>
+                                            <StatusBadge status={r.status} />
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
                 </div>
             )}
         </div>
