@@ -155,7 +155,8 @@ const PaymentHistory = () => {
             kind: 'subscription',
             occurredAt: item.createdAt,
             title: `Recurring contribution Rs ${item.amount}`,
-            amountLabel: `Rs ${item.amount}`,
+            amountLabel: `-Rs ${item.amount}`,
+            isDebit: true,
         })),
         ...(data.walletTransactions || []).map((item) => ({
             ...item,
@@ -163,6 +164,7 @@ const PaymentHistory = () => {
             occurredAt: item.createdAt,
             title: item.description,
             amountLabel: `${item.type === 'debit' ? '-' : '+'}Rs ${item.amount}`,
+            isDebit: item.type === 'debit',
         })),
         ...(data.rescueBills || []).map((item) => ({
             ...item,
@@ -170,6 +172,7 @@ const PaymentHistory = () => {
             occurredAt: item.bill.createdAt,
             title: `Hospital Bill: ${item.assignedHospital?.orgName || 'Unknown Hospital'}`,
             amountLabel: `-Rs ${item.bill.totalAmount || item.bill.estimatedCost || 0}`,
+            isDebit: true,
         })),
     ].sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt));
 
@@ -313,7 +316,7 @@ const PaymentHistory = () => {
                                             <span className={`rounded-md px-2.5 py-1 text-[10px] font-black uppercase flex-shrink-0 whitespace-nowrap ${item.kind === 'wallet' ? 'bg-white/5 text-white/40' : 'bg-[#76d6d5]/10 text-[#76d6d5]'}`}>{item.kind}</span>
                                         </div>
                                         <p className="text-xs text-white/30">{formatIndianDateTime(item.occurredAt)}</p>
-                                        <p className="text-sm font-bold text-[#e5e2e1]/70">{item.amountLabel}</p>
+                                        <p className={`text-sm font-bold ${item.isDebit ? 'text-red-400' : 'text-[#76d6d5]'}`}>{item.amountLabel}</p>
                                     </div>
                                 ))}
                             </div>
@@ -490,7 +493,7 @@ const PaymentHistory = () => {
                                         </div>
                                         <span className={`rounded-md px-2.5 py-1 text-[11px] font-bold uppercase flex-shrink-0 whitespace-nowrap ${item.kind === 'wallet' ? 'bg-slate-200 text-slate-700' : 'bg-emerald-100 text-emerald-700'}`}>{item.kind}</span>
                                     </div>
-                                    <p className="mt-2 text-sm font-semibold text-slate-700">{item.amountLabel}</p>
+                                    <p className={`mt-2 text-sm font-semibold ${item.isDebit ? 'text-rose-600' : 'text-emerald-600'}`}>{item.amountLabel}</p>
                                 </div>
                             ))}
                         </div>

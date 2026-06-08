@@ -197,10 +197,13 @@ const rescueRequestSchema = new mongoose.Schema(
             default: false,
         },
         fundraiser: {
-            status: { type: String, enum: ['none', 'pending', 'approved', 'rejected', 'completed'], default: 'none' },
+            status: { type: String, enum: ['none', 'pending', 'approved', 'rejected', 'completed', 'paused', 'cancelled'], default: 'none' },
             requestedGoal: { type: Number, default: 0 },
             billImage: { type: String, default: null }, // Required evidence
             billText: { type: String, default: '' },
+            storyText: { type: String, default: '' },
+            caption: { type: String, default: '' },
+            media: { type: [String], default: [] },
             requestedAt: { type: Date, default: null },
             adminNotes: { type: String, default: '' }
         },

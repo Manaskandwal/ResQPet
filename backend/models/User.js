@@ -47,6 +47,16 @@ const userSchema = new mongoose.Schema(
             default: 0,
             min: [0, 'Wallet balance cannot be negative'],
         },
+        paymentHistory: {
+            type: [{
+                amount: { type: Number, required: true },
+                type: { type: String, enum: ['deduction', 'deposit', 'refund'], default: 'deduction' },
+                description: { type: String, default: '' },
+                timestamp: { type: Date, default: Date.now },
+                rescueId: { type: mongoose.Schema.Types.ObjectId, ref: 'RescueRequest', default: null },
+            }],
+            default: [],
+        },
         // Admin approves NGO, hospital, ambulance accounts
         isApproved: {
             type: Boolean,

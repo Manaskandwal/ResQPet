@@ -249,6 +249,7 @@ const getMyCases = async (req, res) => {
         const cases = await RescueRequest.find({ assignedNGO: req.user._id })
             .populate('user', 'name phone email')
             .populate('assignedAmbulance', 'name vehicleNumber')
+            .populate('assignedNGO', 'orgName name email')
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, count: cases.length, cases });
@@ -386,7 +387,7 @@ const escalateToHospital = async (req, res) => {
 
 const requestFundraiser = async (req, res) => {
     try {
-        const { requestedGoal, billText } = req.body;
+        const { requestedGoal, billText, storyText, caption } = req.body;
         const rescueId = req.params.id;
 
         const rescue = await RescueRequest.findOne({ _id: rescueId, assignedNGO: req.user._id });
@@ -402,16 +403,37 @@ const requestFundraiser = async (req, res) => {
         }
 
         let billImage = null;
-        if (req.files && req.files.length > 0) {
-            try {
-                const result = await uploadBufferToCloudinary(req.files[0].buffer, {
-                    folder: `VetsCue/fundraiser/${rescue._id}`,
-                    resource_type: 'image',
-                });
-                billImage = result.secure_url;
-            } catch (err) {
-                console.error('[NGO Controller] Fundraiser bill upload error:', err.message);
-                return res.status(500).json({ success: false, message: 'Failed to upload bill image evidence.' });
+        const mediaUrls = [];
+
+        if (req.files) {
+            // 1. Process Estimate/Actual Bill Image (Required)
+            const billImageFiles = req.files['billImage'] || [];
+            if (billImageFiles.length > 0) {
+                try {
+                    const result = await uploadBufferToCloudinary(billImageFiles[0].buffer, {
+                        folder: `VetsCue/fundraiser/${rescue._id}`,
+                        resource_type: 'image',
+                    });
+                    billImage = result.secure_url;
+                } catch (err) {
+                    console.error('[NGO Controller] Fundraiser bill upload error:', err.message);
+                    return res.status(500).json({ success: false, message: 'Failed to upload bill image evidence.' });
+                }
+            }
+
+            // 2. Process Optional Progress Photos & Videos
+            const mediaFiles = req.files['media'] || [];
+            for (const file of mediaFiles) {
+                try {
+                    const isVideo = file.mimetype.startsWith('video/');
+                    const result = await uploadBufferToCloudinary(file.buffer, {
+                        folder: `VetsCue/fundraiser/${rescue._id}/media`,
+                        resource_type: isVideo ? 'video' : 'image',
+                    });
+                    mediaUrls.push(result.secure_url);
+                } catch (err) {
+                    console.error('[NGO Controller] Additional media upload error:', err.message);
+                }
             }
         }
 
@@ -428,6 +450,9 @@ const requestFundraiser = async (req, res) => {
             requestedGoal: Number(requestedGoal),
             billText: billText || '',
             billImage,
+            storyText: storyText || '',
+            caption: caption || '',
+            media: mediaUrls,
             requestedAt: new Date(),
         };
 
@@ -437,6 +462,159 @@ const requestFundraiser = async (req, res) => {
         res.status(200).json({ success: true, message: 'Fundraiser requested. Awaiting Admin verification.', rescue });
     } catch (error) {
         console.error('[NGO Controller] requestFundraiser error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const editFundraiserGoal = async (req, res) => {
+    try {
+        const { newGoal } = req.body;
+        const rescueId = req.params.id;
+
+        if (!newGoal || Number(newGoal) < 100) {
+            return res.status(400).json({ success: false, message: 'Minimum requested goal is ₹100.' });
+        }
+
+        const rescue = await RescueRequest.findOne({ _id: rescueId, assignedNGO: req.user._id });
+        if (!rescue) {
+            return res.status(404).json({ success: false, message: 'Case not found or not assigned to your NGO.' });
+        }
+
+        if (!rescue.isFundraiser || !['approved', 'pending', 'paused'].includes(rescue.fundraiser.status)) {
+            return res.status(400).json({ success: false, message: 'No active or editable fundraiser exists for this case.' });
+        }
+
+        if (Number(newGoal) < rescue.amountRaised) {
+            return res.status(400).json({ success: false, message: `New goal cannot be less than the amount already raised (₹${rescue.amountRaised}).` });
+        }
+
+        rescue.fundraiser.requestedGoal = Number(newGoal);
+        rescue.estimatedCost = Number(newGoal);
+
+        pushStatusLog(rescue, rescue.status, `NGO updated the fundraiser goal to ₹${newGoal}.`);
+        await rescue.save();
+        emitRescueUpdate(rescue._id, rescue.status, { message: `Fundraiser goal updated to ₹${newGoal}.` });
+
+        res.status(200).json({ success: true, message: 'Fundraiser goal successfully updated.', rescue });
+    } catch (error) {
+        console.error('[NGO Controller] editFundraiserGoal error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const addFundraiserMedia = async (req, res) => {
+    try {
+        const rescueId = req.params.id;
+        const rescue = await RescueRequest.findOne({ _id: rescueId, assignedNGO: req.user._id });
+        if (!rescue) {
+            return res.status(404).json({ success: false, message: 'Case not found or not assigned to your NGO.' });
+        }
+
+        if (!rescue.isFundraiser || !['approved', 'pending', 'paused'].includes(rescue.fundraiser.status)) {
+            return res.status(400).json({ success: false, message: 'No active or pending fundraiser exists for this case.' });
+        }
+
+        const mediaUrls = [];
+        const mediaFiles = req.files || [];
+
+        if (mediaFiles.length > 0) {
+            for (const file of mediaFiles) {
+                try {
+                    const isVideo = file.mimetype.startsWith('video/');
+                    const result = await uploadBufferToCloudinary(file.buffer, {
+                        folder: `VetsCue/fundraiser/${rescue._id}/media`,
+                        resource_type: isVideo ? 'video' : 'image',
+                    });
+                    mediaUrls.push(result.secure_url);
+                } catch (err) {
+                    console.error('[NGO Controller] Add media upload error:', err.message);
+                }
+            }
+        } else {
+            return res.status(400).json({ success: false, message: 'No media files provided.' });
+        }
+
+        if (mediaUrls.length === 0) {
+            return res.status(500).json({ success: false, message: 'Failed to upload files.' });
+        }
+
+        rescue.fundraiser.media = [...(rescue.fundraiser.media || []), ...mediaUrls];
+        pushStatusLog(rescue, rescue.status, `NGO added ${mediaUrls.length} new bill proof/media file(s) to the fundraiser.`);
+
+        await rescue.save();
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'New fundraiser media uploaded successfully.' });
+
+        res.status(200).json({ success: true, message: 'Media successfully added.', rescue });
+    } catch (error) {
+        console.error('[NGO Controller] addFundraiserMedia error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const togglePauseFundraiser = async (req, res) => {
+    try {
+        const rescueId = req.params.id;
+        const rescue = await RescueRequest.findOne({ _id: rescueId, assignedNGO: req.user._id });
+        if (!rescue) {
+            return res.status(404).json({ success: false, message: 'Case not found or not assigned to your NGO.' });
+        }
+
+        if (!rescue.isFundraiser) {
+            return res.status(400).json({ success: false, message: 'No fundraiser associated with this case.' });
+        }
+
+        const currentStatus = rescue.fundraiser.status;
+        let newStatus;
+        let actionMsg;
+
+        if (currentStatus === 'approved') {
+            newStatus = 'paused';
+            actionMsg = 'PAUSED';
+        } else if (currentStatus === 'paused') {
+            newStatus = 'approved';
+            actionMsg = 'RESUMED';
+        } else {
+            return res.status(400).json({ success: false, message: `Cannot pause/resume a fundraiser that is in '${currentStatus}' status.` });
+        }
+
+        rescue.fundraiser.status = newStatus;
+        pushStatusLog(rescue, rescue.status, `Fundraiser campaign was ${actionMsg} by the NGO.`);
+
+        await rescue.save();
+        emitRescueUpdate(rescue._id, rescue.status, { message: `Fundraiser campaign was ${actionMsg.toLowerCase()}.` });
+
+        res.status(200).json({ success: true, message: `Fundraiser successfully ${actionMsg.toLowerCase()}.`, rescue });
+    } catch (error) {
+        console.error('[NGO Controller] togglePauseFundraiser error:', error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const cancelFundraiser = async (req, res) => {
+    try {
+        const rescueId = req.params.id;
+        const rescue = await RescueRequest.findOne({ _id: rescueId, assignedNGO: req.user._id });
+        if (!rescue) {
+            return res.status(404).json({ success: false, message: 'Case not found or not assigned to your NGO.' });
+        }
+
+        if (!rescue.isFundraiser) {
+            return res.status(400).json({ success: false, message: 'No fundraiser associated with this case.' });
+        }
+
+        if (['completed', 'rejected', 'cancelled'].includes(rescue.fundraiser.status)) {
+            return res.status(400).json({ success: false, message: `Fundraiser is already '${rescue.fundraiser.status}' and cannot be cancelled.` });
+        }
+
+        rescue.fundraiser.status = 'cancelled';
+        pushStatusLog(rescue, rescue.status, 'Fundraiser campaign was CANCELLED by the NGO.');
+
+        await rescue.save();
+        emitRescueUpdate(rescue._id, rescue.status, { message: 'Fundraiser campaign was cancelled.' });
+
+        res.status(200).json({ success: true, message: 'Fundraiser successfully cancelled.', rescue });
+    } catch (error) {
+        console.error('[NGO Controller] cancelFundraiser error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -453,4 +631,8 @@ module.exports = {
     completeCase,
     addFollowUp,
     requestFundraiser,
+    editFundraiserGoal,
+    addFundraiserMedia,
+    togglePauseFundraiser,
+    cancelFundraiser,
 };

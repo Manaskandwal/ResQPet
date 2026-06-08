@@ -1110,11 +1110,43 @@ const AdminDashboard = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/40">Justification</p>
-                                                <p className="text-sm font-medium leading-relaxed">{r.fundraiser.billText || 'No justification provided.'}</p>
-                                            </div>
-
+                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+                                                 {r.fundraiser.caption && (
+                                                     <div>
+                                                         <p className="text-[10px] font-black uppercase tracking-widest text-[#fd8b00]">Caption/Title</p>
+                                                         <p className="text-sm font-bold leading-snug">{r.fundraiser.caption}</p>
+                                                     </div>
+                                                 )}
+                                                 {r.fundraiser.storyText && (
+                                                     <div>
+                                                         <p className="text-[10px] font-black uppercase tracking-widest text-brand">Story / Case Story</p>
+                                                         <p className="text-xs leading-relaxed text-[#e5e2e1]/80 whitespace-pre-line">{r.fundraiser.storyText}</p>
+                                                     </div>
+                                                 )}
+                                                 <div>
+                                                     <p className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/40">Justification</p>
+                                                     <p className="text-sm font-medium leading-relaxed">{r.fundraiser.billText || 'No justification provided.'}</p>
+                                                 </div>
+                                                 {r.fundraiser.media && r.fundraiser.media.length > 0 && (
+                                                     <div>
+                                                         <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1">Additional Media</p>
+                                                         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                                                             {r.fundraiser.media.map((url, idx) => {
+                                                                 const isVideo = url.includes('.mp4') || url.includes('/video/');
+                                                                 return (
+                                                                     <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="w-16 h-12 rounded border border-white/10 overflow-hidden shrink-0 relative block">
+                                                                         {isVideo ? (
+                                                                             <div className="w-full h-full bg-black flex items-center justify-center text-[8px] font-black text-[#fd8b00]">VIDEO</div>
+                                                                         ) : (
+                                                                             <img src={url} alt="Media" className="w-full h-full object-cover" />
+                                                                         )}
+                                                                     </a>
+                                                                 );
+                                                             })}
+                                                         </div>
+                                                     </div>
+                                                 )}
+                                             </div>
                                         </div>
 
                                         <div className="flex flex-col gap-4 min-w-[200px]">
@@ -1451,9 +1483,40 @@ const AdminDashboard = () => {
                                                 Requested by: <span className="font-medium text-slate-700 dark:text-slate-300">{r.assignedNGO?.orgName || r.assignedNGO?.name || 'Unknown NGO'}</span>
                                             </p>
                                             <p className="text-sm font-semibold text-slate-800 dark:text-white mt-2">Requested Amount: ₹{r.fundraiser.requestedGoal}</p>
-                                            <div className="mt-2 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-800/50 p-2.5 rounded-btn border border-slate-100 dark:border-zinc-800">
-                                                <strong>Justification:</strong> {r.fundraiser.billText || 'No justification provided.'}
-                                            </div>
+                                            <div className="mt-2 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-zinc-800/50 p-2.5 rounded-btn border border-slate-100 dark:border-zinc-800 space-y-2">
+                                                 {r.fundraiser.caption && (
+                                                     <div>
+                                                         <strong>Caption:</strong> <span className="font-semibold text-slate-700 dark:text-slate-300">{r.fundraiser.caption}</span>
+                                                     </div>
+                                                 )}
+                                                 {r.fundraiser.storyText && (
+                                                     <div>
+                                                         <strong>Story:</strong> <p className="mt-0.5 whitespace-pre-line text-[11px] leading-relaxed">{r.fundraiser.storyText}</p>
+                                                     </div>
+                                                 )}
+                                                 <div>
+                                                     <strong>Justification:</strong> {r.fundraiser.billText || 'No justification provided.'}
+                                                 </div>
+                                                 {r.fundraiser.media && r.fundraiser.media.length > 0 && (
+                                                     <div className="pt-1">
+                                                         <strong>Additional Media:</strong>
+                                                         <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
+                                                             {r.fundraiser.media.map((url, idx) => {
+                                                                 const isVideo = url.includes('.mp4') || url.includes('/video/');
+                                                                 return (
+                                                                     <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="w-16 h-12 rounded border border-slate-200 dark:border-zinc-700 overflow-hidden shrink-0 relative block bg-slate-100">
+                                                                         {isVideo ? (
+                                                                             <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-rose-500">VIDEO</div>
+                                                                         ) : (
+                                                                             <img src={url} alt="Media" className="w-full h-full object-cover" />
+                                                                         )}
+                                                                     </a>
+                                                                 );
+                                                             })}
+                                                         </div>
+                                                     </div>
+                                                 )}
+                                             </div>
                                         </div>
 
                                         <div className="flex flex-col gap-2 w-full md:w-auto shrink-0 md:items-end">

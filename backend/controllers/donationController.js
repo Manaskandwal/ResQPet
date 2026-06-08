@@ -1,7 +1,58 @@
 const Donation = require('../models/Donation');
+const User = require('../models/User');
 const RescueRequest = require('../models/RescueRequest');
 const { getRazorpay } = require('../config/razorpay');
 const crypto = require('crypto');
+
+const handleFundraiserGoalAchieved = async (rescue) => {
+    try {
+        console.log(`[Donation Controller] Fundraiser goal met for rescue ${rescue._id}. Pushing to ambulance dispatch.`);
+        
+        // 1. Update fundraiser status to completed
+        rescue.fundraiser.status = 'completed';
+        rescue.status = 'ambulance_pinged';
+        
+        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
+        rescue.statusLogs.push({
+            status: rescue.status,
+            message: `Fundraiser goal achieved (Raised ₹${rescue.amountRaised} of ₹${rescue.fundraiser.requestedGoal || rescue.estimatedCost}). Pushing case back to queue for ambulance assignment.`,
+            timestamp: new Date()
+        });
+        
+        await rescue.save();
+
+        // 2. Fetch distinct successful donors for this rescue request
+        const donorIds = await Donation.find({ 
+            rescueRequest: rescue._id, 
+            status: 'successful' 
+        }).distinct('user');
+
+        // 3. Create thank you notifications for all donors
+        const Notification = require('../models/Notification');
+        for (const donorId of donorIds) {
+            try {
+                await Notification.create({
+                    recipient: donorId,
+                    title: 'Fundraiser Success! Thank You ❤️',
+                    message: `The fundraiser campaign for case #${rescue._id.toString().slice(-6).toUpperCase()} ("${rescue.description || 'Rescue Case'}") was successful, raising ₹${rescue.amountRaised}. Thank you so much for your donation!`,
+                    type: 'system',
+                    rescueRequest: rescue._id
+                });
+            } catch (notifErr) {
+                console.error(`[Donation Controller] Failed to notify donor ${donorId}:`, notifErr.message);
+            }
+        }
+
+        // 4. Trigger ambulance dispatch
+        const { onRescueNeedsAmbulance } = require('../services/ambulanceDispatchService');
+        onRescueNeedsAmbulance(rescue._id).catch(err =>
+            console.error(`[Donation Controller] Failed to start ambulance dispatch: ${err.message}`)
+        );
+
+    } catch (err) {
+        console.error('[Donation Controller] handleFundraiserGoalAchieved error:', err.message);
+    }
+};
 
 /**
  * @route   POST /api/donation/create-order
@@ -94,18 +145,11 @@ const verifyDonation = async (req, res) => {
                 rescue.amountRaised += donation.amount;
 
                 // If goal is met, move it out of fundraiser state into ambulance pinging
-                if (rescue.status === 'fundraiser_active' && rescue.amountRaised >= rescue.estimatedCost) {
-                    rescue.status = 'ambulance_pinged';
-                    console.log(`[Donation Controller] Fundraiser goal met for rescue ${rescue._id}. Pushing to ambulance dispatch.`);
-
-                    // Start event-driven dispatch service
-                    const { onRescueNeedsAmbulance } = require('../services/ambulanceDispatchService');
-                    onRescueNeedsAmbulance(rescue._id).catch(err =>
-                        console.error(`[Donation Controller] Failed to start ambulance dispatch: ${err.message}`)
-                    );
+                if (rescue.amountRaised >= (rescue.fundraiser.requestedGoal || rescue.estimatedCost)) {
+                    await handleFundraiserGoalAchieved(rescue);
+                } else {
+                    await rescue.save();
                 }
-
-                await rescue.save();
             }
         }
 
@@ -209,7 +253,7 @@ const getPublicFundraisers = async (req, res) => {
             'fundraiser.status': 'approved'
         })
             .populate('user', 'name')
-            .populate('assignedNGO', 'orgName name')
+            .populate('assignedNGO', 'orgName name email')
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, count: fundraisers.length, fundraisers });
@@ -232,7 +276,10 @@ const donateWithWallet = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Minimum donation is ₹10.' });
         }
 
-        const user = req.user;
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
         if (user.walletBalance < amount) {
             return res.status(400).json({ success: false, message: 'Insufficient wallet balance.' });
         }
@@ -252,20 +299,26 @@ const donateWithWallet = async (req, res) => {
         });
         await user.save();
 
+        // Create successful Donation document
+        await Donation.create({
+            user: user._id,
+            rescueRequest: rescue._id,
+            amount: amount,
+            status: 'successful',
+            paymentMethod: 'wallet',
+            paymentSource: 'wallet',
+        });
+
         rescue.amountRaised += amount;
         
-        // If goal met
-        if (rescue.amountRaised >= rescue.fundraiser.requestedGoal) {
-            rescue.statusLogs.push({
-                status: rescue.status,
-                message: `Fundraiser goal achieved! Pushing case back to queue for ambulance assignment.`,
-                timestamp: new Date()
-            });
-            // Update the system to trigger dispatch
-            rescue.fundraiser.status = 'none';
-        }
+        rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
         
-        await rescue.save();
+        // If goal met
+        if (rescue.amountRaised >= (rescue.fundraiser.requestedGoal || rescue.estimatedCost)) {
+            await handleFundraiserGoalAchieved(rescue);
+        } else {
+            await rescue.save();
+        }
 
         res.status(200).json({ 
             success: true, 

@@ -33,16 +33,25 @@ const Fundraisers = () => {
     const [paymentHistoryMessage, setPaymentHistoryMessage] = useState('');
     const [supportModalOpen, setSupportModalOpen] = useState(false);
     const [supportForm, setSupportForm] = useState(defaultSupportForm);
+    const [detailsFundraiser, setDetailsFundraiser] = useState(null);
 
     // NGO specific state
     const [eligibleCases, setEligibleCases] = useState([]);
+    const [myFundraisers, setMyFundraisers] = useState([]);
     const [selectedCase, setSelectedCase] = useState(null);
     const [formLoading, setFormLoading] = useState(false);
     const [formData, setFormData] = useState({
         requestedGoal: '',
         billText: '',
-        media: null
+        storyText: '',
+        caption: '',
+        billImage: null,
+        mediaFiles: []
     });
+
+    const [editingGoalId, setEditingGoalId] = useState(null);
+    const [newGoalValue, setNewGoalValue] = useState('');
+    const [actionLoadingId, setActionLoadingId] = useState(null);
 
     const fetchFundraisers = async () => {
         try {
@@ -66,11 +75,20 @@ const Fundraisers = () => {
         try {
             const res = await api.get('/ngo/my-cases');
             const allCases = res.data.cases || [];
-            // Filter to only cases that are eligible for fundraiser and not already one
-            const filtered = allCases.filter(c => 
-                ['completed', 'treating', 'reached', 'resolved_on_spot', 'hospital_broadcasted'].includes(c.status)
+            
+            // Cases eligible to request a new fundraiser (must be in valid treatment status and have no existing fundraiser)
+            const eligible = allCases.filter(c => 
+                ['completed', 'treating', 'reached', 'resolved_on_spot', 'hospital_broadcasted'].includes(c.status) &&
+                (!c.fundraiser || c.fundraiser.status === 'none')
             );
-            setEligibleCases(filtered);
+            
+            // Cases that already have fundraiser campaigns requested (pending, approved, rejected, or completed)
+            const requested = allCases.filter(c => 
+                c.fundraiser && c.fundraiser.status !== 'none'
+            );
+
+            setEligibleCases(eligible);
+            setMyFundraisers(requested);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to fetch cases.');
         }
@@ -92,7 +110,7 @@ const Fundraisers = () => {
     const handleNgoSubmit = async (e) => {
         e.preventDefault();
         if (!selectedCase) return;
-        if (!formData.media) {
+        if (!formData.billImage) {
             toast.error('Please attach the bill estimate image.');
             return;
         }
@@ -102,7 +120,15 @@ const Fundraisers = () => {
             const data = new FormData();
             data.append('requestedGoal', formData.requestedGoal);
             data.append('billText', formData.billText);
-            data.append('media', formData.media);
+            data.append('storyText', formData.storyText || '');
+            data.append('caption', formData.caption || '');
+            data.append('billImage', formData.billImage);
+
+            if (formData.mediaFiles && formData.mediaFiles.length > 0) {
+                formData.mediaFiles.forEach((file) => {
+                    data.append('media', file);
+                });
+            }
 
             await api.post(`/ngo/rescue/${selectedCase._id}/fundraiser`, data, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -110,12 +136,85 @@ const Fundraisers = () => {
 
             toast.success('Fundraiser request submitted for verification.');
             setSelectedCase(null);
-            setFormData({ requestedGoal: '', billText: '', media: null });
+            setFormData({ requestedGoal: '', billText: '', storyText: '', caption: '', billImage: null, mediaFiles: [] });
             fetchNgoCases();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to request fundraiser.');
         } finally {
             setFormLoading(false);
+        }
+    };
+
+    const handleEditGoalSubmit = async (caseId) => {
+        if (!newGoalValue || Number(newGoalValue) < 100) {
+            toast.error('Minimum goal is ₹100.');
+            return;
+        }
+        setActionLoadingId(caseId);
+        try {
+            await api.put(`/ngo/rescue/${caseId}/fundraiser/edit-goal`, { newGoal: Number(newGoalValue) });
+            toast.success('Fundraiser goal updated!');
+            setEditingGoalId(null);
+            setNewGoalValue('');
+            await fetchNgoCases();
+            await fetchFundraisers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update goal.');
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const handleAddMedia = async (caseId, files) => {
+        if (!files || files.length === 0) return;
+        const formDataObj = new FormData();
+        Array.from(files).forEach(file => {
+            formDataObj.append('media', file);
+        });
+
+        setActionLoadingId(caseId);
+        const toastId = toast.loading('Uploading additional proof/media...');
+        try {
+            await api.post(`/ngo/rescue/${caseId}/fundraiser/add-media`, formDataObj, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            toast.success('Proofs successfully uploaded!', { id: toastId });
+            await fetchNgoCases();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to upload media.', { id: toastId });
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const handleTogglePause = async (caseId) => {
+        setActionLoadingId(caseId);
+        try {
+            const res = await api.put(`/ngo/rescue/${caseId}/fundraiser/toggle-pause`);
+            toast.success(res.data.message || 'Campaign status updated.');
+            await fetchNgoCases();
+            await fetchFundraisers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update campaign status.');
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const handleCancelCampaign = async (caseId) => {
+        if (!window.confirm('Are you sure you want to cancel this fundraiser campaign? This action is irreversible.')) {
+            return;
+        }
+        setActionLoadingId(caseId);
+        try {
+            await api.put(`/ngo/rescue/${caseId}/fundraiser/cancel`);
+            toast.success('Fundraiser campaign cancelled.');
+            await fetchNgoCases();
+            await fetchFundraisers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to cancel campaign.');
+        } finally {
+            setActionLoadingId(null);
         }
     };
 
@@ -140,12 +239,12 @@ const Fundraisers = () => {
     const handleDonate = async (id, isNgo = false) => {
         if (!user) {
             toast.error('Please log in to donate.');
-            return;
+            return false;
         }
         const amount = parseFloat(donationAmount);
         if (!amount || amount < 10) {
             toast.error('Minimum donation is Rs 10.');
-            return;
+            return false;
         }
 
         if (isNgo) {
@@ -156,7 +255,7 @@ const Fundraisers = () => {
                 setDonationAmount('');
                 setDonatingId(null);
             }, 1000);
-            return;
+            return true;
         }
 
         setDonatingId(id);
@@ -170,8 +269,10 @@ const Fundraisers = () => {
             updateUser({ walletBalance: data.walletBalance });
             setDonationAmount('');
             fetchFundraisers();
+            return true;
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to process donation.');
+            return false;
         } finally {
             setDonatingId(null);
         }
@@ -187,6 +288,15 @@ const Fundraisers = () => {
         );
     }
 
+    const isOwnerView = detailsFundraiser && user && user.role === 'ngo' && (
+        detailsFundraiser.assignedNGO?._id === user._id || 
+        detailsFundraiser.assignedNGO === user._id
+    );
+    const isActive = detailsFundraiser && (
+        !detailsFundraiser.fundraiser || 
+        detailsFundraiser.fundraiser?.status === 'approved'
+    );
+
     if (isNewUI) {
         return (
             <div className="resqpet-obsidian-theme w-full text-on-surface space-y-8">
@@ -199,11 +309,14 @@ const Fundraisers = () => {
                     </div>
                     
                     <div className="flex flex-col md:items-end gap-4">
-                        <div className="flex gap-1 rounded-2xl bg-surface-hover p-1 w-full md:w-fit">
-                            <button onClick={() => setActiveTab('cases')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>Active Cases</button>
-                            <button onClick={() => setActiveTab('ngos')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ngos' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>NGO-wise</button>
+                        <div className="flex gap-1 rounded-2xl bg-surface-hover p-1 w-full md:w-fit overflow-x-auto no-scrollbar">
+                            <button onClick={() => setActiveTab('cases')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'cases' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>Active Cases</button>
+                            <button onClick={() => setActiveTab('ngos')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'ngos' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>NGO-wise</button>
                             {user?.role === 'ngo' && (
-                                <button onClick={() => setActiveTab('manage')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'manage' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>Start / Manage</button>
+                                <>
+                                    <button onClick={() => setActiveTab('my_fundraisers')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'my_fundraisers' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>My Fundraisers</button>
+                                    <button onClick={() => setActiveTab('manage')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'manage' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>Request Fundraiser</button>
+                                </>
                             )}
                         </div>
                         
@@ -254,9 +367,12 @@ const Fundraisers = () => {
                                                     <div className="h-full rounded-full bg-gradient-to-r from-brand to-brand-dark transition-all duration-1000 shadow-[0_0_8px_rgba(var(--brand-primary-rgb),0.4)]" style={{ width: `${progress}%` }} />
                                                 </div>
                                                 <p className="text-right text-[10px] font-black text-on-surface/20">{Number(progress || 0).toFixed(0)}% FUNDED</p>
-                                                <div className="flex gap-2">
-                                                    <input type="number" min="10" placeholder="Amount" className="flex-1 rounded-2xl bg-surface-hover border border-surface-border px-4 py-2.5 text-sm text-on-surface outline-none focus:border-brand/30 transition-all" onChange={(e) => setDonationAmount(e.target.value)} />
-                                                    <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="rounded-2xl bg-brand text-background px-5 py-2.5 text-xs font-black uppercase disabled:opacity-50 hover:scale-105 transition-all">{donatingId === rescue._id ? '...' : 'Help'}</button>
+                                                <div className="flex flex-col gap-2 pt-2">
+                                                    <button onClick={() => setDetailsFundraiser(rescue)} className="w-full rounded-2xl bg-white/5 hover:bg-white/10 border border-surface-border text-on-surface py-2.5 text-xs font-black uppercase transition-all">Read Story & Donate</button>
+                                                    <div className="flex gap-2">
+                                                        <input type="number" min="10" placeholder="Amount" className="flex-1 rounded-2xl bg-surface-hover border border-surface-border px-4 py-2.5 text-sm text-on-surface outline-none focus:border-brand/30 transition-all" onChange={(e) => setDonationAmount(e.target.value)} />
+                                                        <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="rounded-2xl bg-brand text-background px-5 py-2.5 text-xs font-black uppercase disabled:opacity-50 hover:scale-105 transition-all">{donatingId === rescue._id ? '...' : 'Help'}</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -287,6 +403,180 @@ const Fundraisers = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                ) : activeTab === 'my_fundraisers' && user?.role === 'ngo' ? (
+                    <div className="space-y-6">
+                        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">Our Fundraising Campaigns</h2>
+                        <p className="text-sm text-on-surface/50">Track the progress and verification status of fundraisers initiated by your organization.</p>
+                        
+                        {myFundraisers.length === 0 ? (
+                            <div className="py-16 glass-card rounded-[2.5rem] border border-dashed border-white/5 text-center space-y-4">
+                                <span className="material-symbols-outlined text-4xl text-white/10">campaign</span>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-white/20">No Fundraisers Initiated Yet</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                {myFundraisers.map((c) => {
+                                    const progress = Math.min(((c.amountRaised || 0) / (c.fundraiser.requestedGoal || 1)) * 100, 100);
+                                    return (
+                                        <div key={c._id} className="glass-card rounded-[2rem] border border-surface-border bg-surface p-6 flex flex-col justify-between group hover:border-brand/30 transition-all">
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-start gap-4">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-[#76d6d4]/50">Case #{c._id.slice(-6).toUpperCase()}</span>
+                                                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                                c.fundraiser.status === 'approved' ? 'bg-[#76d6d4]/10 text-[#76d6d4]' :
+                                                                c.fundraiser.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                                                                c.fundraiser.status === 'paused' ? 'bg-amber-500/10 text-amber-400' :
+                                                                c.fundraiser.status === 'cancelled' ? 'bg-red-500/10 text-red-400' :
+                                                                'bg-[#ffb77d]/10 text-[#ffb77d]'
+                                                            }`}>
+                                                                {c.fundraiser.status}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="font-bold text-lg text-on-surface mt-1 leading-tight">{c.description}</h4>
+                                                    </div>
+                                                    {c.images?.[0] && (
+                                                        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
+                                                            <img src={c.images[0]} alt="Subject" className="w-full h-full object-cover" />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between text-xs font-black">
+                                                        <span className="text-on-surface/40">Goal: ₹{c.fundraiser.requestedGoal}</span>
+                                                        <span className="text-brand">Raised: ₹{c.amountRaised || 0}</span>
+                                                    </div>
+                                                    <div className="h-2 w-full rounded-full bg-surface-hover overflow-hidden">
+                                                        <div className="h-full bg-gradient-to-r from-brand to-brand-dark" style={{ width: `${progress}%` }} />
+                                                    </div>
+                                                    <p className="text-right text-[9px] font-black text-on-surface/20">{Number(progress).toFixed(0)}% FUNDED</p>
+                                                </div>
+
+                                                <div className="pt-4 border-t border-white/5 space-y-3 text-xs text-on-surface/60">
+                                                    {c.fundraiser.caption && <p><span className="font-bold text-on-surface/30 uppercase text-[9px] tracking-widest block mb-0.5">Caption</span> {c.fundraiser.caption}</p>}
+                                                    <p><span className="font-bold text-on-surface/30 uppercase text-[9px] tracking-widest block mb-0.5">Justification</span> {c.fundraiser.billText}</p>
+                                                    {c.fundraiser.adminNotes && (
+                                                        <div className="p-3 rounded-xl bg-red-950/10 border border-red-500/10 text-red-300">
+                                                            <span className="font-bold text-red-400 uppercase text-[9px] tracking-widest block mb-0.5">Admin Notes</span>
+                                                            {c.fundraiser.adminNotes}
+                                                        </div>
+                                                    )}
+
+                                                    {editingGoalId === c._id ? (
+                                                        <div className="space-y-2 p-3 rounded-xl bg-white/5 border border-white/5">
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-brand">Edit Goal Amount</p>
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="number"
+                                                                    value={newGoalValue}
+                                                                    onChange={(e) => setNewGoalValue(e.target.value)}
+                                                                    placeholder="New goal"
+                                                                    className="flex-1 rounded-lg bg-surface border border-surface-border px-3 py-1.5 text-xs text-on-surface outline-none"
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleEditGoalSubmit(c._id)}
+                                                                    disabled={actionLoadingId === c._id}
+                                                                    className="px-3 py-1.5 rounded-lg bg-brand text-background text-[10px] font-black uppercase"
+                                                                >
+                                                                    Save
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingGoalId(null)}
+                                                                    className="px-3 py-1.5 rounded-lg bg-white/5 text-on-surface text-[10px] font-black uppercase border border-surface-border"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
+
+                                                    <div className="grid grid-cols-2 gap-2 pt-2">
+                                                        <button 
+                                                            onClick={() => setDetailsFundraiser(c)} 
+                                                            className="rounded-xl bg-white/5 hover:bg-white/10 text-white py-2 text-[9px] font-black uppercase tracking-widest border border-white/10 transition-all text-center"
+                                                        >
+                                                            Preview Campaign
+                                                        </button>
+
+                                                        {['pending', 'approved', 'paused'].includes(c.fundraiser.status) && (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setEditingGoalId(c._id);
+                                                                    setNewGoalValue(c.fundraiser.requestedGoal);
+                                                                }}
+                                                                className="rounded-xl bg-white/5 hover:bg-white/10 text-white py-2 text-[9px] font-black uppercase tracking-widest border border-white/10 transition-all text-center"
+                                                            >
+                                                                Edit Goal
+                                                            </button>
+                                                        )}
+
+                                                        {['pending', 'approved', 'paused'].includes(c.fundraiser.status) && (
+                                                            <>
+                                                                <input 
+                                                                    type="file" 
+                                                                    id={`add-media-input-${c._id}`} 
+                                                                    multiple 
+                                                                    accept="image/*,video/*" 
+                                                                    className="hidden" 
+                                                                    onChange={(e) => handleAddMedia(c._id, e.target.files)} 
+                                                                />
+                                                                <button 
+                                                                    onClick={() => document.getElementById(`add-media-input-${c._id}`).click()}
+                                                                    className="rounded-xl bg-white/5 hover:bg-white/10 text-white py-2 text-[9px] font-black uppercase tracking-widest border border-white/10 transition-all text-center"
+                                                                >
+                                                                    Add Proofs
+                                                                </button>
+                                                            </>
+                                                        )}
+
+                                                        {c.fundraiser.status === 'approved' && (
+                                                            <button 
+                                                                onClick={() => handleTogglePause(c._id)}
+                                                                className="rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 py-2 text-[9px] font-black uppercase tracking-widest border border-amber-500/20 transition-all text-center"
+                                                            >
+                                                                Pause
+                                                            </button>
+                                                        )}
+
+                                                        {c.fundraiser.status === 'paused' && (
+                                                            <button 
+                                                                onClick={() => handleTogglePause(c._id)}
+                                                                className="rounded-xl bg-[#76d6d4]/10 hover:bg-[#76d6d4]/20 text-[#76d6d4] py-2 text-[9px] font-black uppercase tracking-widest border border-[#76d6d4]/20 transition-all text-center"
+                                                            >
+                                                                Resume
+                                                            </button>
+                                                        )}
+
+                                                        {['pending', 'approved', 'paused'].includes(c.fundraiser.status) && (
+                                                            <button 
+                                                                onClick={() => handleCancelCampaign(c._id)}
+                                                                className="col-span-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 py-2 text-[9px] font-black uppercase tracking-widest border border-red-500/20 transition-all text-center"
+                                                            >
+                                                                Cancel Fundraiser
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {c.fundraiser.billImage && (
+                                                <div className="mt-4 pt-4 border-t border-white/5">
+                                                    <a href={c.fundraiser.billImage} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-2xl overflow-hidden border border-white/10 relative group">
+                                                        <img src={c.fundraiser.billImage} alt="Estimate bill" className="w-full h-full object-cover" />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest bg-black/80 px-3 py-1.5 rounded-xl">View Uploaded Bill</span>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 ) : activeTab === 'manage' && user?.role === 'ngo' ? (
                     <section className="grid lg:grid-cols-2 gap-8">
@@ -471,12 +761,35 @@ const Fundraisers = () => {
                                         </div>
 
                                         <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Short Campaign Caption/Title</label>
+                                            <input 
+                                                type="text" 
+                                                required 
+                                                value={formData.caption} 
+                                                onChange={e => setFormData(c => ({...c, caption: e.target.value}))} 
+                                                className="w-full rounded-2xl bg-[#131313] border border-white/10 px-4 py-4 text-sm text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all" 
+                                                placeholder="e.g. Save Bruno: Help him walk again!"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Detailed Case Story & Treatment Diagnosis</label>
+                                            <textarea 
+                                                required 
+                                                value={formData.storyText} 
+                                                onChange={e => setFormData(c => ({...c, storyText: e.target.value}))} 
+                                                className="w-full h-32 rounded-2xl bg-[#131313] border border-white/10 p-4 text-sm text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all resize-none" 
+                                                placeholder="Share details about the rescue, recovery process, animal behavior, and how these funds will directly make an impact..."
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Treatment & Bill Justification</label>
                                             <textarea 
                                                 required 
                                                 value={formData.billText} 
                                                 onChange={e => setFormData(c => ({...c, billText: e.target.value}))} 
-                                                className="w-full h-32 rounded-2xl bg-[#131313] border border-white/10 p-4 text-sm text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all resize-none" 
+                                                className="w-full h-24 rounded-2xl bg-[#131313] border border-white/10 p-4 text-sm text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all resize-none" 
                                                 placeholder="Explain the medical procedures and why these funds are necessary..."
                                             />
                                         </div>
@@ -489,18 +802,43 @@ const Fundraisers = () => {
                                                     id="bill-upload" 
                                                     required 
                                                     accept="image/*" 
-                                                    onChange={e => setFormData(c => ({...c, media: e.target.files[0]}))} 
+                                                    onChange={e => setFormData(c => ({...c, billImage: e.target.files[0]}))} 
                                                     className="hidden" 
                                                 />
                                                 <label 
                                                     htmlFor="bill-upload" 
                                                     className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-white/10 hover:border-[#fd8b00]/30 hover:bg-white/5 transition-all cursor-pointer group"
                                                 >
-                                                    <span className={`material-symbols-outlined text-3xl mb-2 transition-colors ${formData.media ? 'text-[#76d6d4]' : 'text-white/20 group-hover:text-[#fd8b00]'}`}>
-                                                        {formData.media ? 'task_alt' : 'receipt_long'}
+                                                    <span className={`material-symbols-outlined text-3xl mb-2 transition-colors ${formData.billImage ? 'text-[#76d6d4]' : 'text-white/20 group-hover:text-[#fd8b00]'}`}>
+                                                        {formData.billImage ? 'task_alt' : 'receipt_long'}
                                                     </span>
                                                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
-                                                        {formData.media ? formData.media.name : 'Tap to select bill image'}
+                                                        {formData.billImage ? formData.billImage.name : 'Tap to select bill image'}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Additional Photos & Videos (Optional)</label>
+                                            <div className="relative w-full">
+                                                <input 
+                                                    type="file" 
+                                                    id="media-upload" 
+                                                    multiple 
+                                                    accept="image/*,video/*" 
+                                                    onChange={e => setFormData(c => ({...c, mediaFiles: Array.from(e.target.files)}))} 
+                                                    className="hidden" 
+                                                />
+                                                <label 
+                                                    htmlFor="media-upload" 
+                                                    className="flex flex-col items-center justify-center w-full h-24 rounded-2xl border-2 border-dashed border-white/10 hover:border-[#fd8b00]/30 hover:bg-white/5 transition-all cursor-pointer group"
+                                                >
+                                                    <span className={`material-symbols-outlined text-2xl mb-1 transition-colors ${formData.mediaFiles && formData.mediaFiles.length > 0 ? 'text-[#76d6d4]' : 'text-white/20 group-hover:text-[#fd8b00]'}`}>
+                                                        {formData.mediaFiles && formData.mediaFiles.length > 0 ? 'task_alt' : 'add_a_photo'}
+                                                    </span>
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-white/40">
+                                                        {formData.mediaFiles && formData.mediaFiles.length > 0 ? `${formData.mediaFiles.length} files selected` : 'Select images/videos'}
                                                     </span>
                                                 </label>
                                             </div>
@@ -547,6 +885,192 @@ const Fundraisers = () => {
                         </div>
                     </div>
                 )}
+                {/* Details Fundraiser Modal */}
+                {detailsFundraiser && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4 overflow-y-auto">
+                        <div className="w-full max-w-4xl rounded-[2.5rem] border border-surface-border bg-[#131313] p-6 md:p-8 shadow-2xl text-[#e5e2e1] max-h-[90vh] overflow-y-auto no-scrollbar space-y-6">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                <div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-brand">Fundraiser Campaign Details</span>
+                                    <h3 className="font-headline font-black text-xl text-on-surface mt-1">Case #{detailsFundraiser._id.slice(-6).toUpperCase()}</h3>
+                                </div>
+                                <button onClick={() => setDetailsFundraiser(null)} className="p-2 hover:bg-white/5 rounded-xl text-white/30 hover:text-white transition-all">
+                                    <XMarkIcon className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                                {/* Left Column: Story, Title, Gallery */}
+                                <div className="md:col-span-7 space-y-6">
+                                    <div className="space-y-1">
+                                        <h4 className="font-bold text-2xl text-[#fd8b00] leading-tight">
+                                            {detailsFundraiser.fundraiser?.caption || detailsFundraiser.description}
+                                        </h4>
+                                        <p className="text-xs text-on-surface/40 flex items-center gap-1.5 mt-1">
+                                            <span className="material-symbols-outlined text-sm">location_on</span>
+                                            {detailsFundraiser.location?.address || 'Location provided'}
+                                        </p>
+                                    </div>
+
+                                    {/* Media Gallery */}
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Campaign Photos & Videos</p>
+                                        <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar scroll-smooth snap-x">
+                                            {[
+                                                ...(detailsFundraiser.images || []),
+                                                ...(detailsFundraiser.fundraiser?.media || [])
+                                            ].map((url, idx) => {
+                                                const isVideo = url.includes('.mp4') || url.includes('/video/');
+                                                return (
+                                                    <div key={idx} className="w-80 h-56 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-black snap-start">
+                                                        {isVideo ? (
+                                                            <video src={url} controls className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <img src={url} alt={`Campaign Media ${idx + 1}`} className="w-full h-full object-cover" />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                            {detailsFundraiser.video && (
+                                                <div className="w-80 h-56 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-black snap-start">
+                                                    <video src={detailsFundraiser.video} controls className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-[#fd8b00]">The Story</p>
+                                        <p className="text-sm leading-relaxed text-[#e5e2e1]/80 whitespace-pre-wrap bg-white/5 p-5 rounded-2xl border border-white/5">
+                                            {detailsFundraiser.fundraiser?.storyText || 'No detailed case story has been uploaded by the NGO yet.'}
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Diagnosis & Justification</p>
+                                        <p className="text-xs leading-relaxed text-white/60 bg-white/5 p-4 rounded-xl border border-white/5">
+                                            {detailsFundraiser.fundraiser?.billText || detailsFundraiser.description}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Stats, Donation form, NGO info */}
+                                <div className="md:col-span-5 space-y-6">
+                                    <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Fundraising Progress</p>
+                                            <div className="flex justify-between items-baseline mt-2">
+                                                <span className="text-3xl font-black text-brand">₹{detailsFundraiser.amountRaised || 0}</span>
+                                                <span className="text-sm font-bold text-white/50">of ₹{detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="h-3 w-full rounded-full bg-white/5 overflow-hidden">
+                                            <div 
+                                                className="h-full bg-gradient-to-r from-brand to-brand-dark rounded-full shadow-[0_0_12px_rgba(var(--brand-primary-rgb),0.5)]" 
+                                                style={{ width: `${Math.min(((detailsFundraiser.amountRaised || 0) / (detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 1)) * 100, 100)}%` }} 
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-between text-xs font-black text-on-surface/40">
+                                            <span>{Math.min(((detailsFundraiser.amountRaised || 0) / (detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 1)) * 100, 100).toFixed(0)}% FUNDED</span>
+                                            <span className="text-brand">₹{Math.max((detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 0) - (detailsFundraiser.amountRaised || 0), 0)} NEEDED</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Donate Form / Owner Progress / Inactive View */}
+                                    {isOwnerView ? (
+                                        <div className="p-6 rounded-3xl bg-brand/10 border border-brand/20 space-y-4">
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-brand">campaign</span>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-brand">Owner Progress View</p>
+                                            </div>
+                                            <div className="space-y-3 text-xs leading-relaxed text-[#e5e2e1]/80">
+                                                <p className="font-bold text-sm text-on-surface">Campaign Status: <span className="text-brand uppercase">{detailsFundraiser.fundraiser?.status || 'approved'}</span></p>
+                                                <p>
+                                                    {detailsFundraiser.fundraiser?.status === 'pending' && 'This fundraiser is currently pending admin approval. Once approved, it will be visible to the public for donations.'}
+                                                    {(detailsFundraiser.fundraiser?.status === 'approved' || !detailsFundraiser.fundraiser?.status) && 'This fundraiser is active and currently accepting donations from the public.'}
+                                                    {detailsFundraiser.fundraiser?.status === 'paused' && 'This fundraiser is paused. It is temporarily hidden from the public and not accepting donations.'}
+                                                    {detailsFundraiser.fundraiser?.status === 'completed' && 'This fundraiser is successfully completed! Thank you for your support.'}
+                                                    {detailsFundraiser.fundraiser?.status === 'cancelled' && 'This fundraiser has been cancelled.'}
+                                                    {detailsFundraiser.fundraiser?.status === 'rejected' && `This fundraiser request was rejected. Admin notes: ${detailsFundraiser.fundraiser?.adminNotes || 'None'}`}
+                                                </p>
+                                                <div className="pt-2 border-t border-white/5 flex flex-col gap-1 text-[10px] text-white/40 uppercase tracking-widest">
+                                                    <p>Goal: ₹{detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost}</p>
+                                                    <p>Raised: ₹{detailsFundraiser.amountRaised || 0}</p>
+                                                    <p>Remaining: ₹{Math.max((detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 0) - (detailsFundraiser.amountRaised || 0), 0)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : isActive ? (
+                                        <div className="p-6 rounded-3xl bg-brand/5 border border-brand/10 space-y-4">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-brand">Support this Fundraiser</p>
+                                            <div className="flex gap-2">
+                                                <div className="relative flex-1">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 font-bold text-sm">₹</span>
+                                                    <input 
+                                                        type="number" 
+                                                        min="10" 
+                                                        placeholder="Amount" 
+                                                        className="w-full rounded-2xl bg-[#131313] border border-white/10 pl-8 pr-4 py-3 text-sm text-[#e5e2e1] outline-none focus:border-brand/30 transition-all" 
+                                                        onChange={(e) => setDonationAmount(e.target.value)} 
+                                                    />
+                                                </div>
+                                                <button 
+                                                    onClick={async () => {
+                                                        const amt = parseFloat(donationAmount);
+                                                        if (!amt || amt < 10) {
+                                                            toast.error('Minimum donation is Rs 10.');
+                                                            return;
+                                                        }
+                                                        const success = await handleDonate(detailsFundraiser._id);
+                                                        if (success) {
+                                                            setDetailsFundraiser(prev => ({
+                                                                ...prev,
+                                                                amountRaised: (prev.amountRaised || 0) + amt
+                                                            }));
+                                                        }
+                                                    }} 
+                                                    disabled={donatingId === detailsFundraiser._id} 
+                                                    className="rounded-2xl bg-brand text-background px-6 py-3 text-xs font-black uppercase disabled:opacity-50 hover:scale-105 transition-all"
+                                                >
+                                                    {donatingId === detailsFundraiser._id ? '...' : 'Donate'}
+                                                </button>
+                                            </div>
+                                            <p className="text-[10px] text-white/20">All contributions are deducted directly from your ResQPet wallet in test mode.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="p-6 rounded-3xl bg-[#fd8b00]/5 border border-[#fd8b00]/20 text-center space-y-2">
+                                            <span className="material-symbols-outlined text-2xl text-[#fd8b00]">lock</span>
+                                            <p className="text-xs font-bold text-on-surface">Donations Closed</p>
+                                            <p className="text-[10px] text-on-surface/50 leading-relaxed">This fundraiser is no longer active (Status: {detailsFundraiser.fundraiser?.status || 'inactive'}) and is not accepting donations.</p>
+                                        </div>
+                                    )}
+
+                                    {detailsFundraiser.fundraiser?.billImage && (
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Uploaded Bill Estimate Proof</p>
+                                            <a href={detailsFundraiser.fundraiser.billImage} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-2xl overflow-hidden border border-white/10 relative group">
+                                                <img src={detailsFundraiser.fundraiser.billImage} alt="Bill estimate" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest bg-black/80 px-3 py-1.5 rounded-xl">View Original Bill</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    {detailsFundraiser.assignedNGO && (
+                                        <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2 text-xs">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/30">Assigned Rescue NGO</p>
+                                            <p className="font-bold text-sm text-on-surface">{detailsFundraiser.assignedNGO.orgName || detailsFundraiser.assignedNGO.name}</p>
+                                            <p className="text-white/50">{detailsFundraiser.assignedNGO.email || 'No email provided'}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -585,7 +1109,10 @@ const Fundraisers = () => {
                 <button onClick={() => setActiveTab('cases')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'cases' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>Active Cases{activeTab === 'cases' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
                 <button onClick={() => setActiveTab('ngos')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'ngos' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>NGO-wise Support{activeTab === 'ngos' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
                 {user?.role === 'ngo' && (
-                    <button onClick={() => setActiveTab('manage')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'manage' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>Start / Manage Fundraisers{activeTab === 'manage' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
+                    <>
+                        <button onClick={() => setActiveTab('my_fundraisers')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'my_fundraisers' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>My Fundraisers{activeTab === 'my_fundraisers' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
+                        <button onClick={() => setActiveTab('manage')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'manage' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>Request Fundraiser{activeTab === 'manage' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
+                    </>
                 )}
             </div>
 
@@ -612,9 +1139,12 @@ const Fundraisers = () => {
                                         <div className="mb-2 flex justify-between text-[11px] font-bold"><span className="text-slate-600">Raised: Rs {rescue.amountRaised || 0}</span><span className="text-rose-600">Goal: Rs {rescue.estimatedCost}</span></div>
                                         <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 shadow-inner"><div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400 shadow-lg transition-all duration-1000" style={{ width: `${progress}%` }} /></div>
                                         <p className="mt-1.5 text-right text-[10px] font-bold text-slate-400">{Number(progress || 0).toFixed(0)}% FUNDED</p>
-                                        <div className="mt-4 flex items-center gap-2">
-                                            <input type="number" min="10" placeholder="100" className="w-full rounded-btn border-none bg-slate-50 px-3 py-2 text-sm font-semibold transition-all focus:ring-2 focus:ring-rose-500/20" onChange={(e) => setDonationAmount(e.target.value)} />
-                                            <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="btn bg-rose-500 px-6 py-2 font-bold text-white shadow-md shadow-rose-100 hover:bg-rose-600">{donatingId === rescue._id ? '...' : 'Help'}</button>
+                                        <div className="mt-4 flex flex-col gap-2">
+                                            <button onClick={() => setDetailsFundraiser(rescue)} className="btn bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 font-bold w-full transition-all">Read Story & Donate</button>
+                                            <div className="flex items-center gap-2">
+                                                <input type="number" min="10" placeholder="100" className="w-full rounded-btn border-none bg-slate-50 px-3 py-2 text-sm font-semibold transition-all focus:ring-2 focus:ring-rose-500/20" onChange={(e) => setDonationAmount(e.target.value)} />
+                                                <button onClick={() => handleDonate(rescue._id)} disabled={donatingId === rescue._id} className="btn bg-rose-500 px-6 py-2 font-bold text-white shadow-md shadow-rose-100 hover:bg-rose-600">{donatingId === rescue._id ? '...' : 'Help'}</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -644,6 +1174,179 @@ const Fundraisers = () => {
                             </div>
                         </div>
                     ))}
+                </div>
+            ) : activeTab === 'my_fundraisers' && user?.role === 'ngo' ? (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold text-slate-800">Our Fundraising Campaigns</h2>
+                    <p className="text-sm text-surface-muted">Track the progress and verification status of fundraisers initiated by your organization.</p>
+                    
+                    {myFundraisers.length === 0 ? (
+                        <div className="card py-16 text-center text-surface-muted">
+                            No fundraisers requested yet.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            {myFundraisers.map((c) => {
+                                const progress = Math.min(((c.amountRaised || 0) / (c.fundraiser.requestedGoal || 1)) * 100, 100);
+                                return (
+                                    <div key={c._id} className="card border-surface-border/50 p-6 flex flex-col justify-between transition-all hover:shadow-card-hover">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-[10px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">Case ID: {c._id.slice(-6).toUpperCase()}</span>
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                                                            c.fundraiser.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                                                            c.fundraiser.status === 'rejected' ? 'bg-rose-100 text-rose-800' :
+                                                            c.fundraiser.status === 'paused' ? 'bg-amber-100 text-amber-800' :
+                                                            c.fundraiser.status === 'cancelled' ? 'bg-rose-100 text-rose-800' :
+                                                            'bg-amber-100 text-amber-800'
+                                                        }`}>
+                                                            {c.fundraiser.status}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="font-bold text-slate-800 text-lg leading-snug">{c.description}</h4>
+                                                    <p className="text-[11px] text-surface-muted">{c.location?.address || 'Location provided'}</p>
+                                                </div>
+                                                {c.images?.[0] && (
+                                                    <img src={c.images[0]} alt="Animal" className="w-16 h-16 object-cover rounded-md shrink-0" />
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-2 pt-2">
+                                                <div className="flex justify-between text-xs font-bold">
+                                                    <span className="text-slate-600">Goal: ₹{c.fundraiser.requestedGoal}</span>
+                                                    <span className="text-rose-600">Raised: ₹{c.amountRaised || 0}</span>
+                                                </div>
+                                                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 shadow-inner">
+                                                    <div className="h-full rounded-full bg-gradient-to-r from-rose-500 to-rose-400" style={{ width: `${progress}%` }} />
+                                                </div>
+                                                <p className="text-right text-[10px] font-bold text-slate-400">{Number(progress).toFixed(0)}% FUNDED</p>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-slate-100 space-y-3 text-sm text-slate-600">
+                                                {c.fundraiser.caption && <p><span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider block mb-0.5">Caption</span> {c.fundraiser.caption}</p>}
+                                                <p><span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider block mb-0.5">Justification</span> {c.fundraiser.billText}</p>
+                                                {c.fundraiser.adminNotes && (
+                                                    <div className="p-3 rounded-md bg-rose-50 border border-rose-100 text-rose-800">
+                                                        <span className="font-bold text-rose-600 uppercase text-[10px] tracking-wider block mb-0.5">Admin Notes</span>
+                                                        {c.fundraiser.adminNotes}
+                                                    </div>
+                                                )}
+
+                                                {editingGoalId === c._id ? (
+                                                    <div className="space-y-2 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                                                        <p className="text-xs font-bold text-slate-700">Edit Goal Amount (₹)</p>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="number"
+                                                                value={newGoalValue}
+                                                                onChange={(e) => setNewGoalValue(e.target.value)}
+                                                                placeholder="New goal"
+                                                                className="flex-1 rounded border border-slate-300 px-3 py-1 text-sm bg-white text-slate-800 outline-none"
+                                                            />
+                                                            <button
+                                                                onClick={() => handleEditGoalSubmit(c._id)}
+                                                                disabled={actionLoadingId === c._id}
+                                                                className="px-3 py-1 rounded bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold"
+                                                            >
+                                                                Save
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setEditingGoalId(null)}
+                                                                className="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+
+                                                <div className="grid grid-cols-2 gap-2 pt-2">
+                                                    <button 
+                                                        onClick={() => setDetailsFundraiser(c)} 
+                                                        className="rounded bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 text-xs font-bold transition-all text-center"
+                                                    >
+                                                        Preview Campaign
+                                                    </button>
+
+                                                    {['pending', 'approved', 'paused'].includes(c.fundraiser.status) && (
+                                                        <button 
+                                                            onClick={() => {
+                                                                setEditingGoalId(c._id);
+                                                                setNewGoalValue(c.fundraiser.requestedGoal);
+                                                            }}
+                                                            className="rounded bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 text-xs font-bold transition-all text-center"
+                                                        >
+                                                            Edit Goal
+                                                        </button>
+                                                    )}
+
+                                                    {['pending', 'approved', 'paused'].includes(c.fundraiser.status) && (
+                                                        <>
+                                                            <input 
+                                                                type="file" 
+                                                                id={`classic-add-media-input-${c._id}`} 
+                                                                multiple 
+                                                                accept="image/*,video/*" 
+                                                                className="hidden" 
+                                                                onChange={(e) => handleAddMedia(c._id, e.target.files)} 
+                                                            />
+                                                            <button 
+                                                                onClick={() => document.getElementById(`classic-add-media-input-${c._id}`).click()}
+                                                                className="rounded bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 text-xs font-bold transition-all text-center"
+                                                            >
+                                                                Add Proofs
+                                                            </button>
+                                                        </>
+                                                    )}
+
+                                                    {c.fundraiser.status === 'approved' && (
+                                                        <button 
+                                                            onClick={() => handleTogglePause(c._id)}
+                                                            className="rounded bg-amber-50 hover:bg-amber-100 text-amber-700 py-2 text-xs font-bold border border-amber-200 transition-all text-center"
+                                                        >
+                                                            Pause
+                                                        </button>
+                                                    )}
+
+                                                    {c.fundraiser.status === 'paused' && (
+                                                        <button 
+                                                            onClick={() => handleTogglePause(c._id)}
+                                                            className="rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2 text-xs font-bold border border-emerald-200 transition-all text-center"
+                                                        >
+                                                            Resume
+                                                        </button>
+                                                    )}
+
+                                                    {['pending', 'approved', 'paused'].includes(c.fundraiser.status) && (
+                                                        <button 
+                                                            onClick={() => handleCancelCampaign(c._id)}
+                                                            className="col-span-2 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 py-2 text-xs font-bold border border-rose-200 transition-all text-center"
+                                                        >
+                                                            Cancel Fundraiser
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {c.fundraiser.billImage && (
+                                            <div className="mt-4 pt-4 border-t border-slate-100">
+                                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Uploaded Bill Estimate</span>
+                                                <a href={c.fundraiser.billImage} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-lg overflow-hidden border border-slate-200 relative group">
+                                                    <img src={c.fundraiser.billImage} alt="Estimate bill" className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                        <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 px-3 py-1.5 rounded">View Uploaded Bill</span>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             ) : activeTab === 'manage' && user?.role === 'ngo' ? (
                 <div className="space-y-6">
@@ -791,6 +1494,29 @@ const Fundraisers = () => {
                                         </div>
 
                                         <div>
+                                            <label className="label">Short Campaign Caption/Title</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.caption}
+                                                onChange={(e) => setFormData((c) => ({ ...c, caption: e.target.value }))}
+                                                className="input"
+                                                placeholder="e.g. Help Bruno walk again!"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="label">Detailed Case Story & Treatment Diagnosis</label>
+                                            <textarea
+                                                required
+                                                value={formData.storyText}
+                                                onChange={(e) => setFormData((c) => ({ ...c, storyText: e.target.value }))}
+                                                className="textarea h-24"
+                                                placeholder="Share details about the rescue, recovery process..."
+                                            />
+                                        </div>
+
+                                        <div>
                                             <label className="label">Treatment & Bill Justification</label>
                                             <textarea
                                                 required
@@ -802,12 +1528,23 @@ const Fundraisers = () => {
                                         </div>
 
                                         <div>
-                                            <label className="label">Upload Bill/Estimate Image</label>
+                                            <label className="label">Upload Bill/Estimate Image (Required)</label>
                                             <input
                                                 type="file"
                                                 required
                                                 accept="image/*"
-                                                onChange={(e) => setFormData((c) => ({ ...c, media: e.target.files[0] }))}
+                                                onChange={(e) => setFormData((c) => ({ ...c, billImage: e.target.files[0] }))}
+                                                className="input p-2"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="label">Additional Photos & Videos (Optional)</label>
+                                            <input
+                                                type="file"
+                                                multiple
+                                                accept="image/*,video/*"
+                                                onChange={(e) => setFormData((c) => ({ ...c, mediaFiles: Array.from(e.target.files) }))}
                                                 className="input p-2"
                                             />
                                         </div>
@@ -916,6 +1653,184 @@ const Fundraisers = () => {
                             </div>
                             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">This is a dummy test payment form. The amount is still deducted from wallet balance in the current test setup.</div>
                             <button onClick={handleJoinEmergencyFund} disabled={subscribing} className="btn w-full bg-rose-500 py-3 font-semibold text-white hover:bg-rose-600">{subscribing ? 'Processing...' : 'Complete Payment & Join Monthly Support'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {detailsFundraiser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4 overflow-y-auto">
+                    <div className="w-full max-w-4xl rounded-[28px] bg-white p-6 md:p-8 shadow-2xl text-slate-800 max-h-[90vh] overflow-y-auto space-y-6">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-rose-600">Fundraiser Campaign Details</p>
+                                <h3 className="text-xl font-bold text-slate-900 mt-1">Case #{detailsFundraiser._id.slice(-6).toUpperCase()}</h3>
+                            </div>
+                            <button onClick={() => setDetailsFundraiser(null)} className="rounded-full p-2 text-slate-400 hover:bg-slate-100">
+                                <XMarkIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                            {/* Left Column: Story, Title, Gallery */}
+                            <div className="md:col-span-7 space-y-6">
+                                <div className="space-y-1">
+                                    <h4 className="font-bold text-2xl text-slate-900 leading-tight">
+                                        {detailsFundraiser.fundraiser?.caption || detailsFundraiser.description}
+                                    </h4>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        {detailsFundraiser.location?.address || 'Location provided'}
+                                    </p>
+                                </div>
+
+                                {/* Media Gallery */}
+                                <div className="space-y-2">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Campaign Photos & Videos</p>
+                                    <div className="flex gap-4 overflow-x-auto pb-2 scroll-smooth snap-x">
+                                        {[
+                                            ...(detailsFundraiser.images || []),
+                                            ...(detailsFundraiser.fundraiser?.media || [])
+                                        ].map((url, idx) => {
+                                            const isVideo = url.includes('.mp4') || url.includes('/video/');
+                                            return (
+                                                <div key={idx} className="w-80 h-56 rounded-lg overflow-hidden shrink-0 border border-slate-200 relative bg-black snap-start">
+                                                    {isVideo ? (
+                                                        <video src={url} controls className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <img src={url} alt={`Campaign Media ${idx + 1}`} className="w-full h-full object-cover" />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                        {detailsFundraiser.video && (
+                                            <div className="w-80 h-56 rounded-lg overflow-hidden shrink-0 border border-slate-200 relative bg-black snap-start">
+                                                <video src={detailsFundraiser.video} controls className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-rose-500">The Story</p>
+                                    <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap bg-slate-50 p-5 rounded-xl border border-slate-100">
+                                        {detailsFundraiser.fundraiser?.storyText || 'No detailed case story has been uploaded by the NGO yet.'}
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Diagnosis & Justification</p>
+                                    <p className="text-xs leading-relaxed text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                        {detailsFundraiser.fundraiser?.billText || detailsFundraiser.description}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Right Column */}
+                            <div className="md:col-span-5 space-y-6">
+                                <div className="p-6 rounded-2xl border border-slate-200 bg-slate-50 space-y-4">
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Fundraising Progress</p>
+                                        <div className="flex justify-between items-baseline mt-2">
+                                            <span className="text-3xl font-bold text-rose-600">₹{detailsFundraiser.amountRaised || 0}</span>
+                                            <span className="text-sm font-medium text-slate-500">of ₹{detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-3 w-full rounded-full bg-slate-200 overflow-hidden shadow-inner">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-rose-500 to-rose-400 rounded-full" 
+                                            style={{ width: `${Math.min(((detailsFundraiser.amountRaised || 0) / (detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 1)) * 100, 100)}%` }} 
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-between text-xs font-bold text-slate-500">
+                                        <span>{Math.min(((detailsFundraiser.amountRaised || 0) / (detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 1)) * 100, 100).toFixed(0)}% FUNDED</span>
+                                        <span className="text-rose-600">₹{Math.max((detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 0) - (detailsFundraiser.amountRaised || 0), 0)} NEEDED</span>
+                                    </div>
+                                </div>
+
+                                {/* Quick Donate Form / Owner Progress / Inactive View */}
+                                {isOwnerView ? (
+                                    <div className="p-6 rounded-2xl border border-rose-200 bg-rose-50 space-y-4 text-xs leading-relaxed text-slate-700">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-rose-600 text-sm">campaign</span>
+                                            <p className="text-xs font-bold uppercase tracking-wider text-rose-600">Owner Progress View</p>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <p className="font-bold text-slate-800">Campaign Status: <span className="text-rose-600 uppercase">{detailsFundraiser.fundraiser?.status || 'approved'}</span></p>
+                                            <p>
+                                                {detailsFundraiser.fundraiser?.status === 'pending' && 'This fundraiser is currently pending admin approval. Once approved, it will be visible to the public for donations.'}
+                                                {(detailsFundraiser.fundraiser?.status === 'approved' || !detailsFundraiser.fundraiser?.status) && 'This fundraiser is active and currently accepting donations from the public.'}
+                                                {detailsFundraiser.fundraiser?.status === 'paused' && 'This fundraiser is paused. It is temporarily hidden from the public and not accepting donations.'}
+                                                {detailsFundraiser.fundraiser?.status === 'completed' && 'This fundraiser is successfully completed! Thank you for your support.'}
+                                                {detailsFundraiser.fundraiser?.status === 'cancelled' && 'This fundraiser has been cancelled.'}
+                                                {detailsFundraiser.fundraiser?.status === 'rejected' && `This fundraiser request was rejected. Admin notes: ${detailsFundraiser.fundraiser?.adminNotes || 'None'}`}
+                                            </p>
+                                            <div className="pt-2 border-t border-slate-100 flex flex-col gap-1 text-[10px] text-slate-400 uppercase tracking-wider">
+                                                <p>Goal: ₹{detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost}</p>
+                                                <p>Raised: ₹{detailsFundraiser.amountRaised || 0}</p>
+                                                <p>Remaining: ₹{Math.max((detailsFundraiser.fundraiser?.requestedGoal || detailsFundraiser.estimatedCost || 0) - (detailsFundraiser.amountRaised || 0), 0)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : isActive ? (
+                                    <div className="p-6 rounded-2xl border border-rose-100 bg-rose-50/50 space-y-4">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-rose-600">Support this Fundraiser</p>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="number" 
+                                                min="10" 
+                                                placeholder="Amount" 
+                                                className="w-full rounded-btn border border-slate-200 bg-white px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-rose-500/20"
+                                                onChange={(e) => setDonationAmount(e.target.value)} 
+                                            />
+                                            <button 
+                                                onClick={async () => {
+                                                    const amt = parseFloat(donationAmount);
+                                                    if (!amt || amt < 10) {
+                                                        toast.error('Minimum donation is Rs 10.');
+                                                        return;
+                                                    }
+                                                    const success = await handleDonate(detailsFundraiser._id);
+                                                    if (success) {
+                                                        setDetailsFundraiser(prev => ({
+                                                            ...prev,
+                                                            amountRaised: (prev.amountRaised || 0) + amt
+                                                        }));
+                                                    }
+                                                }} 
+                                                disabled={donatingId === detailsFundraiser._id} 
+                                                className="btn bg-rose-500 px-6 py-2 font-bold text-white hover:bg-rose-600"
+                                            >
+                                                {donatingId === detailsFundraiser._id ? '...' : 'Donate'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-6 rounded-2xl border border-amber-200 bg-amber-50 text-center space-y-2">
+                                        <span className="material-symbols-outlined text-2xl text-amber-600">lock</span>
+                                        <p className="text-sm font-bold text-slate-800">Donations Closed</p>
+                                        <p className="text-xs text-slate-500">This fundraiser is no longer active (Status: {detailsFundraiser.fundraiser?.status || 'inactive'}) and is not accepting donations.</p>
+                                    </div>
+                                )}
+
+                                {detailsFundraiser.fundraiser?.billImage && (
+                                    <div className="space-y-2">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Uploaded Bill Estimate Proof</p>
+                                        <a href={detailsFundraiser.fundraiser.billImage} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-lg overflow-hidden border border-slate-200 relative group">
+                                            <img src={detailsFundraiser.fundraiser.billImage} alt="Bill estimate" className="w-full h-full object-cover" />
+                                        </a>
+                                    </div>
+                                )}
+
+                                {detailsFundraiser.assignedNGO && (
+                                    <div className="p-5 rounded-lg border border-slate-200 bg-slate-50 space-y-1 text-xs">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Assigned Rescue NGO</p>
+                                        <p className="font-bold text-slate-800">{detailsFundraiser.assignedNGO.orgName || detailsFundraiser.assignedNGO.name}</p>
+                                        <p className="text-slate-500">{detailsFundraiser.assignedNGO.email}</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

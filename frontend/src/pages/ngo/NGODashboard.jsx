@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
     MapPinIcon,
@@ -200,6 +200,7 @@ const loadRazorpay = () =>
     });
 
 const NGODashboard = () => {
+    const navigate = useNavigate();
     const { user, updateUser } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
