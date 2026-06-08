@@ -601,7 +601,7 @@ const NGODashboard = () => {
                                             <div className="flex items-center justify-between mb-4">
                                                 <h3 className="font-bold text-on-surface/40 text-xs uppercase tracking-widest px-2">Transactions</h3>
                                                 <button
-                                                    onClick={() => { setWalletModalOpen(false); navigate('/user/payments?tab=all'); }}
+                                                    onClick={() => { setWalletModalOpen(false); navigate('/ngo/payments?tab=all'); }}
                                                     className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5] hover:underline"
                                                 >
                                                     View All

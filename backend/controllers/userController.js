@@ -210,10 +210,14 @@ const getPaymentHistory = async (req, res) => {
         const monthlySubscription = normalizeMonthlySubscription(user);
         await user.save();
 
+        const billQuery = req.user.role === 'ngo'
+            ? { assignedNGO: req.user._id, 'bill.createdAt': { $ne: null } }
+            : { user: req.user._id, 'bill.createdAt': { $ne: null } };
+
         const [subscriptionPayments, walletTransactions, rescueBills] = await Promise.all([
             Donation.find({ user: req.user._id, type: 'subscription' }).sort({ createdAt: -1 }).limit(50),
             WalletTransaction.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(50),
-            RescueRequest.find({ user: req.user._id, 'bill.createdAt': { $ne: null } }).populate('assignedHospital', 'name orgName isGovernment').sort({ 'bill.createdAt': -1 }).limit(50),
+            RescueRequest.find(billQuery).populate('assignedHospital', 'name orgName isGovernment').sort({ 'bill.createdAt': -1 }).limit(50),
         ]);
 
         // Ensure rescue bills have all required fields

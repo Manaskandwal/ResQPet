@@ -6,13 +6,26 @@ import api from '../../api/axios';
 import { formatIndianDateTime } from '../../utils/dateTime';
 import { useAuth } from '../../context/AuthContext';
 
+const loadRazorpay = () =>
+    new Promise((resolve) => {
+        if (window.Razorpay) { resolve(true); return; }
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+
 const PaymentHistory = () => {
     const navigate = useNavigate();
-    const { updateUser } = useAuth();
+    const { user, updateUser } = useAuth();
     const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
     const [searchParams, setSearchParams] = useSearchParams();
     const [editingAmount, setEditingAmount] = useState(false);
     const [monthlyAmount, setMonthlyAmount] = useState('50');
+    const [topupAmt, setTopupAmt] = useState('');
+    const [paying, setPaying] = useState(false);
+    const [mockPaying, setMockPaying] = useState(false);
     const [data, setData] = useState({
         walletBalance: 0,
         monthlySubscription: null,
@@ -57,6 +70,82 @@ const PaymentHistory = () => {
         }
     };
 
+    const handleTopup = async () => {
+        const amount = parseFloat(topupAmt);
+        if (!amount || amount < 10) { toast.error('Minimum top-up is ₹10.'); return; }
+        if (amount > 100000) { toast.error('Maximum top-up amount is ₹1,00,000.'); return; }
+
+        setPaying(true);
+        try {
+            console.log('[PaymentHistory] Initiating Razorpay top-up for ₹', amount);
+            const loaded = await loadRazorpay();
+            if (!loaded) { toast.error('Failed to load Razorpay. Check your internet connection.'); return; }
+
+            const { data: resData } = await api.post('/payment/create-order', { amount });
+
+            if (!resData.success || !resData.order) {
+                throw new Error(resData.message || 'Failed to create payment order');
+            }
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || resData.keyId,
+                amount: resData.order.amount,
+                currency: 'INR',
+                name: 'VetsCue',
+                description: 'Wallet Top-up',
+                order_id: resData.order.id,
+                handler: async (response) => {
+                    try {
+                        console.log('[PaymentHistory] Razorpay payment successful, verifying...');
+                        const verifyRes = await api.post('/payment/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            amount,
+                        });
+                        toast.success(`₹${amount} added to wallet!`);
+                        updateUser({ walletBalance: verifyRes.data.walletBalance });
+                        setTopupAmt('');
+                        loadHistory();
+                    } catch (verifyErr) {
+                        console.error('[PaymentHistory] Payment verification failed:', verifyErr.message);
+                        toast.error('Payment verification failed. Contact support.');
+                    }
+                },
+                prefill: { name: user?.name, email: user?.email },
+                theme: { color: '#0d9488' },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (resp) => {
+                console.error('[PaymentHistory] Razorpay payment failed:', resp.error);
+                toast.error(`Payment failed: ${resp.error.description}`);
+            });
+            rzp.open();
+        } catch (error) {
+            console.error('[PaymentHistory] Top-up error:', error);
+            toast.error(error.message || 'Failed to add amount to wallet.');
+        } finally {
+            setPaying(false);
+        }
+    };
+
+    const handleMockTopup = async (amount) => {
+        setMockPaying(true);
+        try {
+            console.log('[Mock] crediting ₹', amount);
+            const { data: resData } = await api.post('/payment/mock-topup', { amount });
+            toast.success(resData.message);
+            updateUser({ walletBalance: resData.walletBalance });
+            loadHistory();
+        } catch (error) {
+            console.error('[Mock] mockTopup error:', error.message);
+            toast.error(error.response?.data?.message || 'Mock top-up failed.');
+        } finally {
+            setMockPaying(false);
+        }
+    };
+
     const subscription = data.monthlySubscription;
     const isActiveMember = subscription?.isSubscribed && subscription?.status === 'active';
     const isPausedMember = subscription?.isSubscribed && subscription?.status === 'paused';
@@ -94,13 +183,60 @@ const PaymentHistory = () => {
                     <p className="text-[#e5e2e1]/50">{data.paymentModeMessage}</p>
                 </section>
 
-                {/* Wallet Balance */}
-                <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-8 flex items-center justify-between">
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]/60">Wallet Balance</span>
-                        <p className="text-4xl font-headline font-black text-[#e5e2e1]">₹{Number(data.walletBalance || 0).toFixed(2)}</p>
+                {/* Wallet Balance & Top-Up Grid */}
+                <div className="grid gap-6 md:grid-cols-2">
+                    {/* Wallet Balance Card */}
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-8 flex flex-col justify-between relative overflow-hidden group">
+                        <div className="absolute -right-8 -top-8 w-40 h-40 bg-[#76d6d5]/5 rounded-full blur-3xl" />
+                        <div className="space-y-1 relative z-10">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[#76d6d5]/60">Wallet Balance</span>
+                            <p className="text-5xl font-headline font-black text-[#e5e2e1] mt-2">₹{Number(data.walletBalance || 0).toFixed(2)}</p>
+                        </div>
+                        <div className="mt-8 flex items-center gap-3 text-xs text-white/30 relative z-10">
+                            <span className="material-symbols-outlined text-xl text-[#76d6d5]">account_balance_wallet</span>
+                            Secure Platform Wallet
+                        </div>
                     </div>
-                    <span className="material-symbols-outlined text-4xl text-[#76d6d5]/20">account_balance_wallet</span>
+
+                    {/* Quick Top-Up Card */}
+                    <div className="glass-card rounded-[2rem] border border-white/5 bg-[#1c1b1b] p-8 space-y-6">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Quick Top-up</span>
+                            <div className="flex gap-2 mt-2">
+                                {[100, 200, 500, 1000].map((amt) => (
+                                    <button 
+                                        key={amt} 
+                                        onClick={() => handleMockTopup(amt)}
+                                        disabled={mockPaying}
+                                        className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/5 text-xs font-black uppercase text-[#e5e2e1] hover:bg-[#76d6d5]/10 hover:border-[#76d6d5]/30 transition-all active:scale-95 disabled:opacity-50"
+                                    >
+                                        +₹{amt}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <input 
+                                    type="number" 
+                                    min="10" 
+                                    placeholder="Custom" 
+                                    value={topupAmt} 
+                                    onChange={(e) => setTopupAmt(e.target.value)}
+                                    className="w-full h-11 px-4 rounded-xl bg-white/5 border border-white/5 text-[#e5e2e1] text-xs font-bold focus:outline-none focus:border-[#76d6d5]/30 focus:ring-1 focus:ring-[#76d6d5]/30 transition-all placeholder:text-white/20"
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/20">INR</span>
+                            </div>
+                            <button 
+                                onClick={handleTopup} 
+                                disabled={paying}
+                                className="h-11 px-6 bg-[#76d6d5] text-[#131313] rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                            >
+                                {paying ? '...' : 'Top Up'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -247,16 +383,53 @@ const PaymentHistory = () => {
 
     return (
         <div className="space-y-6">
-            <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">Payment History</p>
-                        <h1 className="mt-2 text-3xl font-bold text-slate-900">Recurring support and wallet activity</h1>
-                        <p className="mt-2 max-w-2xl text-sm text-slate-600">{data.paymentModeMessage}</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">Payment History & Balance</p>
+                        <h1 className="mt-2 text-2xl font-bold text-slate-900">Secure Platform Wallet</h1>
+                        <p className="mt-2 text-sm text-slate-600">{data.paymentModeMessage}</p>
                     </div>
-                    <div className="rounded-[24px] bg-slate-900 px-5 py-4 text-white">
+                    <div className="mt-6 rounded-[24px] bg-slate-900 px-5 py-4 text-white w-fit">
                         <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Wallet Balance</p>
                         <p className="mt-2 text-3xl font-bold">Rs {Number(data.walletBalance || 0).toFixed(2)}</p>
+                    </div>
+                </div>
+
+                <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Quick Wallet Top-up</p>
+                        <div className="flex gap-2 mt-4">
+                            {[100, 200, 500, 1000].map((amt) => (
+                                <button
+                                    key={amt}
+                                    onClick={() => handleMockTopup(amt)}
+                                    disabled={mockPaying}
+                                    className="flex-1 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:border-slate-300 transition-all active:scale-95 disabled:opacity-50"
+                                >
+                                    +Rs {amt}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="mt-4 flex gap-2">
+                        <div className="relative flex-1">
+                            <input
+                                type="number"
+                                min="10"
+                                placeholder="Custom amount"
+                                value={topupAmt}
+                                onChange={(e) => setTopupAmt(e.target.value)}
+                                className="input-field"
+                            />
+                        </div>
+                        <button
+                            onClick={handleTopup}
+                            disabled={paying}
+                            className="btn bg-slate-900 hover:bg-slate-800 px-6 py-2.5 font-bold text-white shadow-md rounded-full transition-all disabled:opacity-50"
+                        >
+                            {paying ? '...' : 'Top Up'}
+                        </button>
                     </div>
                 </div>
             </div>

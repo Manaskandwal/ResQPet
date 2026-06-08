@@ -206,8 +206,7 @@ const getPublicFundraisers = async (req, res) => {
     try {
         const fundraisers = await RescueRequest.find({
             isFundraiser: true,
-            'fundraiser.status': 'approved',
-            status: { $ne: 'completed' } 
+            'fundraiser.status': 'approved'
         })
             .populate('user', 'name')
             .populate('assignedNGO', 'orgName name')

@@ -9,6 +9,7 @@ import {
     UserGroupIcon,
     ArrowUturnLeftIcon,
     CreditCardIcon,
+    HeartIcon,
 } from '@heroicons/react/24/outline';
 import AdminUserSwitcher from './AdminUserSwitcher';
 import {
@@ -231,15 +232,26 @@ const Navbar = ({ onMenuClick, onNotificationsClick }) => {
                                             )}
 
                                             {user?.role === 'ngo' && (
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <Link to="/ngo/fundraisers"
-                                                            className={`nb-dd-item ${active ? 'nb-dd-item--active' : ''}`}>
-                                                            <CreditCardIcon className="nb-dd-icon text-[var(--brand-primary)]" />
-                                                            Fundraisers
-                                                        </Link>
-                                                    )}
-                                                </Menu.Item>
+                                                <>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <Link to="/ngo/payments"
+                                                                className={`nb-dd-item ${active ? 'nb-dd-item--active' : ''}`}>
+                                                                <CreditCardIcon className="nb-dd-icon text-[var(--brand-primary)]" />
+                                                                Wallet & Payments
+                                                            </Link>
+                                                        )}
+                                                    </Menu.Item>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <Link to="/fundraisers?tab=manage"
+                                                                className={`nb-dd-item ${active ? 'nb-dd-item--active' : ''}`}>
+                                                                <HeartIcon className="nb-dd-icon text-[var(--brand-primary)]" />
+                                                                Fundraisers
+                                                            </Link>
+                                                        )}
+                                                    </Menu.Item>
+                                                </>
                                             )}
 
                                             <div className="nb-dd-sep" />

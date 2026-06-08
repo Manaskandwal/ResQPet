@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { HeartIcon } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { SkeletonCard } from '../components/Skeleton';
+import { StatusBadge } from '../components/StatusComponents';
 
 const isNewUI = import.meta.env.VITE_UI_DESIGN === 'new';
 
@@ -23,11 +25,24 @@ const Fundraisers = () => {
     const [loading, setLoading] = useState(true);
     const [donatingId, setDonatingId] = useState(null);
     const [donationAmount, setDonationAmount] = useState('');
-    const [activeTab, setActiveTab] = useState('cases');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'cases';
+    const setActiveTab = (tab) => setSearchParams({ tab });
+
     const [subscribing, setSubscribing] = useState(false);
     const [paymentHistoryMessage, setPaymentHistoryMessage] = useState('');
     const [supportModalOpen, setSupportModalOpen] = useState(false);
     const [supportForm, setSupportForm] = useState(defaultSupportForm);
+
+    // NGO specific state
+    const [eligibleCases, setEligibleCases] = useState([]);
+    const [selectedCase, setSelectedCase] = useState(null);
+    const [formLoading, setFormLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        requestedGoal: '',
+        billText: '',
+        media: null
+    });
 
     const fetchFundraisers = async () => {
         try {
@@ -47,14 +62,62 @@ const Fundraisers = () => {
         }
     };
 
+    const fetchNgoCases = useCallback(async () => {
+        try {
+            const res = await api.get('/ngo/my-cases');
+            const allCases = res.data.cases || [];
+            // Filter to only cases that are eligible for fundraiser and not already one
+            const filtered = allCases.filter(c => 
+                ['completed', 'treating', 'reached', 'resolved_on_spot', 'hospital_broadcasted'].includes(c.status)
+            );
+            setEligibleCases(filtered);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to fetch cases.');
+        }
+    }, []);
+
     useEffect(() => {
         const init = async () => {
             setLoading(true);
-            await Promise.all([fetchFundraisers(), fetchNgos()]);
+            const promises = [fetchFundraisers(), fetchNgos()];
+            if (user?.role === 'ngo' && user.isApproved) {
+                promises.push(fetchNgoCases());
+            }
+            await Promise.all(promises);
             setLoading(false);
         };
         init();
-    }, []);
+    }, [user, fetchNgoCases]);
+
+    const handleNgoSubmit = async (e) => {
+        e.preventDefault();
+        if (!selectedCase) return;
+        if (!formData.media) {
+            toast.error('Please attach the bill estimate image.');
+            return;
+        }
+
+        setFormLoading(true);
+        try {
+            const data = new FormData();
+            data.append('requestedGoal', formData.requestedGoal);
+            data.append('billText', formData.billText);
+            data.append('media', formData.media);
+
+            await api.post(`/ngo/rescue/${selectedCase._id}/fundraiser`, data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            toast.success('Fundraiser request submitted for verification.');
+            setSelectedCase(null);
+            setFormData({ requestedGoal: '', billText: '', media: null });
+            fetchNgoCases();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to request fundraiser.');
+        } finally {
+            setFormLoading(false);
+        }
+    };
 
     const handleJoinEmergencyFund = async () => {
         setSubscribing(true);
@@ -139,6 +202,9 @@ const Fundraisers = () => {
                         <div className="flex gap-1 rounded-2xl bg-surface-hover p-1 w-full md:w-fit">
                             <button onClick={() => setActiveTab('cases')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'cases' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>Active Cases</button>
                             <button onClick={() => setActiveTab('ngos')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ngos' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>NGO-wise</button>
+                            {user?.role === 'ngo' && (
+                                <button onClick={() => setActiveTab('manage')} className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'manage' ? 'bg-brand text-background' : 'text-on-surface/40 hover:text-on-surface'}`}>Start / Manage</button>
+                            )}
                         </div>
                         
                         {!user?.monthlySubscription?.isSubscribed ? (
@@ -199,7 +265,7 @@ const Fundraisers = () => {
                             })}
                         </div>
                     )
-                ) : (
+                ) : activeTab === 'ngos' ? (
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         {ngos.filter((ngo) => ngo.paymentDetails?.upiId).map((ngo) => (
                             <div key={ngo._id} className="glass-card rounded-[2rem] border border-surface-border bg-surface p-6 space-y-5">
@@ -222,7 +288,239 @@ const Fundraisers = () => {
                             </div>
                         ))}
                     </div>
-                )}
+                ) : activeTab === 'manage' && user?.role === 'ngo' ? (
+                    <section className="grid lg:grid-cols-2 gap-8">
+                        {/* Eligible Cases List */}
+                        <div className="space-y-6">
+                            <h3 className="font-headline font-bold text-xl uppercase tracking-tight flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#fd8b00]">clinical_notes</span>
+                                Eligible Cases
+                            </h3>
+                            
+                            <div className="space-y-4">
+                                {eligibleCases.length === 0 ? (
+                                    <div className="py-16 glass-card rounded-[2.5rem] border border-dashed border-white/5 text-center space-y-4">
+                                        <span className="material-symbols-outlined text-4xl text-white/10">verified</span>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20">No Eligible Cases Available</p>
+                                    </div>
+                                ) : eligibleCases.map(c => {
+                                    const isRequested = c.fundraiser && c.fundraiser.status !== 'none';
+                                    const isSelected = selectedCase?._id === c._id;
+                                    
+                                    return (
+                                        <div 
+                                            key={c._id} 
+                                            onClick={() => setSelectedCase(c)}
+                                            className={`glass-card rounded-[2rem] p-6 border transition-all cursor-pointer ${
+                                                isSelected 
+                                                    ? 'border-[#fd8b00] bg-[#fd8b00]/10 shadow-[0_0_30px_rgba(253,139,0,0.1)]' 
+                                                    : isRequested 
+                                                        ? 'border-white/5 bg-[#1c1b1b] opacity-80 hover:border-[#fd8b00]/30 hover:bg-white/5' 
+                                                        : 'border-white/5 bg-[#1c1b1b] hover:border-[#fd8b00]/30 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[9px] font-black uppercase tracking-widest text-white/30">ID: {c._id.slice(-6).toUpperCase()}</span>
+                                                        <StatusBadge status={c.status} />
+                                                    </div>
+                                                    <h4 className="font-bold text-lg leading-tight">{c.description}</h4>
+                                                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest pt-2">
+                                                        {isRequested ? (
+                                                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                                c.fundraiser.status === 'approved' ? 'bg-[#76d6d4]/10 text-[#76d6d4]' :
+                                                                c.fundraiser.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                                                                'bg-[#ffb77d]/10 text-[#ffb77d]'
+                                                            }`}>
+                                                                Fundraiser: {c.fundraiser.status}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-white/30 flex items-center">
+                                                                <span className="material-symbols-outlined text-sm align-middle mr-1.5">payments</span>
+                                                                Not Funded
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {c.images?.[0] && (
+                                                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
+                                                        <img src={c.images[0]} alt="Case" className="w-full h-full object-cover" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Request Form Panel */}
+                        <div className="space-y-6">
+                            <h3 className="font-headline font-bold text-xl uppercase tracking-tight flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#76d6d4]">edit_document</span>
+                                Request Details
+                            </h3>
+                            
+                            <div className="glass-card rounded-[2.5rem] bg-[#1c1b1b] border border-white/5 p-8 relative overflow-hidden">
+                                {!selectedCase ? (
+                                    <div className="absolute inset-0 z-10 bg-[#1c1b1b]/80 backdrop-blur-sm flex items-center justify-center p-8 text-center">
+                                        <div className="space-y-4">
+                                            <span className="material-symbols-outlined text-4xl text-white/10">swipe_left</span>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Select a case to initiate request</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#fd8b00]/5 to-transparent pointer-events-none" />
+                                )}
+                                
+                                {selectedCase && selectedCase.fundraiser && selectedCase.fundraiser.status !== 'none' ? (
+                                    <div className="space-y-6 relative z-10 w-full text-sm text-[#e5e2e1]">
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/5 mb-4">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-[#fd8b00] mb-1">Target Case</p>
+                                            <p className="font-bold text-sm truncate">{selectedCase.description}</p>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-1">ID: {selectedCase._id}</p>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Request Status</span>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                                    selectedCase.fundraiser.status === 'approved' ? 'bg-[#76d6d4]/10 text-[#76d6d4]' :
+                                                    selectedCase.fundraiser.status === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                                                    'bg-[#ffb77d]/10 text-[#ffb77d]'
+                                                }`}>
+                                                    {selectedCase.fundraiser.status}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Fundraising Goal</span>
+                                                <span className="text-lg font-black text-on-surface">₹{selectedCase.fundraiser.requestedGoal}</span>
+                                            </div>
+
+                                            {selectedCase.fundraiser.status === 'approved' && (
+                                                <div className="space-y-2 border-b border-white/5 pb-3">
+                                                    <div className="flex justify-between text-xs font-bold">
+                                                        <span className="text-[#76d6d4]">Raised: ₹{selectedCase.amountRaised || 0}</span>
+                                                        <span className="text-white/30">Progress: {Math.min(((selectedCase.amountRaised || 0) / selectedCase.fundraiser.requestedGoal) * 100, 100).toFixed(0)}%</span>
+                                                    </div>
+                                                    <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
+                                                        <div className="h-full rounded-full bg-gradient-to-r from-[#fd8b00] to-[#ffb77d]" style={{ width: `${Math.min(((selectedCase.amountRaised || 0) / selectedCase.fundraiser.requestedGoal) * 100, 100)}%` }} />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-1">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Justification Details</span>
+                                                <p className="text-xs text-white/60 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">{selectedCase.fundraiser.billText || 'No detailed treatment explanation was provided.'}</p>
+                                            </div>
+
+                                            {selectedCase.fundraiser.adminNotes && (
+                                                <div className="space-y-1">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Admin Remarks</span>
+                                                    <p className="text-xs text-red-200 leading-relaxed bg-red-950/10 p-4 rounded-xl border border-red-500/10">{selectedCase.fundraiser.adminNotes}</p>
+                                                </div>
+                                            )}
+
+                                            {selectedCase.fundraiser.billImage && (
+                                                <div className="space-y-2">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Uploaded Bill Estimate</span>
+                                                    <a href={selectedCase.fundraiser.billImage} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-2xl overflow-hidden border border-white/10 relative group">
+                                                        <img src={selectedCase.fundraiser.billImage} alt="Bill estimate" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-xl">View Original Bill</span>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-6 border-t border-white/5">
+                                            <button 
+                                                type="button"
+                                                onClick={() => setSelectedCase(null)}
+                                                className="w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-[0.98] transition-all"
+                                            >
+                                                Clear Selection
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleNgoSubmit} className="space-y-6 relative z-10 w-full">
+                                        {selectedCase && (
+                                            <div className="p-4 rounded-xl bg-white/5 border border-white/5 mb-8">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-[#fd8b00] mb-1">Target Case</p>
+                                                <p className="font-bold text-sm truncate">{selectedCase.description}</p>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Required Amount (₹)</label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 font-bold">₹</span>
+                                                <input 
+                                                    type="number" 
+                                                    required min="100" 
+                                                    value={formData.requestedGoal} 
+                                                    onChange={e => setFormData(c => ({...c, requestedGoal: e.target.value}))} 
+                                                    className="w-full rounded-2xl bg-[#131313] border border-white/10 pl-10 pr-4 py-4 text-lg font-bold text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all appearance-none" 
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Treatment & Bill Justification</label>
+                                            <textarea 
+                                                required 
+                                                value={formData.billText} 
+                                                onChange={e => setFormData(c => ({...c, billText: e.target.value}))} 
+                                                className="w-full h-32 rounded-2xl bg-[#131313] border border-white/10 p-4 text-sm text-[#e5e2e1] outline-none focus:border-[#fd8b00]/50 transition-all resize-none" 
+                                                placeholder="Explain the medical procedures and why these funds are necessary..."
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-[#e5e2e1]/30">Upload Evidence (Bill/Estimate Image)</label>
+                                            <div className="relative w-full">
+                                                <input 
+                                                    type="file" 
+                                                    id="bill-upload" 
+                                                    required 
+                                                    accept="image/*" 
+                                                    onChange={e => setFormData(c => ({...c, media: e.target.files[0]}))} 
+                                                    className="hidden" 
+                                                />
+                                                <label 
+                                                    htmlFor="bill-upload" 
+                                                    className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-white/10 hover:border-[#fd8b00]/30 hover:bg-white/5 transition-all cursor-pointer group"
+                                                >
+                                                    <span className={`material-symbols-outlined text-3xl mb-2 transition-colors ${formData.media ? 'text-[#76d6d4]' : 'text-white/20 group-hover:text-[#fd8b00]'}`}>
+                                                        {formData.media ? 'task_alt' : 'receipt_long'}
+                                                    </span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                                                        {formData.media ? formData.media.name : 'Tap to select bill image'}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-6 border-t border-white/5">
+                                            <button 
+                                                type="submit" 
+                                                disabled={formLoading || !selectedCase} 
+                                                className="w-full h-14 rounded-2xl bg-gradient-to-r from-[#fd8b00] to-[#ffb77d] text-[#131313] text-[12px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(253,139,0,0.2)] hover:shadow-[0_0_30px_rgba(253,139,0,0.4)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:grayscale"
+                                            >
+                                                {formLoading ? 'Transmitting Request...' : 'Submit Fundraiser Workflow'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    </section>
+                ) : null}
 
                 {/* Monthly Support Modal */}
                 {supportModalOpen && (
@@ -286,6 +584,9 @@ const Fundraisers = () => {
             <div className="flex items-center border-b border-surface-border">
                 <button onClick={() => setActiveTab('cases')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'cases' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>Active Cases{activeTab === 'cases' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
                 <button onClick={() => setActiveTab('ngos')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'ngos' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>NGO-wise Support{activeTab === 'ngos' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
+                {user?.role === 'ngo' && (
+                    <button onClick={() => setActiveTab('manage')} className={`relative px-6 py-3 text-sm font-bold transition-all ${activeTab === 'manage' ? 'text-rose-600' : 'text-surface-muted hover:text-slate-700'}`}>Start / Manage Fundraisers{activeTab === 'manage' && <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-rose-600" />}</button>
+                )}
             </div>
 
             {activeTab === 'cases' ? (
@@ -321,7 +622,7 @@ const Fundraisers = () => {
                         })}
                     </div>
                 )
-            ) : (
+            ) : activeTab === 'ngos' ? (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     {ngos.filter((ngo) => ngo.paymentDetails?.upiId).map((ngo) => (
                         <div key={ngo._id} className="card border-surface-border/50 transition-all hover:shadow-card-hover">
@@ -344,7 +645,186 @@ const Fundraisers = () => {
                         </div>
                     ))}
                 </div>
-            )}
+            ) : activeTab === 'manage' && user?.role === 'ngo' ? (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold text-slate-800">Start or Manage Fundraisers</h2>
+                    <p className="text-sm text-surface-muted">Select an eligible case below to initiate a community fundraiser for medical bill coverage.</p>
+                    
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        {/* Case list */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Eligible Rescue Cases</h3>
+                            {eligibleCases.length === 0 ? (
+                                <div className="card p-8 text-center text-surface-muted">
+                                    No eligible cases found for fundraiser creation.
+                                </div>
+                            ) : (
+                                eligibleCases.map((c) => {
+                                    const isRequested = c.fundraiser && c.fundraiser.status !== 'none';
+                                    const isSelected = selectedCase?._id === c._id;
+                                    return (
+                                        <div
+                                            key={c._id}
+                                            onClick={() => setSelectedCase(c)}
+                                            className={`card cursor-pointer p-4 border transition-all ${
+                                                isSelected
+                                                    ? 'border-rose-500 bg-rose-50/30'
+                                                    : 'border-slate-200 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <div className="flex justify-between items-start gap-3">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-[10px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">ID: {c._id.slice(-6).toUpperCase()}</span>
+                                                        <StatusBadge status={c.status} />
+                                                    </div>
+                                                    <h4 className="font-bold text-slate-800">{c.description}</h4>
+                                                    <p className="text-xs text-slate-500 mt-1">{c.location?.address || 'Location provided'}</p>
+                                                    
+                                                    {isRequested ? (
+                                                        <div className="mt-2">
+                                                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
+                                                                c.fundraiser.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                                                                c.fundraiser.status === 'rejected' ? 'bg-rose-100 text-rose-800' :
+                                                                'bg-amber-100 text-amber-800'
+                                                            }`}>
+                                                                Status: {c.fundraiser.status}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[10px] text-slate-400 mt-2">No fundraiser requested yet</p>
+                                                    )}
+                                                </div>
+                                                {c.images?.[0] && (
+                                                    <img src={c.images[0]} alt="Case" className="w-12 h-12 object-cover rounded-md" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {/* Request Form / Details */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Request Details</h3>
+                            <div className="card p-5 border border-slate-200 bg-white relative">
+                                {!selectedCase ? (
+                                    <div className="text-center text-surface-muted py-12">
+                                        Select a case from the list to view details or start a fundraiser request.
+                                    </div>
+                                ) : selectedCase.fundraiser && selectedCase.fundraiser.status !== 'none' ? (
+                                    <div className="space-y-4">
+                                        <div className="bg-slate-50 p-3 rounded-btn border border-slate-100">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Selected Case</p>
+                                            <p className="font-bold text-slate-800 text-sm truncate">{selectedCase.description}</p>
+                                            <p className="text-[9px] text-slate-400 mt-0.5">ID: {selectedCase._id}</p>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-center border-b pb-2 text-sm">
+                                            <span className="text-slate-500 font-medium">Request Status</span>
+                                            <span className={`font-bold capitalize ${
+                                                selectedCase.fundraiser.status === 'approved' ? 'text-emerald-600' :
+                                                selectedCase.fundraiser.status === 'rejected' ? 'text-rose-600' :
+                                                'text-amber-600'
+                                            }`}>{selectedCase.fundraiser.status}</span>
+                                        </div>
+
+                                        <div className="flex justify-between items-center border-b pb-2 text-sm">
+                                            <span className="text-slate-500 font-medium">Requested Goal</span>
+                                            <span className="font-bold text-slate-800">₹{selectedCase.fundraiser.requestedGoal}</span>
+                                        </div>
+
+                                        {selectedCase.fundraiser.status === 'approved' && (
+                                            <div className="space-y-1 pb-2 border-b">
+                                                <div className="flex justify-between text-xs font-semibold">
+                                                    <span className="text-rose-600">Raised: ₹{selectedCase.amountRaised || 0}</span>
+                                                    <span className="text-slate-400">Progress: {Math.min(((selectedCase.amountRaised || 0) / selectedCase.fundraiser.requestedGoal) * 100, 100).toFixed(0)}%</span>
+                                                </div>
+                                                <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden shadow-inner">
+                                                    <div className="h-full bg-gradient-to-r from-rose-500 to-rose-400" style={{ width: `${Math.min(((selectedCase.amountRaised || 0) / selectedCase.fundraiser.requestedGoal) * 100, 100)}%` }} />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Justification Details</span>
+                                            <p className="text-sm text-slate-600 mt-1 bg-slate-50 p-3 rounded-btn border border-slate-100">{selectedCase.fundraiser.billText || 'No treatment explanation was provided.'}</p>
+                                        </div>
+
+                                        {selectedCase.fundraiser.adminNotes && (
+                                            <div>
+                                                <span className="text-xs text-rose-500 font-bold uppercase tracking-wider">Admin Remarks</span>
+                                                <p className="text-sm text-rose-700 mt-1 bg-rose-50 p-3 rounded-btn border border-rose-100">{selectedCase.fundraiser.adminNotes}</p>
+                                            </div>
+                                        )}
+
+                                        {selectedCase.fundraiser.billImage && (
+                                            <div>
+                                                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Uploaded Bill Estimate</span>
+                                                <a href={selectedCase.fundraiser.billImage} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-lg overflow-hidden border border-slate-200">
+                                                    <img src={selectedCase.fundraiser.billImage} alt="Bill estimate" className="w-full h-full object-cover" />
+                                                </a>
+                                            </div>
+                                        )}
+
+                                        <button type="button" onClick={() => setSelectedCase(null)} className="btn-ghost w-full py-2.5 mt-2">Clear Selection</button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleNgoSubmit} className="space-y-4">
+                                        <div className="bg-slate-50 p-3 rounded-btn border border-slate-100">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Initiating For</p>
+                                            <p className="font-bold text-slate-800 text-sm truncate">{selectedCase.description}</p>
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="label">Requested Amount (₹)</label>
+                                            <input
+                                                type="number"
+                                                required
+                                                min="100"
+                                                value={formData.requestedGoal}
+                                                onChange={(e) => setFormData((c) => ({ ...c, requestedGoal: e.target.value }))}
+                                                className="input"
+                                                placeholder="Enter goal amount"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="label">Treatment & Bill Justification</label>
+                                            <textarea
+                                                required
+                                                value={formData.billText}
+                                                onChange={(e) => setFormData((c) => ({ ...c, billText: e.target.value }))}
+                                                className="textarea h-24"
+                                                placeholder="Explain the diagnosis and required procedures..."
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="label">Upload Bill/Estimate Image</label>
+                                            <input
+                                                type="file"
+                                                required
+                                                accept="image/*"
+                                                onChange={(e) => setFormData((c) => ({ ...c, media: e.target.files[0] }))}
+                                                className="input p-2"
+                                            />
+                                        </div>
+
+                                        <div className="flex gap-2 pt-2">
+                                            <button type="button" onClick={() => setSelectedCase(null)} className="btn-ghost flex-1">Cancel</button>
+                                            <button type="submit" disabled={formLoading} className="btn-primary flex-1">
+                                                {formLoading ? 'Submitting...' : 'Submit Request'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
 
             {supportModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
