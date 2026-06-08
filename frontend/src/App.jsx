@@ -79,15 +79,21 @@ export default function App() {
           <Route path="/user/rescue/:id" element={withSuspense(<RescueDetail />)} />
           <Route path="/user/payments" element={withSuspense(<PaymentHistory />)} />
           <Route path="/user/reports" element={withSuspense(<MyRescueReports />)} />
-          <Route path="/fundraisers" element={withSuspense(<Fundraisers />)} />
           <Route path="/impact" element={withSuspense(<Impact />)} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={['user', 'ngo']} />}>
+        <Route element={<Layout />}>
+          <Route path="/fundraisers" element={withSuspense(<Fundraisers />)} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['ngo']} />}>
         <Route element={<Layout />}>
           <Route path="/ngo/dashboard" element={withSuspense(<NGODashboard />)} />
-          <Route path="/ngo/fundraisers" element={withSuspense(<NgoFundraisers />)} />
+          <Route path="/ngo/fundraisers" element={<Navigate to="/fundraisers?tab=manage" replace />} />
+          <Route path="/ngo/payments" element={withSuspense(<PaymentHistory />)} />
         </Route>
       </Route>
 
