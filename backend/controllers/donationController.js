@@ -1,6 +1,7 @@
 const Donation = require('../models/Donation');
 const User = require('../models/User');
 const RescueRequest = require('../models/RescueRequest');
+const WalletTransaction = require('../models/WalletTransaction');
 const { getRazorpay } = require('../config/razorpay');
 const crypto = require('crypto');
 
@@ -143,6 +144,32 @@ const verifyDonation = async (req, res) => {
             const rescue = await RescueRequest.findById(donation.rescueRequest);
             if (rescue && rescue.isFundraiser) {
                 rescue.amountRaised += donation.amount;
+
+                // Credit the NGO's wallet who is assigned to the case
+                if (rescue.assignedNGO) {
+                    const ngo = await User.findById(rescue.assignedNGO);
+                    if (ngo) {
+                        ngo.walletBalance = (ngo.walletBalance || 0) + donation.amount;
+                        ngo.paymentHistory = ngo.paymentHistory || [];
+                        ngo.paymentHistory.push({
+                            amount: donation.amount,
+                            type: 'credit',
+                            description: `Donation received for Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+                            timestamp: new Date()
+                        });
+                        await ngo.save();
+
+                        // Record transaction for the NGO
+                        await WalletTransaction.create({
+                            user: ngo._id,
+                            amount: donation.amount,
+                            type: 'credit',
+                            description: `Donation received for Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+                            balanceAfter: ngo.walletBalance,
+                        });
+                        console.log(`[Donation] Credited ₹${donation.amount} to NGO ${ngo.orgName || ngo.name}. New balance: ₹${ngo.walletBalance}`);
+                    }
+                }
 
                 // If goal is met, move it out of fundraiser state into ambulance pinging
                 if (rescue.amountRaised >= (rescue.fundraiser.requestedGoal || rescue.estimatedCost)) {
@@ -310,6 +337,32 @@ const donateWithWallet = async (req, res) => {
         });
 
         rescue.amountRaised += amount;
+
+        // Credit the NGO's wallet who is assigned to the case
+        if (rescue.assignedNGO) {
+            const ngo = await User.findById(rescue.assignedNGO);
+            if (ngo) {
+                ngo.walletBalance = (ngo.walletBalance || 0) + amount;
+                ngo.paymentHistory = ngo.paymentHistory || [];
+                ngo.paymentHistory.push({
+                    amount: amount,
+                    type: 'credit',
+                    description: `Donation received for Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+                    timestamp: new Date()
+                });
+                await ngo.save();
+
+                // Record transaction for the NGO
+                await WalletTransaction.create({
+                    user: ngo._id,
+                    amount: amount,
+                    type: 'credit',
+                    description: `Donation received for Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+                    balanceAfter: ngo.walletBalance,
+                });
+                console.log(`[Donation] Credited ₹${amount} to NGO ${ngo.orgName || ngo.name}. New balance: ₹${ngo.walletBalance}`);
+            }
+        }
         
         rescue.statusLogs = Array.isArray(rescue.statusLogs) ? rescue.statusLogs : [];
         

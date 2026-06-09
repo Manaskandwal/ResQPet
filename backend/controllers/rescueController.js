@@ -435,6 +435,33 @@ const payHospitalBill = async (req, res) => {
         user.walletBalance -= amountToPay;
         await user.save();
 
+        // Credit the hospital's wallet
+        if (rescue.assignedHospital) {
+            const hospital = await User.findById(rescue.assignedHospital);
+            if (hospital) {
+                hospital.walletBalance = (hospital.walletBalance || 0) + amountToPay;
+                hospital.paymentHistory = hospital.paymentHistory || [];
+                hospital.paymentHistory.push({
+                    amount: amountToPay,
+                    type: 'credit',
+                    description: `Received payment for bill of Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+                    timestamp: new Date()
+                });
+                await hospital.save();
+
+                // Create a WalletTransaction record for the Hospital
+                await WalletTransaction.create({
+                    user: hospital._id,
+                    amount: amountToPay,
+                    type: 'credit',
+                    description: `Received payment for bill of Case #${rescue._id.toString().slice(-6).toUpperCase()}`,
+                    rescueRequest: rescue._id,
+                    balanceAfter: hospital.walletBalance,
+                });
+                console.log(`[Bill Payment] Credited ₹${amountToPay} to Hospital ${hospital.orgName || hospital.name}. New balance: ₹${hospital.walletBalance}`);
+            }
+        }
+
         rescue.bill.paidStatus = 'paid';
         
         const txn = await WalletTransaction.create({

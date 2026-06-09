@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema(
         paymentHistory: {
             type: [{
                 amount: { type: Number, required: true },
-                type: { type: String, enum: ['deduction', 'deposit', 'refund'], default: 'deduction' },
+                type: { type: String, enum: ['deduction', 'deposit', 'refund', 'credit'], default: 'deduction' },
                 description: { type: String, default: '' },
                 timestamp: { type: Date, default: Date.now },
                 rescueId: { type: mongoose.Schema.Types.ObjectId, ref: 'RescueRequest', default: null },
