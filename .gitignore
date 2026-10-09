@@ -2,3 +2,6 @@ backend/node_modules
 frontend/node_modules
 .env
 /graphify-out
+.maven/
+backend-spring/target/
+scratch/

@@ -1,0 +1,41 @@
+server:
+  port: 5000
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: vetscue-backend
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb+srv://manaskandwal_db_user:2QWbN62brs8ZYX91@resqpaws.4vr09k5.mongodb.net/PawSaarthi?retryWrites=true&w=majority}
+      auto-index-creation: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# Custom Security & JWT properties
+app:
+  jwt:
+    secret: ${JWT_SECRET:d2599a133c0bebb87928c0862ec5b509be2b000fba4a8ebf12df5c4ef21f38a5dcc4432a2eadf909df132f28afca53f0e47a2eb2f6c596d8260be398d4d0a5e6}
+    expiration-ms: 604800000 # 7 days
+  cors:
+    allowed-origins: ${CLIENT_URL:http://localhost:5173,http://localhost:3000}
+
+# Cloudinary Config
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:dtbhbpjb8}
+  api-key: ${CLOUDINARY_API_KEY:395345929678974}
+  api-secret: ${CLOUDINARY_API_SECRET:gDmQGjeZxHJ_TiaAcG9wv1goC0Q}
+
+# Razorpay Config
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_SnFnPSI3Ogggc9}
+  key-secret: ${RAZORPAY_KEY_SECRET:SfVZX4HWRD1A10XZMM8xX5Xb}
+
+logging:
+  level:
+    root: INFO
+    com.vetscue.api: DEBUG
+    org.springframework.data.mongodb: INFO
